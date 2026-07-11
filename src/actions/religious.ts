@@ -19,6 +19,12 @@ export async function getReligiousActivity(dateStr: string) {
   return activity;
 }
 
+export async function getAllReligiousActivities() {
+  return await prisma.religiousActivity.findMany({
+    orderBy: { date: 'desc' },
+  });
+}
+
 export async function toggleReligiousActivity(dateStr: string, field: string, currentValue: boolean) {
   const date = new Date(dateStr);
   
