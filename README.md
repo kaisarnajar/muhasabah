@@ -1,4 +1,4 @@
-# My Muhasabah
+# Muhasabah
 
 A comprehensive, beautifully designed personal dashboard and self-accountability application to help you track your goals, finances, religious duties, journal entries, and daily/weekend tasks.
 

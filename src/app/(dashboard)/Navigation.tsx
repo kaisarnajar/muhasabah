@@ -42,7 +42,7 @@ export default function Navigation() {
 
       <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div style={{ marginBottom: '40px', padding: '0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 className="text-headline-md text-on-surface">My Muhasabah</h1>
+          <h1 className="text-headline-md text-on-surface">Muhasabah</h1>
           {/* Close button for mobile inside sidebar (optional but good practice) */}
           <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(false)}>
             <span className="material-symbols-outlined">close</span>
