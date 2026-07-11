@@ -13,9 +13,28 @@ export default async function Dashboard() {
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
   
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  const weekStart = new Date(todayStart);
+  weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+  
+  const dailySpending = transactions
+    .filter(t => new Date(t.date) >= todayStart && t.type === 'EXPENSE')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+
+  const weeklySpending = transactions
+    .filter(t => new Date(t.date) >= weekStart && t.type === 'EXPENSE')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+
   const monthlySpending = transactions
     .filter(t => new Date(t.date) >= startOfMonth && t.type === 'EXPENSE')
+    .reduce((acc, t) => acc + Number(t.amount), 0);
+
+  const yearlySpending = transactions
+    .filter(t => new Date(t.date) >= startOfYear && t.type === 'EXPENSE')
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const monthlyIncome = transactions
@@ -49,14 +68,22 @@ export default async function Dashboard() {
         </div>
 
         <div className="col-span-12 md:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div className="card" style={{ backgroundColor: '#0a0a0a', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <span className="text-label-sm" style={{ letterSpacing: '0.05em', opacity: 0.8 }}>MONTHLY SPENDING</span>
-              <span className="material-symbols-outlined">trending_down</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>TODAY</span>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${dailySpending.toFixed(2)}</h3>
             </div>
-            <div>
-              <h3 style={{ fontSize: '40px', fontWeight: 'bold', marginBottom: '8px' }}>${monthlySpending.toFixed(2)}</h3>
-              <p className="text-label-sm" style={{ opacity: 0.7 }}>Expenses tracked this month</p>
+            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS WEEK</span>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${weeklySpending.toFixed(2)}</h3>
+            </div>
+            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS MONTH</span>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${monthlySpending.toFixed(2)}</h3>
+            </div>
+            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS YEAR</span>
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${yearlySpending.toFixed(2)}</h3>
             </div>
           </div>
 
