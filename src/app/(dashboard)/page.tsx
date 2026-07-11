@@ -43,6 +43,26 @@ export default async function Dashboard() {
 
   return (
     <>
+      {/* SPENDING SUMMARY */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>TODAY</span>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${dailySpending.toFixed(2)}</h3>
+        </div>
+        <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS WEEK</span>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${weeklySpending.toFixed(2)}</h3>
+        </div>
+        <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS MONTH</span>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${monthlySpending.toFixed(2)}</h3>
+        </div>
+        <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS YEAR</span>
+          <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${yearlySpending.toFixed(2)}</h3>
+        </div>
+      </div>
+
       {/* QUICK ACTIONS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '24px' }}>
         <Link href="/transactions" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
@@ -73,31 +93,9 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid-container">
-        <div className="col-span-12 md:col-span-8" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', alignContent: 'start' }}>
+        <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', alignContent: 'start' }}>
           <TasksOfTheDay dateStr={todayStr} />
         </div>
-
-        <div className="col-span-12 md:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>TODAY</span>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${dailySpending.toFixed(2)}</h3>
-            </div>
-            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS WEEK</span>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${weeklySpending.toFixed(2)}</h3>
-            </div>
-            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS MONTH</span>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${monthlySpending.toFixed(2)}</h3>
-            </div>
-            <div className="card" style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>THIS YEAR</span>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${yearlySpending.toFixed(2)}</h3>
-            </div>
-          </div>
-        </div>
-
       </div>
     </>
   );
