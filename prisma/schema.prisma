@@ -6,13 +6,19 @@ datasource db {
   provider = "postgresql"
 }
 
-model Expense {
-  id          Int      @id @default(autoincrement())
-  amount      Decimal  @db.Decimal(10, 2)
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  amount      Decimal         @db.Decimal(10, 2)
   description String
-  category    String   @db.VarChar(50)
-  date        DateTime @default(now()) @db.Date
-  createdAt   DateTime @default(now()) @db.Timestamptz()
+  category    String          @db.VarChar(50)
+  type        TransactionType @default(EXPENSE)
+  date        DateTime        @default(now()) @db.Date
+  createdAt   DateTime        @default(now()) @db.Timestamptz()
 }
 
 model Goal {
@@ -24,14 +30,24 @@ model Goal {
 }
 
 model ReligiousActivity {
-  id           Int      @id @default(autoincrement())
-  date         DateTime @unique @default(now()) @db.Date
-  fajr         Boolean  @default(false)
-  dhuhr        Boolean  @default(false)
-  asr          Boolean  @default(false)
-  maghrib      Boolean  @default(false)
-  isha         Boolean  @default(false)
-  quranReading Boolean  @default(false)
-  adhkar       Boolean  @default(false)
-  createdAt    DateTime @default(now()) @db.Timestamptz()
+  id                 Int      @id @default(autoincrement())
+  date               DateTime @unique @default(now()) @db.Date
+  fajr               Boolean  @default(false)
+  dhuhr              Boolean  @default(false)
+  asr                Boolean  @default(false)
+  maghrib            Boolean  @default(false)
+  isha               Boolean  @default(false)
+  quranReading       Boolean  @default(false)
+  adhkar             Boolean  @default(false)
+  quranMemorization  String?  @db.Text
+  createdAt          DateTime @default(now()) @db.Timestamptz()
+}
+
+model DailyJournal {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique @default(now()) @db.Date
+  office    String?  @db.Text
+  learning  String?  @db.Text
+  other     String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz()
 }

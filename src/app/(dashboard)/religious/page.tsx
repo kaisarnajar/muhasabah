@@ -1,4 +1,4 @@
-import { getReligiousActivity, toggleReligiousActivity } from '@/actions';
+import { getReligiousActivity, toggleReligiousActivity, updateQuranMemorization } from '@/actions';
 import { Moon } from 'lucide-react';
 
 export default async function ReligiousPage({ searchParams }: { searchParams?: { date?: string } }) {
@@ -53,6 +53,24 @@ export default async function ReligiousPage({ searchParams }: { searchParams?: {
             </form>
           );
         })}
+      </div>
+
+      <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '1px solid var(--c-outline-variant)' }}>
+        <h3 className="text-body-md" style={{ fontWeight: 600, marginBottom: '16px' }}>Quran Memorization</h3>
+        <form action={updateQuranMemorization} style={{ display: 'flex', gap: '16px' }}>
+          <input type="hidden" name="date" value={dateStr} />
+          <input 
+            type="text" 
+            name="memorization" 
+            className="search-input" 
+            placeholder="e.g. Surah Ya-Sin verses 1-5" 
+            defaultValue={activity.quranMemorization || ''}
+            style={{ flex: 1, borderRadius: '8px' }}
+          />
+          <button type="submit" className="primary-btn" style={{ borderRadius: '8px', padding: '0 24px' }}>
+            Save
+          </button>
+        </form>
       </div>
     </div>
   );

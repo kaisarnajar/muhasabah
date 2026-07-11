@@ -29,30 +29,36 @@ export async function logoutAction() {
   redirect('/login');
 }
 
-// --- EXPENSES ---
-export async function getExpenses() {
-  return await prisma.expense.findMany({
+// --- TRANSACTIONS ---
+export async function getTransactions() {
+  return await prisma.transaction.findMany({
     orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
   });
 }
 
-export async function addExpense(formData: FormData) {
+export async function addTransaction(formData: FormData) {
   const amount = Number(formData.get('amount'));
   const description = formData.get('description') as string;
   const category = formData.get('category') as string;
   const dateStr = formData.get('date') as string;
+  const typeStr = formData.get('type') as string;
+  const type = typeStr === 'INCOME' ? 'INCOME' : 'EXPENSE';
 
-  await prisma.expense.create({
+  if (!amount || !description || !category || !dateStr) {
+    throw new Error('All fields are required.');
+  }
+
+  await prisma.transaction.create({
     data: {
       amount,
       description,
       category,
+      type,
       date: new Date(dateStr),
     },
   });
-
-  revalidatePath('/expenses');
-  revalidatePath('/'); // update dashboard
+  revalidatePath('/transactions');
+  revalidatePath('/');
 }
 
 // --- GOALS ---
@@ -97,7 +103,7 @@ export async function getReligiousActivity(dateStr: string) {
     return {
       date,
       fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false,
-      quranReading: false, adhkar: false
+      quranReading: false, adhkar: false, quranMemorization: null
     };
   }
   return activity;
@@ -125,4 +131,46 @@ export async function toggleReligiousActivity(dateStr: string, field: string, cu
   });
 
   revalidatePath('/religious');
+  revalidatePath('/');
+}
+
+export async function updateQuranMemorization(formData: FormData) {
+  const dateStr = formData.get('date') as string;
+  const memorization = formData.get('memorization') as string;
+  
+  if (!dateStr) throw new Error('Date is required.');
+
+  await prisma.religiousActivity.upsert({
+    where: { date: new Date(dateStr) },
+    update: { quranMemorization: memorization },
+    create: { date: new Date(dateStr), quranMemorization: memorization },
+  });
+  revalidatePath('/religious');
+  revalidatePath('/');
+}
+
+// --- DAILY JOURNAL ---
+export async function getJournal(dateStr: string) {
+  const date = new Date(dateStr);
+  const journal = await prisma.dailyJournal.findUnique({
+    where: { date },
+  });
+
+  return journal || { date, office: '', learning: '', other: '' };
+}
+
+export async function updateJournal(formData: FormData) {
+  const dateStr = formData.get('date') as string;
+  const office = formData.get('office') as string;
+  const learning = formData.get('learning') as string;
+  const other = formData.get('other') as string;
+
+  if (!dateStr) throw new Error('Date is required.');
+
+  await prisma.dailyJournal.upsert({
+    where: { date: new Date(dateStr) },
+    update: { office, learning, other },
+    create: { date: new Date(dateStr), office, learning, other },
+  });
+  revalidatePath('/journal');
 }

@@ -15,18 +15,18 @@ export default function Navigation() {
     <>
       <aside className="sidebar">
         <div style={{ marginBottom: '40px', padding: '0 8px' }}>
-          <h1 className="text-headline-md text-on-surface">Accountability HQ</h1>
+          <h1 className="text-headline-md text-on-surface">My Muhasabah</h1>
           <p className="text-label-sm text-on-surface-variant" style={{ opacity: 0.7 }}>Focus & Clarity</p>
         </div>
         
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Link href="/" className={`nav-item ${pathname === '/' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-body-md">Dashboard</span>
           </Link>
-          <Link href="/expenses" className={`nav-item ${pathname === '/expenses' ? 'active' : ''}`}>
+          <Link href="/transactions" className={`nav-item ${pathname === '/transactions' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">payments</span>
-            <span className="text-body-md">Expenses</span>
+            <span className="text-body-md">Finances</span>
           </Link>
           <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">target</span>
@@ -35,6 +35,10 @@ export default function Navigation() {
           <Link href="/religious" className={`nav-item ${pathname === '/religious' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">auto_awesome</span>
             <span className="text-body-md">Spiritual</span>
+          </Link>
+          <Link href="/journal" className={`nav-item ${pathname === '/journal' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">menu_book</span>
+            <span className="text-body-md">Journal</span>
           </Link>
         </nav>
 
