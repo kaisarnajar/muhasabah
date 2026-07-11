@@ -225,6 +225,12 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   .hamburger-btn { display: block; }
 }
 
+.container-max {
+  max-width: var(--s-container-max);
+  margin: 0 auto;
+  padding: 32px;
+}
+
 /* Sidebar Navigation Items */
 .nav-item {
   display: flex;
