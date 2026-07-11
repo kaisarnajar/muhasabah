@@ -1,30 +1,100 @@
-import { getTransactions, addTransaction } from '@/actions';
-import { PlusCircle, Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { getTransactions } from '@/actions';
+import { Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import AddTransactionForm from './AddTransactionForm';
+import TransactionFilter from './TransactionFilter';
 
-export default async function TransactionsPage() {
-  const transactions = await getTransactions();
+export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const allTransactions = await getTransactions();
+  
+  const filterType = searchParams?.filter || 'month';
+  const filterDate = searchParams?.date || new Date().toISOString().substring(0, 7);
+  const filterStart = searchParams?.start || '';
+  const filterEnd = searchParams?.end || '';
 
-  // Calculate Summaries
+  // Calculate Date Boundaries
+  let startBoundary = new Date(0); // Beginning of time
+  let endBoundary = new Date(8640000000000000); // End of time
+
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-  const calculateNet = (filterDate: Date) => {
-    return transactions
-      .filter(t => new Date(t.date) >= filterDate)
-      .reduce((acc, t) => {
-        const amt = Number(t.amount);
-        return acc + (t.type === 'INCOME' ? amt : -amt);
-      }, 0);
-  };
+  try {
+    if (filterType === 'day') {
+      startBoundary = new Date(filterDate);
+      startBoundary.setHours(0, 0, 0, 0);
+      endBoundary = new Date(filterDate);
+      endBoundary.setHours(23, 59, 59, 999);
+    } else if (filterType === 'week') {
+      // e.g. "2026-W28"
+      const [year, week] = filterDate.split('-W');
+      if (year && week) {
+        const y = parseInt(year);
+        const w = parseInt(week);
+        const simple = new Date(y, 0, 1 + (w - 1) * 7);
+        const dow = simple.getDay();
+        const ISOweekStart = simple;
+        if (dow <= 4)
+          ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+        else
+          ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+        
+        startBoundary = new Date(ISOweekStart);
+        startBoundary.setHours(0, 0, 0, 0);
+        endBoundary = new Date(ISOweekStart);
+        endBoundary.setDate(endBoundary.getDate() + 6);
+        endBoundary.setHours(23, 59, 59, 999);
+      }
+    } else if (filterType === 'month') {
+      // e.g. "2026-07"
+      const [year, month] = filterDate.split('-');
+      if (year && month) {
+        startBoundary = new Date(parseInt(year), parseInt(month) - 1, 1);
+        endBoundary = new Date(parseInt(year), parseInt(month), 0); // Last day of month
+        endBoundary.setHours(23, 59, 59, 999);
+      }
+    } else if (filterType === 'quarter') {
+      // e.g. "2026-Q3"
+      const [yearStr, qStr] = filterDate.split('-');
+      if (yearStr && qStr) {
+        const y = parseInt(yearStr);
+        const q = parseInt(qStr.replace('Q', ''));
+        const startMonth = (q - 1) * 3;
+        startBoundary = new Date(y, startMonth, 1);
+        endBoundary = new Date(y, startMonth + 3, 0);
+        endBoundary.setHours(23, 59, 59, 999);
+      }
+    } else if (filterType === 'year') {
+      // e.g. "2026"
+      const y = parseInt(filterDate);
+      if (y) {
+        startBoundary = new Date(y, 0, 1);
+        endBoundary = new Date(y, 11, 31);
+        endBoundary.setHours(23, 59, 59, 999);
+      }
+    } else if (filterType === 'custom') {
+      if (filterStart) {
+        startBoundary = new Date(filterStart);
+        startBoundary.setHours(0, 0, 0, 0);
+      }
+      if (filterEnd) {
+        endBoundary = new Date(filterEnd);
+        endBoundary.setHours(23, 59, 59, 999);
+      }
+    }
+  } catch (e) {
+    // If parsing fails, defaults remain (all time)
+  }
 
-  const netToday = calculateNet(today);
-  const netWeek = calculateNet(startOfWeek);
-  const netMonth = calculateNet(startOfMonth);
-  const netYear = calculateNet(startOfYear);
+  // Filter Transactions
+  const transactions = allTransactions.filter(t => {
+    const d = new Date(t.date);
+    return d >= startBoundary && d <= endBoundary;
+  });
+
+  // Calculate Metrics
+  const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalExpense = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0);
+  const netFlow = totalIncome - totalExpense;
 
   return (
     <div className="card">
@@ -33,75 +103,31 @@ export default async function TransactionsPage() {
         <h2 className="text-headline-md" style={{ margin: 0 }}>Financial Tracker</h2>
       </div>
 
-      {/* Summaries */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        {[
-          { label: 'Today', net: netToday },
-          { label: 'This Week', net: netWeek },
-          { label: 'This Month', net: netMonth },
-          { label: 'This Year', net: netYear }
-        ].map(summary => (
-          <div key={summary.label} style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '8px' }}>
-            <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>{summary.label}</p>
-            <p className="text-title-lg" style={{ color: summary.net >= 0 ? 'var(--c-primary)' : 'var(--c-error)', fontWeight: 'bold' }}>
-              {summary.net >= 0 ? '+' : '-'}${Math.abs(summary.net).toFixed(2)}
-            </p>
-          </div>
-        ))}
+      <TransactionFilter />
+
+      {/* Dynamic Summaries */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '8px' }}>
+          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Total Income</p>
+          <p className="text-title-lg" style={{ color: 'var(--c-secondary)', fontWeight: 'bold' }}>
+            +${totalIncome.toFixed(2)}
+          </p>
+        </div>
+        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '8px' }}>
+          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Total Expense</p>
+          <p className="text-title-lg" style={{ color: 'var(--c-error)', fontWeight: 'bold' }}>
+            -${totalExpense.toFixed(2)}
+          </p>
+        </div>
+        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '8px', border: `1px solid ${netFlow >= 0 ? 'var(--c-secondary)' : 'var(--c-error)'}` }}>
+          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Net Flow</p>
+          <p className="text-title-lg" style={{ color: netFlow >= 0 ? 'var(--c-secondary)' : 'var(--c-error)', fontWeight: 'bold' }}>
+            {netFlow >= 0 ? '+' : '-'}${Math.abs(netFlow).toFixed(2)}
+          </p>
+        </div>
       </div>
 
-      <form action={addTransaction} style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' }}>
-        <select 
-          name="type"
-          className="search-input"
-          style={{ flex: 1, minWidth: '120px', borderRadius: '8px', WebkitAppearance: 'none' }}
-        >
-          <option value="EXPENSE">Expense</option>
-          <option value="INCOME">Income</option>
-        </select>
-        <input 
-          type="number" 
-          name="amount"
-          step="0.01" 
-          placeholder="Amount" 
-          className="search-input"
-          required 
-          style={{ flex: 1, minWidth: '100px', borderRadius: '8px' }}
-        />
-        <input 
-          type="text" 
-          name="description"
-          placeholder="Description" 
-          className="search-input"
-          required 
-          style={{ flex: 2, minWidth: '200px', borderRadius: '8px' }}
-        />
-        <select 
-          name="category"
-          className="search-input"
-          style={{ flex: 1, minWidth: '150px', borderRadius: '8px', WebkitAppearance: 'none' }}
-        >
-          <option>General</option>
-          <option>Food</option>
-          <option>Transport</option>
-          <option>Utilities</option>
-          <option>Housing</option>
-          <option>Salary</option>
-          <option>Freelance</option>
-          <option>Charity/Sadaqah</option>
-        </select>
-        <input 
-          type="date" 
-          name="date"
-          className="search-input"
-          defaultValue={now.toISOString().split('T')[0]}
-          required 
-          style={{ flex: 1, minWidth: '150px', borderRadius: '8px' }}
-        />
-        <button type="submit" className="primary-btn" style={{ width: '100%', borderRadius: '8px' }}>
-          <PlusCircle size={20} /> Add Transaction
-        </button>
-      </form>
+      <AddTransactionForm />
 
       <div>
         <h3 className="text-body-md text-on-surface-variant" style={{ marginBottom: '16px', fontWeight: 600 }}>Recent Transactions</h3>
