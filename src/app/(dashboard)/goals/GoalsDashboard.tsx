@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { GoalItem } from './GoalItem';
 import { AddGoalForm } from './AddGoalForm';
 import { Search, Archive } from 'lucide-react';
+import { Goal, GoalPriority } from '@prisma/client';
 
-export function GoalsDashboard({ goals }: { goals: any[] }) {
+export function GoalsDashboard({ goals }: { goals: Goal[] }) {
   const [activeTab, setActiveTab] = useState('MONTHLY');
   const [search, setSearch] = useState('');
   const [showArchived, setShowArchived] = useState(false);
@@ -14,7 +15,7 @@ export function GoalsDashboard({ goals }: { goals: any[] }) {
   const tabs = ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY', 'LIFETIME'];
 
   const filteredGoals = goals.filter(goal => {
-    if (goal.period !== activeTab && !showArchived) return false; // In archived view, we can show all periods or keep filtering by tab. Let's filter by tab.
+    if (goal.period !== activeTab && !showArchived) return false;
     if (goal.period !== activeTab) return false;
     if (goal.isArchived !== showArchived) return false;
     if (search && !goal.title.toLowerCase().includes(search.toLowerCase()) && !goal.description?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -23,7 +24,7 @@ export function GoalsDashboard({ goals }: { goals: any[] }) {
 
   filteredGoals.sort((a, b) => {
     if (sortBy === 'priority') {
-      const p = { HIGH: 3, MEDIUM: 2, LOW: 1 } as any;
+      const p: Record<GoalPriority, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
       if (p[b.priority] !== p[a.priority]) return p[b.priority] - p[a.priority];
     }
     if (sortBy === 'progress') {
@@ -41,7 +42,7 @@ export function GoalsDashboard({ goals }: { goals: any[] }) {
     <div>
       <AddGoalForm />
 
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
+      <div className="flex-row gap-16 mb-24" style={{ flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-on-surface-variant)' }} />
           <input 

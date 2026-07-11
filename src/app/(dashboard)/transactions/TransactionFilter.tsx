@@ -131,10 +131,14 @@ export default function TransactionFilter() {
       )}
 
       {filterType === 'quarter' && (
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex-row gap-8">
           <select
             value={dateValue.split('-')[0] || new Date().getFullYear().toString()}
-            onChange={(e) => handleDateChange({ target: { value: `${e.target.value}-${dateValue.split('-')[1] || 'Q1'}` } } as any)}
+            onChange={(e) => {
+              const newDate = `${e.target.value}-${dateValue.split('-')[1] || 'Q1'}`;
+              setDateValue(newDate);
+              applyFilter(filterType, newDate, startDate, endDate);
+            }}
             className="search-input"
             style={{ borderRadius: '8px', padding: '8px 16px', backgroundColor: 'var(--c-surface)' }}
           >
@@ -144,7 +148,11 @@ export default function TransactionFilter() {
           </select>
           <select
             value={dateValue.split('-')[1] || 'Q1'}
-            onChange={(e) => handleDateChange({ target: { value: `${dateValue.split('-')[0] || new Date().getFullYear()}-${e.target.value}` } } as any)}
+            onChange={(e) => {
+              const newDate = `${dateValue.split('-')[0] || new Date().getFullYear()}-${e.target.value}`;
+              setDateValue(newDate);
+              applyFilter(filterType, newDate, startDate, endDate);
+            }}
             className="search-input"
             style={{ borderRadius: '8px', padding: '8px 16px', backgroundColor: 'var(--c-surface)' }}
           >

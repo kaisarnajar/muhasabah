@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Plus, Trash2, Filter } from 'lucide-react';
 import { addJournalEntry, deleteJournalEntry } from '@/actions';
+import { JournalEntry } from '@prisma/client';
 
-export default function JournalDashboard({ initialEntries }: { initialEntries: any[] }) {
+export default function JournalDashboard({ initialEntries }: { initialEntries: JournalEntry[] }) {
   const [tab, setTab] = useState<'OFFICE' | 'LEARNING' | 'MISC'>('OFFICE');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,9 +60,9 @@ export default function JournalDashboard({ initialEntries }: { initialEntries: a
   return (
     <div>
       {/* TABS & FILTERS */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="flex-row justify-between mb-24 gap-16" style={{ flexWrap: 'wrap' }}>
         
-        <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--c-surface-container-high)', padding: '4px', borderRadius: '12px' }}>
+        <div className="flex-row gap-8 p-12 rounded-12" style={{ backgroundColor: 'var(--c-surface-container-high)' }}>
           <button 
             onClick={() => setTab('OFFICE')}
             style={{ padding: '8px 16px', borderRadius: '8px', fontWeight: 600, backgroundColor: tab === 'OFFICE' ? 'var(--c-primary)' : 'transparent', color: tab === 'OFFICE' ? 'var(--c-on-primary)' : 'var(--c-on-surface)' }}

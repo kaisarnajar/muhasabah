@@ -417,3 +417,32 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   transform: scale(1.05) translateY(-2px);
   box-shadow: var(--shadow-glow-primary);
 }
+
+/* Utilities */
+.flex-row { display: flex; align-items: center; }
+.flex-col { display: flex; flex-direction: column; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-20 { gap: 20px; }
+.gap-24 { gap: 24px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-32 { margin-bottom: 32px; }
+.mb-40 { margin-bottom: 40px; }
+.mt-16 { margin-top: 16px; }
+.mt-auto { margin-top: auto; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-24 { padding: 24px; }
+.rounded-8 { border-radius: 8px; }
+.rounded-12 { border-radius: 12px; }
+.rounded-16 { border-radius: 16px; }
+.rounded-full { border-radius: 50%; }
+.text-center { text-align: center; }
+.flex-1 { flex: 1; }
+.w-full { width: 100%; }
+

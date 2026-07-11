@@ -3,8 +3,9 @@
 import { toggleGoal, updateGoalProgress, archiveGoal } from '@/actions';
 import { Archive, ArchiveRestore, Clock } from 'lucide-react';
 import { useState } from 'react';
+import { Goal } from '@prisma/client';
 
-export function GoalItem({ goal }: { goal: any }) {
+export function GoalItem({ goal }: { goal: Goal }) {
   const [progress, setProgress] = useState(goal.progress);
 
   const handleToggle = () => toggleGoal(goal.id, goal.isCompleted);
@@ -29,7 +30,7 @@ export function GoalItem({ goal }: { goal: any }) {
   const colors = priorityColors[goal.priority as keyof typeof priorityColors] || priorityColors.MEDIUM;
 
   return (
-    <div className="habit-item" style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: goal.isArchived ? 0.6 : 1 }}>
+    <div className="habit-item p-16 rounded-8 flex-col gap-12" style={{ backgroundColor: 'var(--c-surface-container-low)', opacity: goal.isArchived ? 0.6 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
           <button 
