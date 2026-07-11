@@ -32,8 +32,8 @@ export default async function WeekendPage() {
         <h2 className="text-headline-md" style={{ margin: 0 }}>Weekend Tasks</h2>
       </div>
 
-      <div style={{ maxWidth: '600px' }}>
-        <p className="text-body-md text-on-surface-variant" style={{ marginBottom: '24px' }}>
+      <div className="w-full">
+        <p className="text-body-md text-on-surface-variant mb-24">
           These are your recurring weekly tasks. You can complete them any day from Monday to Sunday, but they are typically done on weekends. This list will automatically reset every Monday.
         </p>
 
