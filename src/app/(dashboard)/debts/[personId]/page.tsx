@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { ArrowLeft, Trash2, CheckCircle2, Circle, Plus, Wallet } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
-export default async function PersonDebtPage({ params }: { params: { personId: string } }) {
-  const personId = Number(params.personId);
-  const person = await getPersonById(personId);
+export default async function PersonDebtPage({ params }: { params: Promise<{ personId: string }> }) {
+  const { personId } = await params;
+  const id = Number(personId);
+  const person = await getPersonById(id);
 
   if (!person) {
     redirect('/debts');
