@@ -70,14 +70,28 @@ export default function AddTransactionForm() {
           className="search-input"
           style={{ flex: 1, minWidth: '150px', borderRadius: '8px', WebkitAppearance: 'none' }}
         >
-          <option>General</option>
-          <option>Food</option>
-          <option>Transport</option>
-          <option>Utilities</option>
-          <option>Housing</option>
-          <option>Salary</option>
-          <option>Freelance</option>
-          <option>Charity/Sadaqah</option>
+          {openType === 'INCOME' ? (
+            <>
+              <option>Salary</option>
+              <option>Freelance</option>
+              <option>Business</option>
+              <option>Gift</option>
+              <option>General</option>
+              <option>Other</option>
+            </>
+          ) : (
+            <>
+              <option>Food</option>
+              <option>Transport</option>
+              <option>Utilities</option>
+              <option>Housing</option>
+              <option>Charity/Sadaqah</option>
+              <option>Health</option>
+              <option>Shopping</option>
+              <option>General</option>
+              <option>Other</option>
+            </>
+          )}
         </select>
         <input 
           type="date" 

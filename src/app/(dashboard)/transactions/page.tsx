@@ -96,6 +96,30 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   const totalExpense = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0);
   const netFlow = totalIncome - totalExpense;
 
+  // Pagination Logic
+  const currentPageStr = searchParams?.page || '1';
+  let currentPage = parseInt(currentPageStr, 10);
+  if (isNaN(currentPage) || currentPage < 1) currentPage = 1;
+  const PAGE_SIZE = 10;
+  const totalPages = Math.ceil(transactions.length / PAGE_SIZE) || 1;
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const paginatedTransactions = transactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Helper to build URL with preserved search params
+  const getPaginationUrl = (page: number) => {
+    const params = new URLSearchParams();
+    if (searchParams) {
+      Object.entries(searchParams).forEach(([key, value]) => {
+        if (value !== undefined) {
+          params.set(key, value.toString());
+        }
+      });
+    }
+    params.set('page', page.toString());
+    return `?${params.toString()}`;
+  };
+
   return (
     <div className="card">
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -130,9 +154,11 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
       <AddTransactionForm />
 
       <div>
-        <h3 className="text-body-md text-on-surface-variant" style={{ marginBottom: '16px', fontWeight: 600 }}>Recent Transactions</h3>
+        <h3 className="text-body-md text-on-surface-variant" style={{ marginBottom: '16px', fontWeight: 600 }}>
+          Recent Transactions
+        </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {transactions.map(t => (
+          {paginatedTransactions.map(t => (
             <div key={t.id} className="habit-item" style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 {t.type === 'INCOME' ? <ArrowUpCircle color="var(--c-primary)" size={32} /> : <ArrowDownCircle color="var(--c-error)" size={32} />}
@@ -146,8 +172,37 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
               </div>
             </div>
           ))}
-          {transactions.length === 0 && <p className="text-on-surface-variant">No transactions recorded yet.</p>}
+          {paginatedTransactions.length === 0 && <p className="text-on-surface-variant">No transactions found for this period.</p>}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
+            {currentPage > 1 ? (
+              <a href={getPaginationUrl(currentPage - 1)} className="primary-btn" style={{ padding: '8px 16px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)' }}>
+                Previous
+              </a>
+            ) : (
+              <button disabled className="primary-btn" style={{ padding: '8px 16px', backgroundColor: 'var(--c-surface-container-lowest)', color: 'var(--c-on-surface-variant)', opacity: 0.5, cursor: 'not-allowed' }}>
+                Previous
+              </button>
+            )}
+            
+            <span className="text-body-md text-on-surface-variant">
+              Page {currentPage} of {totalPages}
+            </span>
+
+            {currentPage < totalPages ? (
+              <a href={getPaginationUrl(currentPage + 1)} className="primary-btn" style={{ padding: '8px 16px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)' }}>
+                Next
+              </a>
+            ) : (
+              <button disabled className="primary-btn" style={{ padding: '8px 16px', backgroundColor: 'var(--c-surface-container-lowest)', color: 'var(--c-on-surface-variant)', opacity: 0.5, cursor: 'not-allowed' }}>
+                Next
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

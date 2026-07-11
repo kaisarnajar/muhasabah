@@ -62,19 +62,28 @@ export async function addTransaction(formData: FormData) {
 }
 
 // --- GOALS ---
-export async function getGoals() {
+export async function getGoals(includeArchived = false) {
   return await prisma.goal.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: { isArchived: includeArchived ? undefined : false },
+    orderBy: [{ priority: 'desc' }, { targetDate: 'asc' }, { createdAt: 'desc' }],
   });
 }
 
 export async function addGoal(formData: FormData) {
   const title = formData.get('title') as string;
   const targetDateStr = formData.get('targetDate') as string;
+  const description = formData.get('description') as string || null;
+  const period = (formData.get('period') as any) || 'MONTHLY';
+  const priority = (formData.get('priority') as any) || 'MEDIUM';
+  const reminders = formData.get('reminders') === 'true';
   
   await prisma.goal.create({
     data: {
       title,
+      description,
+      period,
+      priority,
+      reminders,
       targetDate: targetDateStr ? new Date(targetDateStr) : null,
     },
   });
@@ -86,7 +95,31 @@ export async function addGoal(formData: FormData) {
 export async function toggleGoal(id: number, currentState: boolean) {
   await prisma.goal.update({
     where: { id },
-    data: { isCompleted: !currentState },
+    data: { 
+      isCompleted: !currentState,
+      progress: !currentState ? 100 : 0 // Auto set progress
+    },
+  });
+  revalidatePath('/goals');
+  revalidatePath('/');
+}
+
+export async function updateGoalProgress(id: number, progress: number) {
+  await prisma.goal.update({
+    where: { id },
+    data: { 
+      progress,
+      isCompleted: progress === 100 
+    }
+  });
+  revalidatePath('/goals');
+  revalidatePath('/');
+}
+
+export async function archiveGoal(id: number, isArchived: boolean = true) {
+  await prisma.goal.update({
+    where: { id },
+    data: { isArchived }
   });
   revalidatePath('/goals');
   revalidatePath('/');

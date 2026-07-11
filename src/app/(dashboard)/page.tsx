@@ -44,9 +44,8 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid-container">
-        <div className="col-span-12 md:col-span-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', alignContent: 'start' }}>
+        <div className="col-span-12 md:col-span-8" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px', alignContent: 'start' }}>
           <TasksOfTheDay dateStr={todayStr} />
-          <TasksOfTheDay dateStr={tomorrowStr} />
         </div>
 
         <div className="col-span-12 md:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

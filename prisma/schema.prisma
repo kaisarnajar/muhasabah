@@ -21,12 +21,33 @@ model Transaction {
   createdAt   DateTime        @default(now()) @db.Timestamptz()
 }
 
+enum GoalPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  LIFETIME
+}
+
+enum GoalPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Goal {
-  id          Int       @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
-  targetDate  DateTime? @db.Date
-  isCompleted Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @db.Timestamptz()
+  description String?      @db.Text
+  period      GoalPeriod   @default(MONTHLY)
+  priority    GoalPriority @default(MEDIUM)
+  progress    Int          @default(0) // 0 to 100
+  targetDate  DateTime?    @db.Date
+  isCompleted Boolean      @default(false)
+  isArchived  Boolean      @default(false)
+  reminders   Boolean      @default(false)
+  createdAt   DateTime     @default(now()) @db.Timestamptz()
 }
 
 model ReligiousActivity {

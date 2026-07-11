@@ -38,6 +38,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-body-md">Dashboard</span>
           </Link>
+          <Link href="/tomorrow" className={`nav-item ${pathname === '/tomorrow' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">event_upcoming</span>
+            <span className="text-body-md">Tomorrow</span>
+          </Link>
           <Link href="/transactions" className={`nav-item ${pathname === '/transactions' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">payments</span>
             <span className="text-body-md">Finances</span>
