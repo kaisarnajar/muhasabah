@@ -1,5 +1,5 @@
-import { getTransactions, getGoals } from '@/actions';
-import TasksOfTheDay from './TasksOfTheDay';
+import { getTransactions } from '@/actions';
+import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import Link from 'next/link';
 
 const QUICK_ACTIONS = [
@@ -8,14 +8,10 @@ const QUICK_ACTIONS = [
   { href: '/goals', icon: 'flag', label: 'Update Goal', bg: 'var(--c-secondary-container)', color: 'var(--c-secondary)' },
   { href: '/tomorrow', icon: 'event_upcoming', label: 'Plan Tomorrow', bg: 'var(--c-tertiary-container)', color: 'var(--c-on-tertiary-container)' },
   { href: '/religious', icon: 'auto_awesome', label: 'Spiritual', bg: 'var(--c-surface-variant)', color: 'var(--c-on-surface)' },
-  { href: '/debts', icon: 'account_balance', label: 'Credit & Debit', bg: 'var(--c-primary-container)', color: 'var(--c-primary)' },
-  { href: '/weekend', icon: 'calendar_clock', label: 'Weekend Tasks', bg: 'var(--c-secondary-container)', color: 'var(--c-on-secondary-container)' },
-  { href: '/history', icon: 'history', label: 'Task History', bg: 'var(--c-surface-variant)', color: 'var(--c-on-surface)' },
 ];
 
 export default async function Dashboard() {
   const transactions = await getTransactions();
-  const _goals = await getGoals();
 
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];

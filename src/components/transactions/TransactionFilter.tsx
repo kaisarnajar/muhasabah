@@ -29,6 +29,7 @@ export default function TransactionFilter() {
 
   // Sync state when URL changes externally
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilterType(searchParams.get('filter') || 'month');
     setDateValue(searchParams.get('date') || new Date().toISOString().substring(0, 7));
     setStartDate(searchParams.get('start') || '');

@@ -1,5 +1,5 @@
-import TasksOfTheDay from '../TasksOfTheDay';
-import HistoryDatePicker from './HistoryDatePicker';
+import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
+import HistoryDatePicker from '@/components/history/HistoryDatePicker';
 
 export default async function HistoryPage({
   searchParams,

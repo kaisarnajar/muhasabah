@@ -1,6 +1,6 @@
-import { getPersons, addPerson, deletePerson } from '@/actions/debts';
+import { getPersons, addPerson } from '@/actions/debts';
 import Link from 'next/link';
-import { UserPlus, ArrowRight, Trash2, Wallet } from 'lucide-react';
+import { UserPlus, ArrowRight, Wallet } from 'lucide-react';
 
 
 export default async function DebtsPage() {

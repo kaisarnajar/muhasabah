@@ -1,6 +1,6 @@
 import { getJournalEntries } from '@/actions';
 import { BookOpen } from 'lucide-react';
-import JournalDashboard from './JournalDashboard';
+import JournalDashboard from '@/components/journal/JournalDashboard';
 
 export default async function JournalPage() {
   const entries = await getJournalEntries();

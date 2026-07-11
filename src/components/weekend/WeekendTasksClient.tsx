@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { addWeekendTask, deleteWeekendTask, toggleWeekendTask } from '@/actions';
 import { WeekendTask } from '@prisma/client';
 
 export default function WeekendTasksClient({ initialTasks }: { initialTasks: WeekendTask[] }) {
-  const [tasks, setTasks] = useState(initialTasks);
+
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [loading, setLoading] = useState(false);
 

@@ -1,4 +1,4 @@
-import TasksOfTheDay from '../TasksOfTheDay';
+import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 
 export default async function TomorrowPage() {
   const now = new Date();

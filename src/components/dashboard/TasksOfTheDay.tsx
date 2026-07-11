@@ -1,6 +1,6 @@
 import { getDailyTasks, addDailyTask, toggleDailyTask, deleteDailyTask } from '@/actions';
-import { Target, ChevronLeft, ChevronRight, PlusCircle, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { PlusCircle, Trash2 } from 'lucide-react';
+
 
 export default async function TasksOfTheDay({ dateStr }: { dateStr: string }) {
   const tasks = await getDailyTasks(dateStr);

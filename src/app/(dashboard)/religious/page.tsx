@@ -1,6 +1,6 @@
-import { getReligiousActivity, getAllReligiousActivities, toggleReligiousActivity, updateQuranMemorization } from '@/actions';
+import { getReligiousActivity, getAllReligiousActivities, toggleReligiousActivity } from '@/actions';
 import { Moon, History, CheckCircle2, Circle } from 'lucide-react';
-import QuranSaveForm from './QuranSaveForm';
+import QuranSaveForm from '@/components/religious/QuranSaveForm';
 
 export default async function ReligiousPage() {
   const today = new Date();
@@ -28,7 +28,7 @@ export default async function ReligiousPage() {
       <div className="card">
         <div className="flex-row gap-12 mb-24">
           <Moon color="var(--c-primary)" />
-          <h2 className="text-headline-md" style={{ margin: 0 }}>Today's Spiritual Tracker</h2>
+          <h2 className="text-headline-md" style={{ margin: 0 }}>Today&apos;s Spiritual Tracker</h2>
         </div>
 
         <p className="text-body-md text-on-surface-variant mb-24">

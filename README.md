@@ -36,10 +36,20 @@ src/
 │   ├── transactions.ts  # Finance tracking
 │   └── index.ts         # Global exporter
 ├── app/
-│   ├── (dashboard)/     # Main protected application UI (Pages & Client Components)
+│   ├── (dashboard)/     # Main protected application UI (Pages)
 │   ├── login/           # Authentication pages
 │   ├── globals.css      # Core Design System (Tokens, Reset, Global Utilities)
 │   └── layout.tsx       # Root layout
+├── components/          # Reusable UI components grouped by feature
+│   ├── dashboard/       # Dashboard components (e.g., TasksOfTheDay)
+│   ├── debts/           # Debt management components
+│   ├── goals/           # Goal tracking components
+│   ├── history/         # History viewer components
+│   ├── journal/         # Journaling components
+│   ├── layout/          # Global layout components (e.g., Navigation)
+│   ├── religious/       # Spiritual tracking components
+│   ├── transactions/    # Financial tracker components
+│   └── weekend/         # Weekend task components
 ├── lib/                 # Core utilities
 │   └── prisma.ts        # Database connection singleton
 └── types/               # (Removed in favor of native `@prisma/client` generated types)

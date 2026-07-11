@@ -1,7 +1,7 @@
 import { getTransactions } from '@/actions';
 import { Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
-import AddTransactionForm from './AddTransactionForm';
-import TransactionFilter from './TransactionFilter';
+import AddTransactionForm from '@/components/transactions/AddTransactionForm';
+import TransactionFilter from '@/components/transactions/TransactionFilter';
 
 export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
   const searchParams = await props.searchParams;
@@ -16,7 +16,6 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   let startBoundary = new Date(0); // Beginning of time
   let endBoundary = new Date(8640000000000000); // End of time
 
-  const now = new Date();
 
   try {
     if (filterType === 'day') {
@@ -81,7 +80,7 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
         endBoundary.setHours(23, 59, 59, 999);
       }
     }
-  } catch (e) {
+  } catch {
     // If parsing fails, defaults remain (all time)
   }
 

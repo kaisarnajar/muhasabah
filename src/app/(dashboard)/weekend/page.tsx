@@ -1,5 +1,5 @@
 import { getWeekendTasks } from '@/actions';
-import WeekendTasksClient from './WeekendTasksClient';
+import WeekendTasksClient from '@/components/weekend/WeekendTasksClient';
 import { CalendarHeart } from 'lucide-react';
 import prisma from '@/lib/prisma';
 
