@@ -1,14 +1,17 @@
-import { getTransactions, getGoals, getReligiousActivity } from '@/actions';
-import DailyFocus from './DailyFocus';
+import { getTransactions, getGoals } from '@/actions';
+import TasksOfTheDay from './TasksOfTheDay';
 import Link from 'next/link';
 
 export default async function Dashboard() {
   const transactions = await getTransactions();
   const goals = await getGoals();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const religiousData = await getReligiousActivity(todayStr);
 
   const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   
   const monthlySpending = transactions
@@ -22,26 +25,29 @@ export default async function Dashboard() {
   return (
     <>
       {/* QUICK ACTIONS */}
-      <div className="col-span-12 md:col-span-8 grid grid-cols-3 gap-6">
-        <Link href="/transactions" className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', textDecoration: 'none', color: 'inherit' }}>
-          <span style={{ backgroundColor: 'var(--c-error-container)', color: 'var(--c-error)', padding: '8px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">add_card</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+        <Link href="/transactions" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-error-container)', color: 'var(--c-error)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">add_card</span>
           <span className="text-title-md" style={{ fontWeight: 600 }}>Add Transaction</span>
           <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
         </Link>
-        <Link href="/journal" className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', textDecoration: 'none', color: 'inherit' }}>
-          <span style={{ backgroundColor: 'var(--c-primary-container)', color: 'var(--c-primary)', padding: '8px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">edit_note</span>
+        <Link href="/journal" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-primary-container)', color: 'var(--c-primary)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">edit_note</span>
           <span className="text-title-md" style={{ fontWeight: 600 }}>Log Journal</span>
           <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
         </Link>
-        <Link href="/goals" className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', textDecoration: 'none', color: 'inherit' }}>
-          <span style={{ backgroundColor: 'var(--c-secondary-container)', color: 'var(--c-secondary)', padding: '8px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">flag</span>
+        <Link href="/goals" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-secondary-container)', color: 'var(--c-secondary)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">flag</span>
           <span className="text-title-md" style={{ fontWeight: 600 }}>Update Goal</span>
           <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
         </Link>
       </div>
 
       <div className="grid-container">
-        <DailyFocus religiousData={religiousData} dateStr={todayStr} goals={goals} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <TasksOfTheDay dateStr={todayStr} />
+          <TasksOfTheDay dateStr={tomorrowStr} />
+        </div>
 
         <div className="col-span-12 md:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ backgroundColor: '#0a0a0a', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

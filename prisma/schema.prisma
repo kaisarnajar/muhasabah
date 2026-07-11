@@ -51,3 +51,11 @@ model DailyJournal {
   other     String?  @db.Text
   createdAt DateTime @default(now()) @db.Timestamptz()
 }
+
+model DailyTask {
+  id          Int      @id @default(autoincrement())
+  title       String
+  isCompleted Boolean  @default(false)
+  targetDate  DateTime @db.Date
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+}

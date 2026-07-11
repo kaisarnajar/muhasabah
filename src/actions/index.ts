@@ -174,3 +174,42 @@ export async function updateJournal(formData: FormData) {
   });
   revalidatePath('/journal');
 }
+
+// --- DAILY TASKS ---
+export async function getDailyTasks(dateStr: string) {
+  const targetDate = new Date(dateStr);
+  return await prisma.dailyTask.findMany({
+    where: { targetDate },
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+export async function addDailyTask(formData: FormData) {
+  const title = formData.get('title') as string;
+  const dateStr = formData.get('date') as string;
+
+  if (!title || !dateStr) throw new Error('Title and date are required.');
+
+  await prisma.dailyTask.create({
+    data: {
+      title,
+      targetDate: new Date(dateStr),
+    },
+  });
+  revalidatePath('/');
+}
+
+export async function toggleDailyTask(id: number, currentState: boolean) {
+  await prisma.dailyTask.update({
+    where: { id },
+    data: { isCompleted: !currentState },
+  });
+  revalidatePath('/');
+}
+
+export async function deleteDailyTask(id: number) {
+  await prisma.dailyTask.delete({
+    where: { id },
+  });
+  revalidatePath('/');
+}
