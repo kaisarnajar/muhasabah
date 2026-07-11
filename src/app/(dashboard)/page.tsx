@@ -100,6 +100,11 @@ export default async function Dashboard() {
           <span className="text-title-md" style={{ fontWeight: 600 }}>Weekend Tasks</span>
           <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
         </Link>
+        <Link href="/history" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-surface-variant)', color: 'var(--c-on-surface)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">history</span>
+          <span className="text-title-md" style={{ fontWeight: 600 }}>Task History</span>
+          <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
+        </Link>
       </div>
 
       <div className="grid-container">

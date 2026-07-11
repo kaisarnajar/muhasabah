@@ -226,9 +226,9 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 .container-max {
-  max-width: var(--s-container-max);
-  margin: 0 auto;
-  padding: 32px;
+  max-width: 100%;
+  margin: 0;
+  padding: 24px;
 }
 
 /* Sidebar Navigation Items */
