@@ -7,7 +7,7 @@ export default async function TomorrowPage() {
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <div>
       <TasksOfTheDay dateStr={tomorrowStr} />
     </div>
   );
