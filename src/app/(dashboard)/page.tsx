@@ -60,6 +60,16 @@ export default async function Dashboard() {
           <span className="text-title-md" style={{ fontWeight: 600 }}>Update Goal</span>
           <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
         </Link>
+        <Link href="/tomorrow" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-tertiary-container)', color: 'var(--c-on-tertiary-container)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">event_upcoming</span>
+          <span className="text-title-md" style={{ fontWeight: 600 }}>Plan Tomorrow</span>
+          <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
+        </Link>
+        <Link href="/religious" className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none', color: 'inherit', padding: '16px' }}>
+          <span style={{ backgroundColor: 'var(--c-surface-variant)', color: 'var(--c-on-surface)', padding: '12px', borderRadius: '50%', display: 'flex' }} className="material-symbols-outlined">auto_awesome</span>
+          <span className="text-title-md" style={{ fontWeight: 600 }}>Spiritual</span>
+          <span className="material-symbols-outlined" style={{ marginLeft: 'auto', color: 'var(--c-on-surface-variant)' }}>chevron_right</span>
+        </Link>
       </div>
 
       <div className="grid-container">
@@ -86,31 +96,7 @@ export default async function Dashboard() {
               <h3 style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--c-error)' }}>${yearlySpending.toFixed(2)}</h3>
             </div>
           </div>
-
-          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3 className="text-headline-md">Top Goals</h3>
-              <Link href="/goals" className="text-label-sm text-primary">View All</Link>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {goals.slice(0, 3).map((goal, i) => {
-                const colors = ['var(--c-secondary)', 'var(--c-tertiary-container)', 'var(--c-on-tertiary-container)'];
-                return (
-                  <div key={goal.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '8px' }}>
-                      <span className="text-body-md" style={{ fontWeight: 500 }}>{goal.title}</span>
-                      <span className="text-label-sm">{goal.isCompleted ? '100%' : '50%'}</span>
-                    </div>
-                    <div className="progress-track">
-                      <div className="progress-fill" style={{ width: goal.isCompleted ? '100%' : '50%', backgroundColor: colors[i % colors.length] }}></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
-
 
       </div>
     </>
