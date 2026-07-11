@@ -1,119 +1,157 @@
-import prisma from '../src/lib/prisma';
+import { PrismaClient, TransactionType, GoalPeriod, GoalPriority, JournalCategory, DebtType, DebtStatus } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Seeding database with test data...');
-
-  // Clean up existing data
+  console.log('Cleaning up existing data...');
   await prisma.transaction.deleteMany();
   await prisma.goal.deleteMany();
   await prisma.religiousActivity.deleteMany();
   await prisma.journalEntry.deleteMany();
+  await prisma.dailyTask.deleteMany();
+  await prisma.debtRecord.deleteMany();
+  await prisma.person.deleteMany();
+  await prisma.weekendTask.deleteMany();
 
+  console.log('Seeding data...');
+
+  // Helper to get dates
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Generate 30 days of data
-  const days = Array.from({ length: 30 }, (_, i) => {
+  const getPastDate = (daysAgo: number) => {
     const d = new Date(today);
-    d.setDate(d.getDate() - (29 - i));
+    d.setDate(d.getDate() - daysAgo);
     return d;
-  });
+  };
 
-  // Bulk Transactions (Income and Expense)
-  const transactions = [];
-  for (const day of days) {
-    // 1st of the month: Salary Income
-    if (day.getDate() === 1) {
-      transactions.push({ amount: 5000.00, description: 'Monthly Salary', category: 'Salary', type: 'INCOME', date: day });
-    }
-    // 15th of the month: Freelance Income
-    if (day.getDate() === 15) {
-      transactions.push({ amount: 800.00, description: 'Freelance Project', category: 'Freelance', type: 'INCOME', date: day });
-    }
-    
-    // Daily expenses
-    transactions.push({ amount: Math.floor(Math.random() * 20) + 10, description: 'Lunch', category: 'Food', type: 'EXPENSE', date: day });
-    if (day.getDay() === 5) { // Fridays
-      transactions.push({ amount: 50.00, description: 'Jummah Sadaqah', category: 'Charity/Sadaqah', type: 'EXPENSE', date: day });
-    }
-    if (day.getDate() === 5) {
-      transactions.push({ amount: 120.00, description: 'Internet Bill', category: 'Utilities', type: 'EXPENSE', date: day });
-      transactions.push({ amount: 800.00, description: 'Rent', category: 'Housing', type: 'EXPENSE', date: day });
-    }
+  // --- TRANSACTIONS ---
+  console.log('Seeding Transactions...');
+  const txs = [];
+  for (let i = 0; i < 50; i++) {
+    txs.push({
+      amount: Math.floor(Math.random() * 500) + 10,
+      description: `Expense ${i}`,
+      category: ['Food', 'Transport', 'Shopping', 'Utilities'][Math.floor(Math.random() * 4)],
+      type: TransactionType.EXPENSE,
+      date: getPastDate(Math.floor(Math.random() * 60)), // within last 60 days
+    });
   }
+  for (let i = 0; i < 10; i++) {
+    txs.push({
+      amount: Math.floor(Math.random() * 3000) + 1000,
+      description: `Salary / Income ${i}`,
+      category: 'Salary',
+      type: TransactionType.INCOME,
+      date: getPastDate(Math.floor(Math.random() * 60)),
+    });
+  }
+  await prisma.transaction.createMany({ data: txs });
 
-  await prisma.transaction.createMany({
-    data: transactions as any,
-  });
-
-  // Create Goals
+  // --- GOALS ---
+  console.log('Seeding Goals...');
   await prisma.goal.createMany({
     data: [
-      { title: 'Memorize Surah Al-Mulk', targetDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), isCompleted: false },
-      { title: 'Exercise 3 times a week', targetDate: null, isCompleted: false },
-      { title: 'Finish reading Islamic History book', targetDate: new Date(), isCompleted: true },
-      { title: 'Save $10,000 Emergency Fund', targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), isCompleted: false },
-    ],
+      { title: 'Read 10 pages daily', period: GoalPeriod.DAILY, priority: GoalPriority.HIGH, progress: 40 },
+      { title: 'Workout 3x a week', period: GoalPeriod.WEEKLY, priority: GoalPriority.HIGH, progress: 66 },
+      { title: 'Save $500 this month', period: GoalPeriod.MONTHLY, priority: GoalPriority.MEDIUM, progress: 80 },
+      { title: 'Learn Next.js App Router', period: GoalPeriod.QUARTERLY, priority: GoalPriority.HIGH, progress: 90 },
+      { title: 'Buy a new car', period: GoalPeriod.YEARLY, priority: GoalPriority.LOW, progress: 20, isArchived: false },
+      { title: 'Old completed goal', period: GoalPeriod.MONTHLY, priority: GoalPriority.LOW, progress: 100, isCompleted: true, isArchived: true },
+    ]
   });
 
-  // Bulk Religious Activities
-  const religiousActivities = days.map(day => {
-    const randomBool = () => Math.random() > 0.3; // 70% chance of true
-    return {
-      date: day,
-      fajr: randomBool(),
-      dhuhr: randomBool(),
-      asr: randomBool(),
-      maghrib: true, // always pray maghrib :)
-      isha: randomBool(),
-      quranReading: randomBool(),
-      adhkar: randomBool(),
-      quranMemorization: randomBool() ? `Memorized ${Math.floor(Math.random() * 5) + 1} verses of Surah Al-Kahf` : null,
-    };
-  });
+  // --- RELIGIOUS ACTIVITIES ---
+  console.log('Seeding Religious Activities...');
+  const relActivities = [];
+  for (let i = 0; i < 14; i++) {
+    relActivities.push({
+      date: getPastDate(i),
+      fajr: Math.random() > 0.3,
+      dhuhr: Math.random() > 0.2,
+      asr: Math.random() > 0.2,
+      maghrib: Math.random() > 0.1,
+      isha: Math.random() > 0.2,
+      quranReading: Math.random() > 0.5,
+      adhkar: Math.random() > 0.4,
+      quranMemorization: i % 3 === 0 ? 'Surah Al-Mulk Verses 1-5' : null,
+    });
+  }
+  await prisma.religiousActivity.createMany({ data: relActivities });
 
-  await prisma.religiousActivity.createMany({
-    data: religiousActivities,
-  });
+  // --- JOURNAL ENTRIES ---
+  console.log('Seeding Journal Entries...');
+  const journalData = [];
+  const categories = [JournalCategory.OFFICE, JournalCategory.LEARNING, JournalCategory.MISC];
+  for (let i = 0; i < 20; i++) {
+    journalData.push({
+      content: `This is a sample journal entry number ${i}. Reflecting on the day and thoughts...`,
+      category: categories[Math.floor(Math.random() * categories.length)],
+      date: getPastDate(Math.floor(Math.random() * 30)),
+    });
+  }
+  await prisma.journalEntry.createMany({ data: journalData });
 
-  // Bulk Daily Journals (now JournalEntry)
-  const journalEntries: any[] = [];
-  days.forEach(day => {
-    const randomBool = () => Math.random() > 0.5;
-    if (randomBool()) {
-      journalEntries.push({ date: day, category: 'OFFICE', content: 'Completed the sprint planning and fixed 3 major bugs in the dashboard module.' });
-    }
-    if (randomBool()) {
-      journalEntries.push({ date: day, category: 'LEARNING', content: 'Read a chapter on Next.js App Router caching mechanisms.' });
-    }
-    if (randomBool()) {
-      journalEntries.push({ date: day, category: 'MISC', content: 'Went out for dinner with friends at a new Turkish restaurant.' });
-    }
-  });
+  // --- DAILY TASKS ---
+  console.log('Seeding Daily Tasks...');
+  const dailyTasks = [];
+  for (let i = 0; i < 30; i++) {
+    dailyTasks.push({
+      title: `Task ${i} for the day`,
+      isCompleted: Math.random() > 0.5,
+      targetDate: getPastDate(Math.floor(Math.random() * 10)), // last 10 days
+    });
+  }
+  // add some for today specifically
+  for (let i = 0; i < 5; i++) {
+    dailyTasks.push({
+      title: `Today's urgent task ${i}`,
+      isCompleted: false,
+      targetDate: today,
+    });
+  }
+  await prisma.dailyTask.createMany({ data: dailyTasks });
 
-  await prisma.journalEntry.createMany({
-    data: journalEntries,
-  });
-
-  // Bulk Daily Tasks
-  await prisma.dailyTask.deleteMany();
-  
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  await prisma.dailyTask.createMany({
+  // --- WEEKEND TASKS ---
+  console.log('Seeding Weekend Tasks...');
+  await prisma.weekendTask.createMany({
     data: [
-      { title: 'Review PRs for the new dashboard', targetDate: today, isCompleted: true },
-      { title: 'Email the client regarding the invoice', targetDate: today, isCompleted: false },
-      { title: 'Buy groceries (Milk, Eggs, Bread)', targetDate: today, isCompleted: false },
-      
-      { title: 'Plan the upcoming sprint', targetDate: tomorrow, isCompleted: false },
-      { title: 'Schedule dentist appointment', targetDate: tomorrow, isCompleted: false },
-      { title: 'Read 10 pages of Atomic Habits', targetDate: tomorrow, isCompleted: false },
-    ],
+      { title: 'Clean the entire house' },
+      { title: 'Do laundry' },
+      { title: 'Meal prep for the week' },
+      { title: 'Call parents', lastCompletedAt: getPastDate(3) },
+    ]
   });
 
-  console.log('Database seeded successfully with bulk data!');
+  // --- DEBTS & PERSONS ---
+  console.log('Seeding Persons and Debts...');
+  const peopleNames = ['John Doe', 'Alice Smith', 'Bob Johnson', 'Family Member', 'Colleague X'];
+  
+  for (const name of peopleNames) {
+    const person = await prisma.person.create({
+      data: { name }
+    });
+
+    // Create 3 to 6 debts for each person
+    const numDebts = Math.floor(Math.random() * 4) + 3;
+    const debts = [];
+    for (let i = 0; i < numDebts; i++) {
+      debts.push({
+        personId: person.id,
+        amount: Math.floor(Math.random() * 500) + 20,
+        type: Math.random() > 0.5 ? DebtType.CREDIT : DebtType.DEBIT,
+        status: Math.random() > 0.7 ? DebtStatus.PAID : DebtStatus.PENDING,
+        date: getPastDate(Math.floor(Math.random() * 90)),
+        notes: Math.random() > 0.5 ? `Dinner, taxi or random expense ${i}` : null,
+      });
+    }
+    await prisma.debtRecord.createMany({ data: debts });
+  }
+
+  console.log('✅ Seeding completed successfully!');
 }
 
 main()
