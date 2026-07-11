@@ -80,3 +80,40 @@ model DailyTask {
   targetDate  DateTime @db.Date
   createdAt   DateTime @default(now()) @db.Timestamptz()
 }
+
+enum DebtType {
+  CREDIT // Money I lend to others
+  DEBIT  // Money I borrow from others
+}
+
+enum DebtStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+}
+
+model DebtRecord {
+  id           Int           @id @default(autoincrement())
+  personName   String
+  amount       Decimal       @db.Decimal(10, 2)
+  type         DebtType
+  date         DateTime      @default(now()) @db.Date
+  dueDate      DateTime?     @db.Date
+  status       DebtStatus    @default(PENDING)
+  category     String?
+  notes        String?       @db.Text
+  attachment   String?       @db.Text
+  createdAt    DateTime      @default(now()) @db.Timestamptz()
+  payments     DebtPayment[]
+}
+
+model DebtPayment {
+  id           Int        @id @default(autoincrement())
+  debtId       Int
+  amount       Decimal    @db.Decimal(10, 2)
+  date         DateTime   @default(now()) @db.Date
+  notes        String?    @db.Text
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+  
+  debt         DebtRecord @relation(fields: [debtId], references: [id], onDelete: Cascade)
+}

@@ -62,6 +62,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">payments</span>
             <span className="text-body-md">Finances</span>
           </Link>
+          <Link href="/debts" className={`nav-item ${pathname === '/debts' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">account_balance</span>
+            <span className="text-body-md">Credit & Debit</span>
+          </Link>
           <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">target</span>
             <span className="text-body-md">Goals</span>
