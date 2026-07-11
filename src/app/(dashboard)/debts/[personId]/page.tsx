@@ -1,4 +1,5 @@
 import { getPersonById, addDebtRecord, markDebtPaid, deleteDebtRecord, deletePerson, markDebtPending } from '@/actions/debts';
+import AddDebtRecordForm from './AddDebtRecordForm';
 import Link from 'next/link';
 import { ArrowLeft, Trash2, CheckCircle2, Circle, Plus, Wallet } from 'lucide-react';
 import { redirect } from 'next/navigation';
@@ -55,42 +56,7 @@ export default async function PersonDebtPage({ params }: { params: Promise<{ per
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: '40px' }}>
-        <h3 className="text-title-lg" style={{ marginBottom: '16px' }}>Add Transaction</h3>
-        <form action={addDebtRecord} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <input type="hidden" name="personId" value={person.id} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <input 
-              type="number" 
-              step="0.01"
-              name="amount" 
-              placeholder="Amount ($)" 
-              className="search-input" 
-              required 
-            />
-            <select name="type" className="search-input" required>
-              <option value="CREDIT">I gave them money (Credit)</option>
-              <option value="DEBIT">I borrowed money (Debit)</option>
-            </select>
-            <input 
-              type="date" 
-              name="date" 
-              className="search-input" 
-              defaultValue={new Date().toISOString().split('T')[0]} 
-              required 
-            />
-          </div>
-          <input 
-            type="text" 
-            name="notes" 
-            placeholder="Notes (optional)" 
-            className="search-input" 
-          />
-          <button type="submit" className="primary-btn" style={{ alignSelf: 'flex-start' }}>
-            <Plus size={20} /> Add Record
-          </button>
-        </form>
-      </div>
+      <AddDebtRecordForm personId={person.id} />
 
       <div>
         <h3 className="text-title-lg" style={{ marginBottom: '16px' }}>Transaction History</h3>
