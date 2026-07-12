@@ -95,16 +95,6 @@ export default function Navigation() {
            <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(true)}>
              <span className="material-symbols-outlined">menu</span>
            </button>
-           <div className="topbar-search-wrapper" style={{ position: 'relative', width: '320px' }}>
-             <span className="material-symbols-outlined" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-on-surface-variant)', fontSize: '20px' }}>search</span>
-             <input 
-               type="text" 
-               placeholder="Search insights, tasks, or entries..." 
-               className="search-input" 
-               style={{ paddingLeft: '40px', paddingRight: '12px', height: '40px', fontSize: '14px', borderRadius: '10px' }}
-               readOnly
-             />
-           </div>
          </div>
          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', position: 'relative' }} ref={menuRef}>
            <button style={{ color: 'var(--c-on-surface-variant)', position: 'relative', display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
