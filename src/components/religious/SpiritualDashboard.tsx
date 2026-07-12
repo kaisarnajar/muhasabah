@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Moon, CheckCircle2, Circle, Plus, X, Settings, Users, ScrollText, Calendar } from 'lucide-react';
-import { toggleSpiritualHabit, addSpiritualHabit, deleteSpiritualHabit, setPrayerJamaat, updateQuranMemorization } from '@/actions/religious';
+import { toggleSpiritualHabit, addSpiritualHabit, deleteSpiritualHabit, setPrayerJamaat, updateQuranMemorization, updateOtherActivities } from '@/actions/religious';
 import DeleteConfirmButton from '@/components/layout/DeleteConfirmButton';
 import { useToast } from '@/context/ToastContext';
 import { isDefaultSpiritualHabit, PRAYER_HABIT_NAMES, sortSpiritualHabits } from '@/lib/spiritualHabits';
@@ -21,6 +21,7 @@ interface HistoryRecord {
   completedCount: number;
   totalCount: number;
   quranMemorization: string | null;
+  otherActivities: string | null;
   habits: Array<{ name: string; isCompleted: boolean; prayedWithJamaat: boolean }>;
 }
 
@@ -29,6 +30,7 @@ interface SpiritualDashboardProps {
   initialTodayData: {
     habits: HabitStatus[];
     quranMemorization: string | null;
+    otherActivities: string | null;
   };
   initialHistory: HistoryRecord[];
   allHabits: Array<{ id: number; name: string }>;
@@ -115,6 +117,23 @@ export default function SpiritualDashboard({
       showToast('Failed to save memorisation progress.', 'error');
     } finally {
       setSavingMemorization(false);
+    }
+  };
+
+  // Other activities state
+  const [otherActivities, setOtherActivities] = useState<string>(initialTodayData.otherActivities || '');
+  const [savingOtherActivities, setSavingOtherActivities] = useState(false);
+
+  const handleSaveOtherActivities = async () => {
+    setSavingOtherActivities(true);
+    try {
+      await updateOtherActivities(dateStr, otherActivities);
+      showToast('Other activities saved successfully!', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to save other activities.', 'error');
+    } finally {
+      setSavingOtherActivities(false);
     }
   };
 
@@ -282,6 +301,26 @@ export default function SpiritualDashboard({
           </div>
         )}
 
+        {initialTodayData.otherActivities && (
+          <div style={{
+            marginTop: '8px',
+            marginBottom: '20px',
+            padding: '10px 14px',
+            backgroundColor: 'rgba(195, 150, 38, 0.05)',
+            border: '1px solid rgba(195, 150, 38, 0.15)',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '13px',
+            color: 'var(--c-on-surface)'
+          }}>
+            <ScrollText size={16} color="var(--c-primary)" />
+            <span style={{ fontWeight: 600 }}>Other activities:</span>
+            <span>{initialTodayData.otherActivities}</span>
+          </div>
+        )}
+
         <button
           onClick={() => setIsTrackerOpen(true)}
           className="primary-btn"
@@ -378,6 +417,23 @@ export default function SpiritualDashboard({
                           }}>
                             <ScrollText size={12} />
                             <span>{formatQuranMemorization(record.quranMemorization)}</span>
+                          </div>
+                        )}
+                        {record.otherActivities && (
+                          <div style={{ 
+                            fontSize: '11px', 
+                            color: 'var(--c-on-surface-variant)', 
+                            fontWeight: 600, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '4px',
+                            marginTop: '2px',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            <Plus size={12} color="var(--c-primary)" />
+                            <span>{record.otherActivities}</span>
                           </div>
                         )}
                       </div>
@@ -649,6 +705,68 @@ export default function SpiritualDashboard({
               </div>
             )}
 
+            {/* Other Activities Textarea */}
+            <div style={{
+              marginTop: '20px',
+              padding: '16px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--c-surface-container-low)',
+              border: '1px solid var(--c-outline-variant)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Plus color="var(--c-primary)" size={18} />
+                <h3 className="text-title-md" style={{ margin: 0, fontSize: '15px', fontWeight: 700 }}>Other Worship / Good Deeds</h3>
+              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-on-surface-variant)', fontWeight: 500 }}>
+                Record any other good deeds done today (e.g., Watched video lecture, read a book, gave Sadaqah, helped someone, etc.)
+              </p>
+              <textarea
+                rows={3}
+                placeholder="Describe your activities..."
+                value={otherActivities}
+                onChange={(e) => setOtherActivities(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--c-outline)',
+                  backgroundColor: 'var(--c-surface)',
+                  color: 'var(--c-on-surface)',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleSaveOtherActivities}
+                disabled={savingOtherActivities}
+                className="primary-btn"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--c-primary)',
+                  color: 'var(--c-on-primary)',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  alignSelf: 'flex-end',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: 'none',
+                }}
+              >
+                <ScrollText size={14} />
+                {savingOtherActivities ? 'Saving...' : 'Save Other Activities'}
+              </button>
+            </div>
+
           </div>
         </div>,
         document.body
@@ -770,6 +888,13 @@ export default function SpiritualDashboard({
               <div style={{ marginTop: '20px', padding: '16px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
                 <p className="text-label-sm text-on-surface-variant" style={{ margin: '0 0 8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quran Memorization</p>
                 <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap', fontWeight: 600 }}>{formatQuranMemorization(selectedRecord.quranMemorization)}</p>
+              </div>
+            )}
+
+            {selectedRecord.otherActivities && (
+              <div style={{ marginTop: '20px', padding: '16px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
+                <p className="text-label-sm text-on-surface-variant" style={{ margin: '0 0 8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Other Worship / Good Deeds</p>
+                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap', fontWeight: 600 }}>{selectedRecord.otherActivities}</p>
               </div>
             )}
           </div>

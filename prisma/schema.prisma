@@ -74,6 +74,7 @@ model SpiritualDayLog {
   id                Int      @id @default(autoincrement())
   date              DateTime @unique @db.Date
   quranMemorization String?  @db.Text
+  otherActivities   String?  @db.Text
   createdAt         DateTime @default(now()) @db.Timestamptz()
 }
 

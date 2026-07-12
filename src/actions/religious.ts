@@ -76,6 +76,7 @@ export async function getSpiritualTodayData(dateStr: string) {
   return {
     habits: habitsWithStatus,
     quranMemorization: dayLog?.quranMemorization || '',
+    otherActivities: dayLog?.otherActivities || '',
   };
 }
 
@@ -140,6 +141,23 @@ export async function updateQuranMemorization(dateStr: string, notes: string) {
   revalidatePath('/religious');
 }
 
+export async function updateOtherActivities(dateStr: string, notes: string) {
+  const date = new Date(dateStr);
+
+  await prisma.spiritualDayLog.upsert({
+    where: { date },
+    update: {
+      otherActivities: notes.trim() || null,
+    },
+    create: {
+      date,
+      otherActivities: notes.trim() || null,
+    },
+  });
+
+  revalidatePath('/religious');
+}
+
 export async function getSpiritualHistory() {
   const logs = await prisma.spiritualHabitLog.findMany({
     include: { habit: true },
@@ -153,6 +171,7 @@ export async function getSpiritualHistory() {
     completedCount: number;
     totalCount: number;
     quranMemorization: string | null;
+    otherActivities: string | null;
     habits: Array<{ name: string; isCompleted: boolean; prayedWithJamaat: boolean }>;
   }> = {};
 
@@ -165,6 +184,7 @@ export async function getSpiritualHistory() {
         completedCount: 0,
         totalCount: 0,
         quranMemorization: dayNote?.quranMemorization || null,
+        otherActivities: dayNote?.otherActivities || null,
         habits: [],
       };
     }
@@ -187,6 +207,7 @@ export async function getSpiritualHistory() {
         completedCount: 0,
         totalCount: 0,
         quranMemorization: dl.quranMemorization,
+        otherActivities: dl.otherActivities,
         habits: [],
       };
     }
