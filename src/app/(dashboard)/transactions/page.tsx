@@ -186,24 +186,48 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
         <AddTransactionForm type={activeTab} />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="task-history-grid">
         {paginatedTransactions.map(t => (
-          <div key={t.id} className="habit-item" style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {t.type === 'INCOME' ? <ArrowUpCircle color="var(--c-secondary)" size={32} /> : <ArrowDownCircle color="var(--c-error)" size={32} />}
-              <div>
-                <p className="text-body-md" style={{ fontWeight: 600 }}>{t.description}</p>
-                <p className="text-label-sm text-on-surface-variant">{t.category} • {t.date.toLocaleDateString()}</p>
-              </div>
+          <div 
+            key={t.id} 
+            className="card" 
+            style={{ 
+              backgroundColor: 'var(--c-surface-container-low)', 
+              padding: '20px', 
+              borderRadius: '12px', 
+              border: '1px solid var(--c-outline-variant)', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'space-between', 
+              gap: '16px',
+              height: '100%',
+              margin: 0
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {t.type === 'INCOME' ? <ArrowUpCircle color="var(--c-secondary)" size={28} /> : <ArrowDownCircle color="var(--c-error)" size={28} />}
+              <span 
+                style={{ 
+                  fontWeight: 600, 
+                  color: t.type === 'INCOME' ? 'var(--c-secondary)' : 'var(--c-error)', 
+                  fontSize: '1.15rem' 
+                }}
+              >
+                {t.type === 'INCOME' ? '+' : '-'}${Number(t.amount).toFixed(2)}
+              </span>
             </div>
-            <div style={{ fontWeight: 600, color: t.type === 'INCOME' ? 'var(--c-secondary)' : 'var(--c-error)', fontSize: '1.2rem' }}>
-              {t.type === 'INCOME' ? '+' : '-'}${Number(t.amount).toFixed(2)}
+
+            <div>
+              <p className="text-body-md" style={{ fontWeight: 600, margin: 0, color: 'var(--c-on-surface)' }}>{t.description}</p>
+              <p className="text-label-sm text-on-surface-variant" style={{ marginTop: '4px', margin: 0 }}>
+                {t.category} • {t.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
             </div>
           </div>
         ))}
         {paginatedTransactions.length === 0 && (
-          <div style={{ padding: '32px', textAlign: 'center', backgroundColor: 'var(--c-surface-container-low)', borderRadius: '12px', border: '1px dashed var(--c-outline)' }}>
-            <p className="text-on-surface-variant">No {activeTab.toLowerCase()} records found for this period.</p>
+          <div style={{ gridColumn: '1 / -1', padding: '32px', textAlign: 'center', backgroundColor: 'var(--c-surface-container-low)', borderRadius: '12px', border: '1px dashed var(--c-outline)' }}>
+            <p className="text-on-surface-variant" style={{ margin: 0 }}>No {activeTab.toLowerCase()} records found for this period.</p>
           </div>
         )}
       </div>
