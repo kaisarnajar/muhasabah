@@ -5,9 +5,10 @@ import Link from 'next/link';
 export default async function HistoryPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const queryDate = searchParams.date as string;
+  const resolvedSearchParams = await searchParams;
+  const queryDate = resolvedSearchParams.date as string;
   
   let targetDateStr = queryDate;
   
