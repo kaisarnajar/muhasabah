@@ -73,7 +73,6 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
           <button 
             onClick={() => setView('manage')} 
             className="primary-btn" 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
           >
             <List size={18} /> Manage Tasks
           </button>
@@ -81,7 +80,6 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
           <button 
             onClick={() => setView('table')} 
             className="primary-btn" 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
           >
             <Calendar size={18} /> View History Table
           </button>
