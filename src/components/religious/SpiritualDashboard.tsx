@@ -114,27 +114,42 @@ export default function SpiritualDashboard({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
+      {/* PAGE HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Moon color="var(--c-primary)" size={28} />
+          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Spiritual Tracker</h2>
+        </div>
+        <button
+          onClick={() => setIsManageModalOpen(true)}
+          className="primary-btn"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            padding: '10px 20px', 
+            borderRadius: '12px', 
+            backgroundColor: 'var(--c-surface-container-high)', 
+            color: 'var(--c-on-surface)', 
+            border: '1px solid var(--c-outline-variant)',
+            boxShadow: 'none',
+            fontSize: '14px',
+            fontWeight: 600,
+            transition: 'var(--transition-fast)'
+          }}
+        >
+          <Settings size={18} /> Manage Habits
+        </button>
+      </div>
+
       {/* TODAY'S SUMMARY CARD */}
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Moon color="var(--c-primary)" size={24} />
-            <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Today&apos;s Spiritual Tracker</h2>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => setIsManageModalOpen(true)}
-              className="primary-btn"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
-            >
-              <Settings size={18} /> Manage Habits
-            </button>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+          <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700 }}>Today&apos;s Progress</h3>
+          <p className="text-body-md text-on-surface-variant" style={{ margin: 0, fontWeight: 500 }}>
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
         </div>
-
-        <p className="text-body-md text-on-surface-variant mb-24" style={{ fontWeight: 500 }}>
-          {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
 
         {/* Summary Progress */}
         {totalCount > 0 && (
