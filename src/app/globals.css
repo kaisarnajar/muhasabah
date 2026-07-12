@@ -193,6 +193,8 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   padding-top: 104px; /* Space for topbar + margin */
   min-height: 100vh;
   transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: calc(100vw - 280px);
+  overflow-x: hidden;
 }
 
 /* Mobile Responsiveness */
@@ -200,7 +202,7 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   .sidebar { transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
   .topbar { left: 0; padding: 0 16px; }
-  .main-content { margin-left: 0; padding-top: 88px; }
+  .main-content { margin-left: 0; padding-top: 88px; max-width: 100vw; }
 }
 
 .mobile-overlay {
