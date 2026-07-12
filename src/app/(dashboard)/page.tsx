@@ -1,6 +1,7 @@
 import { getTransactions } from '@/actions';
 import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import Link from 'next/link';
+import prisma from '@/lib/prisma';
 
 const ALL_SECTIONS = [
   { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
@@ -44,6 +45,53 @@ export default async function Dashboard() {
     .filter(t => new Date(t.date) >= startOfYear && t.type === 'EXPENSE')
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
+  // Fetch spiritual habit logs for the current year
+  const habitLogs = await prisma.spiritualHabitLog.findMany({
+    where: {
+      date: {
+        gte: startOfYear,
+      },
+    },
+    include: {
+      habit: true,
+    },
+  });
+
+  const OPTIONAL_HABITS = new Set(['Tahajjud']);
+
+  const calculateSpiritualRate = (filteredLogs: typeof habitLogs) => {
+    if (filteredLogs.length === 0) return 0;
+    
+    let completed = 0;
+    let total = 0;
+    
+    filteredLogs.forEach(l => {
+      const isOptional = OPTIONAL_HABITS.has(l.habit.name);
+      if (isOptional) {
+        if (l.isCompleted) {
+          completed += 1;
+          total += 1;
+        }
+      } else {
+        total += 1;
+        if (l.isCompleted) {
+          completed += 1;
+        }
+      }
+    });
+    
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  };
+
+  const todayLogs = habitLogs.filter(l => new Date(l.date) >= todayStart);
+  const weeklyLogs = habitLogs.filter(l => new Date(l.date) >= weekStart);
+  const monthlyLogs = habitLogs.filter(l => new Date(l.date) >= startOfMonth);
+
+  const todayRate = calculateSpiritualRate(todayLogs);
+  const weeklyRate = calculateSpiritualRate(weeklyLogs);
+  const monthlyRate = calculateSpiritualRate(monthlyLogs);
+  const yearlyRate = calculateSpiritualRate(habitLogs);
+
   return (
     <>
       {/* UMAR RA QUOTE */}
@@ -72,28 +120,67 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      {/* SPENDING SUMMARY */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        {[
-          { label: 'TODAY', amount: dailySpending },
-          { label: 'THIS WEEK', amount: weeklySpending },
-          { label: 'THIS MONTH', amount: monthlySpending, highlight: true },
-          { label: 'THIS YEAR', amount: yearlySpending }
-        ].map((item, i) => (
-          <div 
-            key={i} 
-            className={`card flex-col justify-center p-16 ${item.highlight ? 'highlight-card' : ''}`}
-            style={{ 
-              backgroundColor: 'var(--c-surface-container-high)',
-              borderTop: item.highlight ? '3px solid var(--c-primary)' : '1px solid var(--c-outline-variant)'
-            }}
-          >
-            <span className="text-label-sm text-on-surface-variant mb-8">{item.label}</span>
-            <h3 className="summary-amount" style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              ${item.amount.toFixed(2)}
-            </h3>
+      {/* SUMMARY GRIDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+        
+        {/* SPENDING SUMMARY */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h4 className="text-title-sm" style={{ fontWeight: 700, color: 'var(--c-on-surface-variant)', margin: 0 }}>Finance Expenses</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'TODAY', value: `$${dailySpending.toFixed(2)}` },
+              { label: 'THIS WEEK', value: `$${weeklySpending.toFixed(2)}` },
+              { label: 'THIS MONTH', value: `$${monthlySpending.toFixed(2)}`, highlight: true },
+              { label: 'THIS YEAR', value: `$${yearlySpending.toFixed(2)}` }
+            ].map((item, i) => (
+              <div 
+                key={i} 
+                className={`card flex-col justify-center p-16 ${item.highlight ? 'highlight-card' : ''}`}
+                style={{ 
+                  backgroundColor: 'var(--c-surface-container-high)',
+                  borderTop: item.highlight ? '3px solid var(--c-primary)' : '1px solid var(--c-outline-variant)',
+                  padding: '16px',
+                  borderRadius: '12px'
+                }}
+              >
+                <span className="text-label-sm text-on-surface-variant mb-8">{item.label}</span>
+                <h3 className="summary-amount" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                  {item.value}
+                </h3>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* SPIRITUAL SUMMARY */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h4 className="text-title-sm" style={{ fontWeight: 700, color: 'var(--c-on-surface-variant)', margin: 0 }}>Spiritual Consistency</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'TODAY', value: `${todayRate}%` },
+              { label: 'THIS WEEK', value: `${weeklyRate}%` },
+              { label: 'THIS MONTH', value: `${monthlyRate}%`, highlight: true },
+              { label: 'THIS YEAR', value: `${yearlyRate}%` }
+            ].map((item, i) => (
+              <div 
+                key={i} 
+                className={`card flex-col justify-center p-16 ${item.highlight ? 'highlight-card' : ''}`}
+                style={{ 
+                  backgroundColor: 'var(--c-surface-container-high)',
+                  borderTop: item.highlight ? '3px solid var(--c-secondary)' : '1px solid var(--c-outline-variant)',
+                  padding: '16px',
+                  borderRadius: '12px'
+                }}
+              >
+                <span className="text-label-sm text-on-surface-variant mb-8">{item.label}</span>
+                <h3 className="summary-amount" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: item.highlight ? 'var(--c-secondary)' : 'var(--c-on-surface)' }}>
+                  {item.value}
+                </h3>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       {/* SECTION NAVIGATION */}
