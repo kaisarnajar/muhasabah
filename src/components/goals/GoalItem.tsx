@@ -30,57 +30,50 @@ export function GoalItem({ goal, onClick }: { goal: Goal; onClick: () => void })
         cursor: 'pointer',
         padding: '16px',
         borderRadius: '12px',
-        border: '1px solid var(--c-outline-variant)'
+        border: '1px solid var(--c-outline-variant)',
+        minWidth: 0 // Prevent card overflow
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', minWidth: 0 }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', width: '100%', minWidth: 0 }}>
           <button 
             onClick={handleToggle}
             className={`habit-checkbox ${goal.isCompleted ? 'checked' : ''}`}
-            style={{ marginTop: '4px' }}
+            style={{ marginTop: '4px', flexShrink: 0 }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
           </button>
           
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <p className="text-body-md" style={{ fontWeight: 600, margin: 0, textDecoration: goal.isCompleted ? 'line-through' : 'none', color: 'var(--c-on-surface)' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', flexWrap: 'wrap', width: '100%' }}>
+              <p className="text-body-md" style={{ fontWeight: 600, margin: 0, textDecoration: goal.isCompleted ? 'line-through' : 'none', color: 'var(--c-on-surface)', wordBreak: 'break-word' }}>
                 {goal.title}
               </p>
-              <span style={{ backgroundColor: colors.bg, color: colors.text, padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                {goal.priority}
-              </span>
-              {isOverdue && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--c-error)', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                  <Clock size={12} /> OVERDUE
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ backgroundColor: colors.bg, color: colors.text, padding: '2px 8px', borderRadius: '12px', fontSize: '0.70rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                  {goal.priority}
                 </span>
-              )}
+                {isOverdue && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '2px', color: 'var(--c-error)', fontSize: '0.70rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    <Clock size={10} /> OVERDUE
+                  </span>
+                )}
+              </div>
             </div>
 
             {goal.description && (
-              <p className="text-label-sm text-on-surface-variant" style={{ marginTop: '4px', margin: '4px 0 0', maxWidth: '500px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p className="text-label-sm text-on-surface-variant" style={{ margin: 0, wordBreak: 'break-word', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: '1.4' }}>
                 {goal.description}
               </p>
             )}
 
             {goal.targetDate && (
-              <p className="text-label-sm text-on-surface-variant" style={{ marginTop: '4px', margin: '4px 0 0' }}>
+              <p className="text-label-sm text-on-surface-variant" style={{ margin: 0, opacity: 0.8 }}>
                 Target: {new Date(goal.targetDate).toLocaleDateString()}
               </p>
             )}
           </div>
         </div>
-      </div>
-
-      {/* Progress Bar Area */}
-      <div style={{ paddingLeft: '40px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--c-surface-container-highest)', borderRadius: '3px', overflow: 'hidden' }}>
-          <div style={{ width: `${goal.progress}%`, height: '100%', backgroundColor: 'var(--c-primary)', borderRadius: '3px' }} />
-        </div>
-        <span className="text-label-sm" style={{ fontWeight: 'bold', minWidth: '40px', color: 'var(--c-on-surface-variant)' }}>
-          {goal.progress}%
-        </span>
       </div>
     </div>
   );
