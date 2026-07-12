@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, List, Calendar } from 'lucide-react';
 import { addWeekendTask, deleteWeekendTask, toggleWeekendTask } from '@/actions/tasks';
 import { WeekendTask, WeekendTaskLog } from '@prisma/client';
 
@@ -31,6 +31,7 @@ function generatePastWeeks(count: number) {
 export default function WeekendTasksClient({ initialTasks }: { initialTasks: TaskWithLogs[] }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<'table' | 'manage'>('table');
   
   const weeks = generatePastWeeks(12); // Show last 12 weeks
 
@@ -59,39 +60,84 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
     await toggleWeekendTask(id, !currentCompletedState, weekStartDateStr);
   };
 
+  if (view === 'manage') {
+    return (
+      <div className="card" style={{ padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h3 className="text-title-md" style={{ margin: 0, fontWeight: 600 }}>Manage Weekend Tasks</h3>
+          <button 
+            onClick={() => setView('table')} 
+            className="primary-btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
+          >
+            <Calendar size={18} /> View History Table
+          </button>
+        </div>
+
+        {/* ADD TASK FORM */}
+        <form onSubmit={handleAdd} style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          <input 
+            type="text" 
+            placeholder="Add a new weekend task..."
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            className="search-input"
+            style={{ flex: 1, borderRadius: '8px' }}
+            required
+          />
+          <button type="submit" className="primary-btn" disabled={loading} style={{ padding: '0 24px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} /> Add
+          </button>
+        </form>
+
+        {/* VERTICAL LIST FOR MANAGING */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {initialTasks.map(task => (
+            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: 'var(--c-surface-container-low)', borderRadius: '8px', border: '1px solid var(--c-outline-variant)' }}>
+              <span className="text-body-md" style={{ fontWeight: 500, color: 'var(--c-on-surface)' }}>
+                {task.title}
+              </span>
+              <button 
+                onClick={() => handleDelete(task.id)} 
+                style={{ color: 'var(--c-error)', opacity: 0.7, padding: '8px', border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                title="Delete Task"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          ))}
+          {initialTasks.length === 0 && (
+            <p className="text-on-surface-variant" style={{ textAlign: 'center', padding: '24px' }}>No tasks found. Add a task above.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="card" style={{ padding: '24px', overflowX: 'auto' }}>
-      
-      {/* ADD TASK FORM */}
-      <form onSubmit={handleAdd} style={{ display: 'flex', gap: '12px', marginBottom: '24px', minWidth: '800px' }}>
-        <input 
-          type="text" 
-          placeholder="Add a new weekend task..."
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          className="search-input"
-          style={{ flex: 1, borderRadius: '8px' }}
-          required
-        />
-        <button type="submit" className="primary-btn" disabled={loading} style={{ padding: '0 24px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={18} /> Add
+    <div className="card" style={{ padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <p className="text-body-md text-on-surface-variant" style={{ margin: 0 }}>
+          Check off tasks for the current week, or review past weeks.
+        </p>
+        <button 
+          onClick={() => setView('manage')} 
+          className="primary-btn" 
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
+        >
+          <List size={18} /> Manage Tasks
         </button>
-      </form>
+      </div>
 
       {/* 2D TASK TABLE */}
-      <div style={{ minWidth: '800px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '800px' }}>
           <thead>
             <tr>
               <th style={{ padding: '16px', borderBottom: '2px solid var(--c-outline-variant)', textAlign: 'left', minWidth: '150px' }}>Week Of</th>
               {initialTasks.map(task => (
-                <th key={task.id} style={{ padding: '16px', borderBottom: '2px solid var(--c-outline-variant)', minWidth: '120px', verticalAlign: 'bottom' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700' }}>{task.title}</span>
-                    <button onClick={() => handleDelete(task.id)} style={{ color: 'var(--c-error)', opacity: 0.5, padding: '4px' }} title="Delete Task">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                <th key={task.id} style={{ padding: '16px', borderBottom: '2px solid var(--c-outline-variant)', minWidth: '120px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '700' }}>{task.title}</span>
                 </th>
               ))}
             </tr>
