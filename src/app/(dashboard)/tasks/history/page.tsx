@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default async function HistoryPage() {
   const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 14);
+  startDate.setDate(startDate.getDate() - 30);
   startDate.setHours(0, 0, 0, 0);
 
   const tasks = await prisma.dailyTask.findMany({
@@ -27,7 +27,7 @@ export default async function HistoryPage() {
       </Link>
       <div style={{ marginBottom: '32px' }}>
         <h2 className="text-headline-md">Task History</h2>
-        <p className="text-body-md text-on-surface-variant">Review your daily plans and accomplishments over the last 2 weeks.</p>
+        <p className="text-body-md text-on-surface-variant">Review your daily plans and accomplishments over the last month.</p>
       </div>
 
       <TaskHistoryTable tasks={tasks} />
