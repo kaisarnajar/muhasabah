@@ -55,17 +55,9 @@ export default function Navigation() {
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-body-md">Dashboard</span>
           </Link>
-          <Link href="/tomorrow" className={`nav-item ${pathname === '/tomorrow' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">event_upcoming</span>
-            <span className="text-body-md">Tomorrow</span>
-          </Link>
-          <Link href="/weekend" className={`nav-item ${pathname === '/weekend' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">calendar_clock</span>
-            <span className="text-body-md">Weekend Tasks</span>
-          </Link>
-          <Link href="/history" className={`nav-item ${pathname === '/history' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">history</span>
-            <span className="text-body-md">Task History</span>
+          <Link href="/tasks" className={`nav-item ${pathname.startsWith('/tasks') ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">checklist</span>
+            <span className="text-body-md">Tasks</span>
           </Link>
           <Link href="/transactions" className={`nav-item ${pathname === '/transactions' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">payments</span>

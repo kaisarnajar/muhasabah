@@ -6,7 +6,7 @@ const QUICK_ACTIONS = [
   { href: '/transactions', icon: 'add_card', label: 'Add Transaction', bg: 'var(--c-error-container)', color: 'var(--c-error)' },
   { href: '/journal', icon: 'edit_note', label: 'Log Journal', bg: 'var(--c-primary-container)', color: 'var(--c-primary)' },
   { href: '/goals', icon: 'flag', label: 'Update Goal', bg: 'var(--c-secondary-container)', color: 'var(--c-secondary)' },
-  { href: '/tomorrow', icon: 'event_upcoming', label: 'Plan Tomorrow', bg: 'var(--c-tertiary-container)', color: 'var(--c-on-tertiary-container)' },
+  { href: '/tasks/tomorrow', icon: 'event_upcoming', label: 'Plan Tomorrow', bg: 'var(--c-tertiary-container)', color: 'var(--c-on-tertiary-container)' },
   { href: '/religious', icon: 'auto_awesome', label: 'Spiritual', bg: 'var(--c-surface-variant)', color: 'var(--c-on-surface)' },
 ];
 
