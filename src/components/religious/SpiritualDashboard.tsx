@@ -205,6 +205,60 @@ export default function SpiritualDashboard({
   const paginatedHistory = initialHistory.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
   const selectedRecord = selectedHistoryIndex !== null ? initialHistory[selectedHistoryIndex] : null;
 
+  // Helper to calculate statistics
+  const getMonthlyPrayerStats = () => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    const prayers = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Tahajjud'];
+    const stats: Record<string, { completed: number; jamaat: number; total: number }> = {};
+    
+    prayers.forEach(p => {
+      stats[p] = { completed: 0, jamaat: 0, total: 0 };
+    });
+
+    const todayDateStr = dateStr;
+    
+    initialHistory.forEach(record => {
+      const recDate = new Date(record.date);
+      if (recDate.getFullYear() === currentYear && recDate.getMonth() === currentMonth) {
+        const recStr = recDate.toISOString().split('T')[0];
+        if (recStr === todayDateStr) {
+          return;
+        }
+
+        prayers.forEach(p => {
+          const habit = record.habits.find(h => h.name === p);
+          stats[p].total += 1;
+          if (habit?.isCompleted) {
+            stats[p].completed += 1;
+            if (habit.prayedWithJamaat) {
+              stats[p].jamaat += 1;
+            }
+          }
+        });
+      }
+    });
+
+    prayers.forEach(p => {
+      const habit = initialTodayData.habits.find(h => h.name === p);
+      if (habit) {
+        stats[p].total += 1;
+        if (habit.isCompleted) {
+          stats[p].completed += 1;
+          if (habit.prayedWithJamaat) {
+            stats[p].jamaat += 1;
+          }
+        }
+      }
+    });
+
+    return stats;
+  };
+
+  const monthlyStats = getMonthlyPrayerStats();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
@@ -329,6 +383,84 @@ export default function SpiritualDashboard({
         >
           <Moon size={20} /> Open Tracker
         </button>
+      </div>
+
+      {/* MONTHLY PRAYER STATISTICS */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <Calendar color="var(--c-primary)" size={24} />
+          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>
+            Prayer Stats ({new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})
+          </h2>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '16px'
+        }}>
+          {['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Tahajjud'].map(prayer => {
+            const data = monthlyStats[prayer] || { completed: 0, jamaat: 0, total: 0 };
+            const rate = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+            const isTahajjud = prayer === 'Tahajjud';
+
+            return (
+              <div
+                key={prayer}
+                style={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  backgroundColor: 'var(--c-surface-container-low)',
+                  border: '1px solid var(--c-outline-variant)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--c-on-surface)' }}>{prayer}</span>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    backgroundColor: rate === 100 ? 'rgba(40, 167, 69, 0.1)' : 'rgba(195, 150, 38, 0.1)',
+                    color: rate === 100 ? '#28a745' : 'var(--c-primary)',
+                  }}>
+                    {rate}%
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                    <span style={{ color: 'var(--c-on-surface-variant)', fontWeight: 500 }}>Completed</span>
+                    <span style={{ fontWeight: 600, color: 'var(--c-on-surface)' }}>{data.completed} / {data.total} days</span>
+                  </div>
+                  
+                  {!isTahajjud && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--c-on-surface-variant)', fontWeight: 500 }}>In Jamaat</span>
+                      <span style={{ fontWeight: 600, color: 'var(--c-secondary)' }}>{data.jamaat} times</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--c-surface-container-highest)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${rate}%`,
+                      height: '100%',
+                      backgroundColor: rate === 100 ? 'var(--c-secondary)' : 'var(--c-primary)',
+                      transition: 'width 0.4s ease',
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* IBADAH REGISTER */}
