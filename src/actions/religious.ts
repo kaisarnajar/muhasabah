@@ -9,6 +9,28 @@ export async function getSpiritualHabits() {
   });
 }
 
+const DEFAULT_HABITS = [
+  'Fajr',
+  'Dhuhr',
+  'Asr',
+  'Maghrib',
+  'Isha',
+  'Morning Adhkar',
+  'Evening Adhkar',
+];
+
+export async function seedDefaultSpiritualHabits() {
+  const count = await prisma.spiritualHabit.count();
+  if (count > 0) return; // Already has habits, skip seeding
+
+  for (const name of DEFAULT_HABITS) {
+    await prisma.spiritualHabit.create({
+      data: { name },
+    });
+  }
+  revalidatePath('/religious');
+}
+
 export async function addSpiritualHabit(name: string) {
   const trimmed = name.trim();
   if (!trimmed) throw new Error('Habit name cannot be empty.');

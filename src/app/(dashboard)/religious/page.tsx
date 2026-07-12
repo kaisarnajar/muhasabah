@@ -1,7 +1,10 @@
-import { getSpiritualTodayData, getSpiritualHistory, getSpiritualHabits } from '@/actions/religious';
+import { getSpiritualTodayData, getSpiritualHistory, getSpiritualHabits, seedDefaultSpiritualHabits } from '@/actions/religious';
 import SpiritualDashboard from '@/components/religious/SpiritualDashboard';
 
 export default async function ReligiousPage() {
+  // Seed default habits (5 prayers + Adhkar) if none exist
+  await seedDefaultSpiritualHabits();
+
   const today = new Date();
   // Adjust for local timezone to ensure 'today' is the user's today
   const offset = today.getTimezoneOffset() * 60000;
