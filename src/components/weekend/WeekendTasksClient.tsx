@@ -37,6 +37,8 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEditWeek, setSelectedEditWeek] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [customWeeks, setCustomWeeks] = useState<string[]>([]);
+  const [isAddWeekOpen, setIsAddWeekOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -50,8 +52,28 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
     const endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `From ${startLabel} - To ${endLabel}`;
   };
-  
-  const weeks = generatePastWeeks(12); // Show last 12 weeks
+
+  // Extract all week start dates that have logs in the database
+  const loggedWeeks = new Set<string>();
+  initialTasks.forEach(task => {
+    task.logs.forEach(log => {
+      if (log.weekStartDate) {
+        const d = new Date(log.weekStartDate);
+        loggedWeeks.add(d.toISOString().split('T')[0]);
+      }
+    });
+  });
+
+  const currentWeekMonday = getMonday(new Date());
+  const currentWeekStr = currentWeekMonday.toISOString().split('T')[0];
+
+  const weeks = Array.from(new Set([
+    currentWeekStr,
+    ...Array.from(loggedWeeks),
+    ...customWeeks
+  ]))
+  .map(dateStr => new Date(dateStr))
+  .sort((a, b) => b.getTime() - a.getTime());
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,21 +117,39 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
           <h2 className="text-headline-md" style={{ margin: 0 }}>Weekend Tasks</h2>
         </div>
 
-        {view === 'table' ? (
-          <button 
-            onClick={() => handleViewChange('manage')} 
-            className="primary-btn" 
-          >
-            <List size={18} /> Manage Tasks
-          </button>
-        ) : (
-          <button 
-            onClick={() => handleViewChange('table')} 
-            className="primary-btn" 
-          >
-            <Calendar size={18} /> View History Table
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {view === 'table' && (
+            <button 
+              onClick={() => setIsAddWeekOpen(true)} 
+              className="primary-btn" 
+              style={{
+                backgroundColor: 'var(--c-surface-container-high)',
+                color: 'var(--c-on-surface)',
+                border: '1px solid var(--c-outline-variant)',
+                boxShadow: 'none',
+                backgroundImage: 'none'
+              }}
+            >
+              <Plus size={18} /> Add Week
+            </button>
+          )}
+
+          {view === 'table' ? (
+            <button 
+              onClick={() => handleViewChange('manage')} 
+              className="primary-btn" 
+            >
+              <List size={18} /> Manage Tasks
+            </button>
+          ) : (
+            <button 
+              onClick={() => handleViewChange('table')} 
+              className="primary-btn" 
+            >
+              <Calendar size={18} /> View History Table
+            </button>
+          )}
+        </div>
       </div>
 
       <p className="text-body-md text-on-surface-variant mb-24">
@@ -263,7 +303,7 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                                 width: '24px', 
                                 height: '24px', 
                                 cursor: 'pointer', 
-                                accentColor: isCurrentWeek ? 'var(--c-primary)' : 'var(--c-outline)', 
+                                accentColor: 'var(--c-primary)', 
                                 opacity: 1 
                               }}
                             />
@@ -401,6 +441,165 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
               </button>
             </div>
           </div>
+        </div>,
+        document.body
+      )}
+
+      {isAddWeekOpen && mounted && createPortal(
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, left: 0, right: 0, bottom: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            zIndex: 1000, 
+            padding: '16px', 
+            backdropFilter: 'blur(4px)' 
+          }}
+        >
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const startDateStr = formData.get('startDate') as string;
+              const endDateStr = formData.get('endDate') as string;
+              
+              if (!startDateStr || !endDateStr) {
+                alert("Please fill in both dates.");
+                return;
+              }
+
+              // Local timezone parse
+              const [sY, sM, sD] = startDateStr.split('-').map(Number);
+              const startLocalDate = new Date(sY, sM - 1, sD);
+
+              const [eY, eM, eD] = endDateStr.split('-').map(Number);
+              const endLocalDate = new Date(eY, eM - 1, eD);
+
+              // 1. Start date must be Monday (getDay() === 1)
+              // 2. End date must be Sunday (getDay() === 0)
+              // 3. End date must be exactly 6 days after Start date
+              const isMonday = startLocalDate.getDay() === 1;
+              const isSunday = endLocalDate.getDay() === 0;
+              const diffTime = endLocalDate.getTime() - startLocalDate.getTime();
+              const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+              const isOneWeek = diffDays === 6;
+
+              if (!isMonday || !isSunday || !isOneWeek) {
+                alert("You haven't entered the dates correctly. The week must start on a Monday and end on a Sunday.");
+                return;
+              }
+
+              const formattedStart = startLocalDate.toISOString().split('T')[0];
+              setCustomWeeks(prev => Array.from(new Set([...prev, formattedStart])));
+              setIsAddWeekOpen(false);
+            }}
+            className="card" 
+            style={{ 
+              maxWidth: '400px', 
+              width: '100%', 
+              position: 'relative', 
+              padding: '32px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px',
+              boxShadow: 'var(--shadow-lg)',
+              backgroundColor: 'var(--c-surface)',
+              border: '1px solid var(--c-outline-variant)'
+            }}
+          >
+            <button 
+              type="button"
+              onClick={() => setIsAddWeekOpen(false)} 
+              style={{ 
+                position: 'absolute', 
+                top: '16px', 
+                right: '16px', 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer', 
+                color: 'var(--c-on-surface-variant)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '6px',
+                borderRadius: '50%',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Close"
+            >
+              <X size={20} />
+            </button>
+
+            <div>
+              <h3 className="text-title-md" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: 0, color: 'var(--c-on-surface)' }}>
+                <Calendar size={22} style={{ color: 'var(--c-primary)' }} />
+                Add Custom Week
+              </h3>
+              <p className="text-label-sm text-on-surface-variant" style={{ marginTop: '6px' }}>
+                Select a date range strictly spanning from Monday to Sunday.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-sm text-on-surface" style={{ fontWeight: 600 }}>Start Date (Monday)</label>
+                <input 
+                  type="date" 
+                  name="startDate" 
+                  required 
+                  className="search-input"
+                  style={{ borderRadius: '8px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-sm text-on-surface" style={{ fontWeight: 600 }}>End Date (Sunday)</label>
+                <input 
+                  type="date" 
+                  name="endDate" 
+                  required 
+                  className="search-input"
+                  style={{ borderRadius: '8px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsAddWeekOpen(false)} 
+                className="primary-btn" 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--c-surface-container-high)', 
+                  color: 'var(--c-on-surface)', 
+                  boxShadow: 'none',
+                  border: '1px solid var(--c-outline-variant)',
+                  backgroundImage: 'none',
+                  fontSize: '14px'
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="primary-btn" 
+                style={{ 
+                  padding: '8px 16px', 
+                  borderRadius: '8px',
+                  fontSize: '14px'
+                }}
+              >
+                Add Week
+              </button>
+            </div>
+          </form>
         </div>,
         document.body
       )}
