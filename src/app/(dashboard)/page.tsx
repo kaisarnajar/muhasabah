@@ -47,47 +47,29 @@ export default async function Dashboard() {
   return (
     <>
       {/* UMAR RA QUOTE */}
-      <div style={{
-        marginBottom: '28px',
-        padding: '20px 28px',
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, rgba(195,150,38,0.08) 0%, rgba(195,150,38,0.03) 100%)',
-        border: '1px solid rgba(195,150,38,0.35)',
-        borderLeft: '4px solid var(--c-primary)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-      }}>
-        <p style={{
-          fontFamily: '"Amiri", "Scheherazade New", serif',
-          fontSize: '22px',
-          lineHeight: 1.8,
-          textAlign: 'right',
-          direction: 'rtl',
-          color: 'var(--c-primary)',
-          fontWeight: 600,
-          margin: 0,
-        }}>
+      <div className="quote-card">
+        {/* Decorative Quote Icon Background */}
+        <span className="material-symbols-outlined quote-icon">format_quote</span>
+        
+        <p className="quote-arabic">
           حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا، وَزِنُوا أَعْمَالَكُمْ قَبْلَ أَنْ تُوزَنَ عَلَيْكُمْ
         </p>
-        <p style={{
-          fontSize: '15px',
-          color: 'var(--c-on-surface)',
-          fontStyle: 'italic',
-          margin: 0,
-          lineHeight: 1.6,
-        }}>
+        
+        <div className="quote-divider">
+          <div className="quote-divider-line" />
+          <span className="material-symbols-outlined quote-divider-symbol">diamond</span>
+          <div className="quote-divider-line" />
+        </div>
+        
+        <p className="quote-english">
           "Hold yourselves accountable before you are held accountable, and weigh your deeds before they are weighed against you."
         </p>
-        <p style={{
-          fontSize: '13px',
-          color: 'var(--c-on-surface-variant)',
-          fontWeight: 600,
-          margin: 0,
-          letterSpacing: '0.02em',
-        }}>
-          — Umar ibn al-Khattab رضي الله عنه
-        </p>
+        
+        <div className="quote-author">
+          <div className="quote-author-line" />
+          <span className="quote-author-name">Umar ibn al-Khattab</span>
+          <span className="quote-author-honorific">رضي الله عنه</span>
+        </div>
       </div>
 
       {/* SPENDING SUMMARY */}
