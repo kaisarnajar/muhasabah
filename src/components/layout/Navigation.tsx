@@ -55,9 +55,29 @@ export default function Navigation() {
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-body-md">Dashboard</span>
           </Link>
+          <Link href="/religious" className={`nav-item ${pathname === '/religious' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">auto_awesome</span>
+            <span className="text-body-md">Spiritual</span>
+          </Link>
+          <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">target</span>
+            <span className="text-body-md">Goals</span>
+          </Link>
           <Link href="/tasks" className={`nav-item ${pathname.startsWith('/tasks') ? 'active' : ''}`}>
             <span className="material-symbols-outlined">checklist</span>
             <span className="text-body-md">Tasks</span>
+          </Link>
+          <Link href="/journal/learning" className={`nav-item ${pathname.startsWith('/journal/learning') ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">school</span>
+            <span className="text-body-md">Learning</span>
+          </Link>
+          <Link href="/fitness" className={`nav-item ${pathname === '/fitness' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">fitness_center</span>
+            <span className="text-body-md">Fitness</span>
+          </Link>
+          <Link href="/journal/office" className={`nav-item ${pathname.startsWith('/journal/office') ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">work</span>
+            <span className="text-body-md">Office Work</span>
           </Link>
           <Link href="/transactions" className={`nav-item ${pathname === '/transactions' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">payments</span>
@@ -67,35 +87,13 @@ export default function Navigation() {
             <span className="material-symbols-outlined">account_balance</span>
             <span className="text-body-md">Ledger</span>
           </Link>
-          <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">target</span>
-            <span className="text-body-md">Goals</span>
-          </Link>
-          <Link href="/religious" className={`nav-item ${pathname === '/religious' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">auto_awesome</span>
-            <span className="text-body-md">Spiritual</span>
-          </Link>
-          <div style={{ paddingLeft: '8px', paddingTop: '4px', paddingBottom: '4px' }}>
-            <Link href="/journal/office" className={`nav-item ${pathname.startsWith('/journal/office') ? 'active' : ''}`} style={{ paddingLeft: '20px' }}>
-              <span className="material-symbols-outlined">work</span>
-              <span className="text-body-md">Office Work</span>
-            </Link>
-            <Link href="/journal/learning" className={`nav-item ${pathname.startsWith('/journal/learning') ? 'active' : ''}`} style={{ paddingLeft: '20px' }}>
-              <span className="material-symbols-outlined">school</span>
-              <span className="text-body-md">Learning</span>
-            </Link>
-            <Link href="/journal/misc" className={`nav-item ${pathname.startsWith('/journal/misc') ? 'active' : ''}`} style={{ paddingLeft: '20px' }}>
-              <span className="material-symbols-outlined">folder_open</span>
-              <span className="text-body-md">Miscellaneous</span>
-            </Link>
-          </div>
           <Link href="/notes" className={`nav-item ${pathname === '/notes' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">sticky_note_2</span>
             <span className="text-body-md">Notes</span>
           </Link>
-          <Link href="/fitness" className={`nav-item ${pathname === '/fitness' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">fitness_center</span>
-            <span className="text-body-md">Fitness</span>
+          <Link href="/journal/misc" className={`nav-item ${pathname.startsWith('/journal/misc') ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">folder_open</span>
+            <span className="text-body-md">Miscellaneous</span>
           </Link>
         </nav>
       </aside>
