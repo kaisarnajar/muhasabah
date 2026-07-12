@@ -2,7 +2,7 @@ import { getDailyTasks, addDailyTask, toggleDailyTask, deleteDailyTask } from '@
 import { PlusCircle, Trash2 } from 'lucide-react';
 
 
-export default async function TasksOfTheDay({ dateStr }: { dateStr: string }) {
+export default async function TasksOfTheDay({ dateStr, hideTitle }: { dateStr: string, hideTitle?: boolean }) {
   const tasks = await getDailyTasks(dateStr);
   
   const currentDate = new Date(dateStr);
@@ -25,12 +25,14 @@ export default async function TasksOfTheDay({ dateStr }: { dateStr: string }) {
 
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h3 className="text-headline-md">{titleText}</h3>
-          <p className="text-label-sm text-on-surface-variant">{displayDate}</p>
+      {!hideTitle && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 className="text-headline-md">{titleText}</h3>
+            <p className="text-label-sm text-on-surface-variant">{displayDate}</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <form action={addDailyTask} style={{ display: 'flex', gap: '12px' }}>
         <input type="hidden" name="date" value={dateStr} />

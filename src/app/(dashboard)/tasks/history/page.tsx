@@ -26,7 +26,7 @@ export default async function HistoryPage({
 
       <HistoryDatePicker initialDate={targetDateStr} />
 
-      <TasksOfTheDay dateStr={targetDateStr} />
+      <TasksOfTheDay dateStr={targetDateStr} hideTitle={true} />
     </div>
   );
 }
