@@ -33,16 +33,8 @@ export default async function WeekendPage() {
         <span className="material-symbols-outlined">arrow_back</span>
         <span>Back to Tasks</span>
       </Link>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-        <CalendarHeart color="var(--c-primary)" size={28} />
-        <h2 className="text-headline-md" style={{ margin: 0 }}>Weekend Tasks</h2>
-      </div>
 
       <div className="w-full">
-        <p className="text-body-md text-on-surface-variant mb-24">
-          Track your recurring weekend tasks historically. Check off tasks for the current week at the top, and see your progress over the past weeks below.
-        </p>
-
         <WeekendTasksClient initialTasks={uniqueTasks} />
       </div>
     </div>
