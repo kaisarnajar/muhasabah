@@ -47,7 +47,7 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
     <div style={{ paddingBottom: '60px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2 className="text-display-sm">Credit & Debit</h2>
+          <h2 className="text-display-sm">Ledger</h2>
           <p className="text-body-md text-on-surface-variant">Manage your contacts and financial relationships</p>
         </div>
         <AddPersonDialog />

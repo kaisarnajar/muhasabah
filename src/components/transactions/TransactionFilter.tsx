@@ -10,6 +10,7 @@ const FILTER_TABS = [
   { id: 'month', label: 'Current Month' },
   { id: 'quarter', label: 'Current Quarter' },
   { id: 'year', label: 'Current Year' },
+  { id: 'all', label: 'All Time' },
   { id: 'custom', label: 'Custom Range' },
 ];
 
@@ -43,6 +44,8 @@ export default function TransactionFilter() {
     if (type === 'custom') {
       if (start) params.set('start', start);
       if (end) params.set('end', end);
+    } else if (type === 'all') {
+      // no date required
     } else {
       params.set('date', date);
     }
@@ -60,6 +63,7 @@ export default function TransactionFilter() {
     if (newType === 'month') newDate = now.toISOString().substring(0, 7);
     if (newType === 'year') newDate = now.getFullYear().toString();
     if (newType === 'quarter') newDate = `${now.getFullYear()}-Q${Math.floor(now.getMonth() / 3) + 1}`;
+    if (newType === 'all') newDate = '';
     if (newType === 'week') {
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
       const pastDaysOfYear = (now.getTime() - firstDayOfYear.getTime()) / 86400000;

@@ -20,7 +20,10 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   let endBoundary = new Date(8640000000000000);
 
   try {
-    if (filterType === 'day') {
+    if (filterType === 'all') {
+      startBoundary = new Date(0);
+      endBoundary = new Date(8640000000000000);
+    } else if (filterType === 'day') {
       startBoundary = new Date(filterDate);
       startBoundary.setHours(0, 0, 0, 0);
       endBoundary = new Date(filterDate);
