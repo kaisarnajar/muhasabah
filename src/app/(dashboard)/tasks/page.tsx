@@ -3,7 +3,6 @@ import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 
 const TASK_SECTIONS = [
   { href: '/tasks/today', icon: 'today', label: 'Today\'s Task List', bg: 'var(--c-primary-container)', color: 'var(--c-primary)' },
-  { href: '/tasks/tomorrow', icon: 'event_upcoming', label: 'Plan Tomorrow', bg: 'var(--c-secondary-container)', color: 'var(--c-secondary)' },
   { href: '/tasks/weekend', icon: 'calendar_clock', label: 'Weekend Tasks', bg: 'var(--c-tertiary-container)', color: 'var(--c-on-tertiary-container)' },
   { href: '/tasks/history', icon: 'history', label: 'Task History', bg: 'var(--c-surface-variant)', color: 'var(--c-on-surface-variant)' },
 ];
