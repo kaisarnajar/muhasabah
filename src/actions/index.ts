@@ -5,3 +5,4 @@ export * from './religious';
 export * from './journal';
 export * from './tasks';
 export * from './debts';
+export * from './notes';

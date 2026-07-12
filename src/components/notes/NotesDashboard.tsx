@@ -1,0 +1,285 @@
+'use client';
+
+import { useState } from 'react';
+import { Plus, Search, Edit2, Trash2, Calendar, Clock, X } from 'lucide-react';
+import { addNote, updateNote, deleteNote } from '@/actions/notes';
+import { Note } from '@prisma/client';
+
+export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] }) {
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteContent, setNoteContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const openAddModal = () => {
+    setEditingNote(null);
+    setNoteTitle('');
+    setNoteContent('');
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (note: Note) => {
+    setEditingNote(note);
+    setNoteTitle(note.title);
+    setNoteContent(note.content);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingNote(null);
+    setNoteTitle('');
+    setNoteContent('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteTitle.trim() || !noteContent.trim()) return;
+    setSubmitting(true);
+    try {
+      if (editingNote) {
+        await updateNote(editingNote.id, noteTitle, noteContent);
+      } else {
+        await addNote(noteTitle, noteContent);
+        setCurrentPage(1); // Reset page on add
+      }
+      closeModal();
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save note');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to permanently delete this note?')) {
+      try {
+        await deleteNote(id);
+        setCurrentPage(1); // Reset page on delete
+      } catch (error) {
+        console.error(error);
+        alert('Failed to delete note');
+      }
+    }
+  };
+
+  // Filter notes
+  const filteredNotes = initialNotes.filter(note => {
+    const term = search.toLowerCase();
+    return note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
+  });
+
+  // Sort notes
+  filteredNotes.sort((a, b) => {
+    if (sortBy === 'newest') {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    if (sortBy === 'oldest') {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    if (sortBy === 'title') {
+      return a.title.localeCompare(b.title);
+    }
+    return 0;
+  });
+
+  // Pagination Logic
+  const PAGE_SIZE = 6;
+  const totalPages = Math.ceil(filteredNotes.length / PAGE_SIZE) || 1;
+  const activePage = currentPage > totalPages ? totalPages : currentPage;
+  const paginatedNotes = filteredNotes.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+
+  return (
+    <div>
+      {/* Search and Sort Toolbar */}
+      <div className="flex-row justify-between mb-24 gap-16" style={{ flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-on-surface-variant)' }} />
+          <input 
+            type="text" 
+            placeholder="Search notes..." 
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="search-input"
+            style={{ width: '100%', paddingLeft: '40px', borderRadius: '8px' }}
+          />
+        </div>
+
+        <div className="flex-row gap-16" style={{ width: 'auto', flexWrap: 'wrap' }}>
+          <select 
+            value={sortBy} 
+            onChange={(e) => { setSortBy(e.target.value as any); setCurrentPage(1); }}
+            className="search-input"
+            style={{ borderRadius: '8px', padding: '8px 16px', width: 'auto' }}
+          >
+            <option value="newest">Sort by Newest</option>
+            <option value="oldest">Sort by Oldest</option>
+            <option value="title">Sort by Title</option>
+          </select>
+
+          <button onClick={openAddModal} className="primary-btn" style={{ padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} /> Add Note
+          </button>
+        </div>
+      </div>
+
+      {/* Notes Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+        {paginatedNotes.map(note => {
+          const createdDate = new Date(note.createdAt);
+          const dateString = createdDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          const timeString = createdDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+          return (
+            <div key={note.id} className="card" style={{ display: 'flex', flexDirection: 'column', height: '240px', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--c-outline-variant)' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                  <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', color: 'var(--c-on-surface)' }}>
+                    {note.title}
+                  </h3>
+                  
+                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    <button 
+                      onClick={() => openEditModal(note)} 
+                      style={{ color: 'var(--c-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'background-color 0.2s' }}
+                      className="icon-btn-hover"
+                      title="Edit Note"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(note.id)} 
+                      style={{ color: 'var(--c-error)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'background-color 0.2s' }}
+                      className="icon-btn-hover"
+                      title="Delete Note"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <p className="text-body-md text-on-surface-variant" style={{ margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', lineBreak: 'anywhere', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                  {note.content}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: '12px', color: 'var(--c-on-surface-variant)' }}>
+                <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Calendar size={14} />
+                  {dateString}
+                </span>
+                <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={14} />
+                  {timeString}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredNotes.length === 0 && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <p className="text-on-surface-variant text-body-md" style={{ margin: 0 }}>No notes found. Create your first note above!</p>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '32px' }}>
+          <button 
+            disabled={activePage <= 1}
+            onClick={() => setCurrentPage(activePage - 1)}
+            className="primary-btn" 
+            style={{ padding: '8px 16px', backgroundColor: activePage <= 1 ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', color: activePage <= 1 ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', opacity: activePage <= 1 ? 0.5 : 1, cursor: activePage <= 1 ? 'not-allowed' : 'pointer', boxShadow: 'none' }}
+          >
+            Previous
+          </button>
+          
+          <span className="text-body-md text-on-surface-variant" style={{ fontWeight: 600 }}>
+            Page {activePage} of {totalPages}
+          </span>
+
+          <button 
+            disabled={activePage >= totalPages}
+            onClick={() => setCurrentPage(activePage + 1)}
+            className="primary-btn" 
+            style={{ padding: '8px 16px', backgroundColor: activePage >= totalPages ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', color: activePage >= totalPages ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', opacity: activePage >= totalPages ? 0.5 : 1, cursor: activePage >= totalPages ? 'not-allowed' : 'pointer', boxShadow: 'none' }}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* MODAL DIALOG FOR ADD / EDIT */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(4px)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px', position: 'relative', boxShadow: 'var(--shadow-lg)' }}>
+            <button 
+              onClick={closeModal} 
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
+              {editingNote ? 'Edit Note' : 'Add Note'}
+            </h3>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-md" style={{ fontWeight: 600 }}>Title</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter note title..."
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  className="search-input"
+                  style={{ width: '100%', borderRadius: '8px' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-md" style={{ fontWeight: 600 }}>Content</label>
+                <textarea 
+                  placeholder="Type note content here..."
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  className="search-input"
+                  style={{ width: '100%', minHeight: '150px', borderRadius: '8px', resize: 'vertical' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
+                <button 
+                  type="button" 
+                  onClick={closeModal} 
+                  className="primary-btn" 
+                  style={{ backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="primary-btn"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Saving...' : 'Save Note'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

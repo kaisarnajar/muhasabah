@@ -133,3 +133,11 @@ model WeekendTaskLog {
   
   @@unique([weekendTaskId, weekStartDate])
 }
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+}

@@ -79,6 +79,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">menu_book</span>
             <span className="text-body-md">Journal</span>
           </Link>
+          <Link href="/notes" className={`nav-item ${pathname === '/notes' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">sticky_note_2</span>
+            <span className="text-body-md">Notes</span>
+          </Link>
         </nav>
       </aside>
 
