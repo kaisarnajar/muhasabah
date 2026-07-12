@@ -18,6 +18,7 @@ async function main() {
   await prisma.person.deleteMany();
   await prisma.weekendTaskLog.deleteMany();
   await prisma.weekendTask.deleteMany();
+  await prisma.note.deleteMany();
 
   console.log('Seeding massive data...');
 
@@ -174,6 +175,28 @@ async function main() {
     }
     await prisma.debtRecord.createMany({ data: debts });
   }
+
+  // --- NOTES ---
+  console.log('Seeding Notes...');
+  const notes = [];
+  const noteSamples = [
+    { title: 'Project Ideas', content: '1. Build a personal finance tracker\n2. Design a productivity task grid\n3. Create a spiritual tracker with prayer alarms' },
+    { title: 'Shopping List', content: '- Milk\n- Eggs\n- Whole wheat bread\n- Organic honey\n- Green tea packets' },
+    { title: 'Workout Routine', content: 'Monday: Push day (Chest, Shoulders, Triceps)\nWednesday: Pull day (Back, Biceps)\nFriday: Leg day (Squats, Lunges, Calves)\nSaturday: Active recovery/Cardio' },
+    { title: 'Meeting Notes', content: 'Align on dashboard aesthetics with team. Use HSL dynamic colors, sleek rounded cards, and responsive navigation drawers.' },
+    { title: 'Books to Read', content: '1. Atomic Habits by James Clear\n2. Deep Work by Cal Newport\n3. Thinking, Fast and Slow by Daniel Kahneman' },
+    { title: 'Self-Reflection', content: 'Focus on consistent daily goals instead of massive weekend pushes. Progress is made in small increments every single day.' },
+    { title: 'Travel Plans', content: 'Summer vacation wishlist:\n- Kyoto, Japan for the cherry blossoms and heritage temples\n- Switzerland for mountain hikes\n- Iceland for road trip and aurora borealis' },
+    { title: 'Coding Tips', content: 'Use Prisma adapter-pg for Postgres connections. Remember to always run npx prisma generate after updating the schema models.' }
+  ];
+  for (const sample of noteSamples) {
+    notes.push({
+      title: sample.title,
+      content: sample.content,
+      createdAt: getPastDate(Math.floor(Math.random() * 30)),
+    });
+  }
+  await prisma.note.createMany({ data: notes });
 
   console.log('✅ Seeding completed successfully!');
 }
