@@ -2,6 +2,7 @@ import { getTransactions } from '@/actions';
 import { Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import AddTransactionForm from '@/components/transactions/AddTransactionForm';
 import TransactionFilter from '@/components/transactions/TransactionFilter';
+import ExportButton from '@/components/transactions/ExportButton';
 import Link from 'next/link';
 
 export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
@@ -121,9 +122,13 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
 
   return (
     <div className="card">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <Receipt color="var(--c-primary)" size={28} />
-        <h2 className="text-headline-md" style={{ margin: 0 }}>Financial Tracker</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Receipt color="var(--c-primary)" size={28} />
+          <h2 className="text-headline-md" style={{ margin: 0 }}>Financial Tracker</h2>
+        </div>
+        
+        <ExportButton transactions={transactionsInPeriod} />
       </div>
 
       <TransactionFilter />
