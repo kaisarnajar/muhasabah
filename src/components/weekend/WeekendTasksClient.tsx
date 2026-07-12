@@ -140,8 +140,8 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
       ) : (
         /* 2D HISTORY TABLE CARD */
         <div className="card" style={{ padding: '24px' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '800px' }}>
+          <div style={{ overflowX: 'auto', transform: 'rotateX(180deg)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '800px', transform: 'rotateX(180deg)' }}>
               <thead>
                 <tr>
                   <th style={{ padding: '16px', borderBottom: '2px solid var(--c-outline-variant)', textAlign: 'left', minWidth: '150px' }}>Week Of</th>
