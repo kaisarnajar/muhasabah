@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Moon, CheckCircle2, Circle, Plus, X, Settings, Users, ScrollText, Calendar } from 'lucide-react';
-import { toggleSpiritualHabit, addSpiritualHabit, deleteSpiritualHabit, setPrayerJamaat } from '@/actions/religious';
+import { toggleSpiritualHabit, addSpiritualHabit, deleteSpiritualHabit, setPrayerJamaat, updateQuranMemorization } from '@/actions/religious';
 import DeleteConfirmButton from '@/components/layout/DeleteConfirmButton';
 import { useToast } from '@/context/ToastContext';
 import { isDefaultSpiritualHabit, PRAYER_HABIT_NAMES, sortSpiritualHabits } from '@/lib/spiritualHabits';
+import { QURAN_SURAHS } from '@/lib/quranData';
 
 interface HabitStatus {
   id: number;
@@ -27,6 +28,7 @@ interface SpiritualDashboardProps {
   dateStr: string;
   initialTodayData: {
     habits: HabitStatus[];
+    quranMemorization: string | null;
   };
   initialHistory: HistoryRecord[];
   allHabits: Array<{ id: number; name: string }>;
@@ -48,6 +50,74 @@ export default function SpiritualDashboard({
   const [newHabitName, setNewHabitName] = useState('');
   const [submittingHabit, setSubmittingHabit] = useState(false);
 
+  // Quran Memorisation states
+  const [selectedSurahNum, setSelectedSurahNum] = useState<number>(() => {
+    if (initialTodayData.quranMemorization) {
+      try {
+        const parsed = JSON.parse(initialTodayData.quranMemorization);
+        return parsed?.surahNumber || 1;
+      } catch (e) {}
+    }
+    return 1;
+  });
+  const [fromVerse, setFromVerse] = useState<number>(() => {
+    if (initialTodayData.quranMemorization) {
+      try {
+        const parsed = JSON.parse(initialTodayData.quranMemorization);
+        return parsed?.fromVerse || 1;
+      } catch (e) {}
+    }
+    return 1;
+  });
+  const [toVerse, setToVerse] = useState<number>(() => {
+    if (initialTodayData.quranMemorization) {
+      try {
+        const parsed = JSON.parse(initialTodayData.quranMemorization);
+        return parsed?.toVerse || 1;
+      } catch (e) {}
+    }
+    return 1;
+  });
+  const [savingMemorization, setSavingMemorization] = useState(false);
+
+  const formatQuranMemorization = (val: string | null): string => {
+    if (!val) return '';
+    try {
+      const parsed = JSON.parse(val);
+      if (parsed && typeof parsed === 'object' && 'surahNumber' in parsed) {
+        const surah = QURAN_SURAHS.find(s => s.number === parsed.surahNumber);
+        if (surah) {
+          return `Surah ${surah.englishName} (${parsed.surahNumber}), Verses ${parsed.fromVerse} - ${parsed.toVerse}`;
+        }
+      }
+    } catch (e) {}
+    return val;
+  };
+
+  const handleSurahChange = (num: number) => {
+    setSelectedSurahNum(num);
+    setFromVerse(1);
+    setToVerse(1);
+  };
+
+  const handleSaveMemorization = async () => {
+    setSavingMemorization(true);
+    try {
+      const payload = JSON.stringify({
+        surahNumber: selectedSurahNum,
+        fromVerse,
+        toVerse
+      });
+      await updateQuranMemorization(dateStr, payload);
+      showToast('Quran memorisation progress saved!', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to save memorisation progress.', 'error');
+    } finally {
+      setSavingMemorization(false);
+    }
+  };
+
   // Toggling status state
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const sortedAllHabits = sortSpiritualHabits(allHabits);
@@ -67,6 +137,10 @@ export default function SpiritualDashboard({
     setTogglingId(habitId);
     try {
       await toggleSpiritualHabit(dateStr, habitId, currentCompleted);
+      const habit = initialTodayData.habits.find(h => h.id === habitId);
+      if (habit?.name === 'Quran Memorisation' && currentCompleted) {
+        await updateQuranMemorization(dateStr, '');
+      }
     } catch (error) {
       console.error(error);
       showToast('Failed to update habit status.', 'error');
@@ -188,6 +262,26 @@ export default function SpiritualDashboard({
           </div>
         )}
 
+        {initialTodayData.quranMemorization && (
+          <div style={{
+            marginTop: '8px',
+            marginBottom: '20px',
+            padding: '10px 14px',
+            backgroundColor: 'rgba(195, 150, 38, 0.05)',
+            border: '1px solid rgba(195, 150, 38, 0.15)',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '13px',
+            color: 'var(--c-on-surface)'
+          }}>
+            <ScrollText size={16} color="var(--c-primary)" />
+            <span style={{ fontWeight: 600 }}>Memorised today:</span>
+            <span>{formatQuranMemorization(initialTodayData.quranMemorization)}</span>
+          </div>
+        )}
+
         <button
           onClick={() => setIsTrackerOpen(true)}
           className="primary-btn"
@@ -269,6 +363,23 @@ export default function SpiritualDashboard({
                             {Math.round(completionRate)}%
                           </span>
                         </div>
+                        {record.quranMemorization && (
+                          <div style={{ 
+                            fontSize: '11px', 
+                            color: 'var(--c-primary)', 
+                            fontWeight: 600, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '4px',
+                            marginTop: '2px',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            <ScrollText size={12} />
+                            <span>{formatQuranMemorization(record.quranMemorization)}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--c-surface-container-highest)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -349,13 +460,17 @@ export default function SpiritualDashboard({
                 {initialTodayData.habits.map((habit) => {
                   const isToggling = togglingId === habit.id;
                   const isPrayer = PRAYER_HABIT_NAMES.has(habit.name);
+                  const isQuranMemorisation = habit.name === 'Quran Memorisation';
+                  const currentSurah = QURAN_SURAHS.find(s => s.number === selectedSurahNum);
+                  const maxAyahs = currentSurah ? currentSurah.numberOfAyahs : 286;
+
                   return (
                     <div
                       key={habit.id}
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
+                        flexDirection: 'column',
+                        gap: '12px',
                         padding: '16px',
                         borderRadius: '12px',
                         backgroundColor: habit.isCompleted ? 'rgba(195, 150, 38, 0.06)' : 'var(--c-surface-container-low)',
@@ -364,46 +479,169 @@ export default function SpiritualDashboard({
                         transition: 'all 0.18s ease',
                       }}
                     >
-                      <span
-                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
-                        style={{
-                          border: '2px solid var(--c-primary)',
-                          width: '24px',
-                          height: '24px',
-                          minWidth: '24px',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: habit.isCompleted ? 'var(--c-primary)' : 'none',
-                          cursor: isToggling ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        {habit.isCompleted && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-primary)', fontWeight: 'bold' }}>check</span>}
-                      </span>
-                      <p
-                        className="text-body-md"
-                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
-                        style={{ fontWeight: 600, margin: 0, cursor: isToggling ? 'not-allowed' : 'pointer', flex: 1 }}
-                      >
-                        {habit.name}
-                      </p>
-                      {isPrayer && (
-                        <button
-                          type="button"
-                          onClick={() => !isToggling && handleJamaatChange(habit.id, !habit.prayedWithJamaat)}
-                          disabled={isToggling}
-                          aria-pressed={habit.prayedWithJamaat}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
+                        <span
+                          onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
                           style={{
-                            display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '999px',
-                            border: `1px solid ${habit.prayedWithJamaat ? 'var(--c-secondary)' : 'var(--c-outline-variant)'}`,
-                            background: habit.prayedWithJamaat ? 'var(--c-secondary-container)' : 'transparent',
-                            color: habit.prayedWithJamaat ? 'var(--c-on-secondary-container)' : 'var(--c-on-surface-variant)',
-                            cursor: isToggling ? 'not-allowed' : 'pointer', fontWeight: 600,
+                            border: '2px solid var(--c-primary)',
+                            width: '24px',
+                            height: '24px',
+                            minWidth: '24px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: habit.isCompleted ? 'var(--c-primary)' : 'none',
+                            cursor: isToggling ? 'not-allowed' : 'pointer',
                           }}
                         >
-                          <Users size={15} /> {habit.prayedWithJamaat ? 'Jamaat' : 'Jamaat?'}
-                        </button>
+                          {habit.isCompleted && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-primary)', fontWeight: 'bold' }}>check</span>}
+                        </span>
+                        <p
+                          className="text-body-md"
+                          onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
+                          style={{ fontWeight: 600, margin: 0, cursor: isToggling ? 'not-allowed' : 'pointer', flex: 1 }}
+                        >
+                          {habit.name}
+                        </p>
+                        {isPrayer && (
+                          <button
+                            type="button"
+                            onClick={() => !isToggling && handleJamaatChange(habit.id, !habit.prayedWithJamaat)}
+                            disabled={isToggling}
+                            aria-pressed={habit.prayedWithJamaat}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '999px',
+                              border: `1px solid ${habit.prayedWithJamaat ? 'var(--c-secondary)' : 'var(--c-outline-variant)'}`,
+                              background: habit.prayedWithJamaat ? 'var(--c-secondary-container)' : 'transparent',
+                              color: habit.prayedWithJamaat ? 'var(--c-on-secondary-container)' : 'var(--c-on-surface-variant)',
+                              cursor: isToggling ? 'not-allowed' : 'pointer', fontWeight: 600,
+                            }}
+                          >
+                            <Users size={15} /> {habit.prayedWithJamaat ? 'Jamaat' : 'Jamaat?'}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Expandable Quran Memorisation Fields */}
+                      {isQuranMemorisation && habit.isCompleted && (
+                        <div style={{
+                          marginTop: '4px',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--c-surface)',
+                          border: '1px solid var(--c-outline-variant)',
+                          width: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                        }}>
+                          <p className="text-label-sm text-primary" style={{ margin: 0, fontWeight: 700, letterSpacing: '0.05em' }}>
+                            Record Memorisation Details
+                          </p>
+                          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>Surah</span>
+                              <select
+                                value={selectedSurahNum}
+                                onChange={(e) => handleSurahChange(Number(e.target.value))}
+                                style={{
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  border: '1px solid var(--c-outline)',
+                                  backgroundColor: 'var(--c-surface-container-high)',
+                                  color: 'var(--c-on-surface)',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  outline: 'none',
+                                }}
+                              >
+                                {QURAN_SURAHS.map((s) => (
+                                  <option key={s.number} value={s.number}>
+                                    {s.number}. {s.englishName} ({s.numberOfAyahs} ayahs)
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>From Ayah</span>
+                              <select
+                                value={fromVerse}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  setFromVerse(val);
+                                  if (toVerse < val) setToVerse(val);
+                                }}
+                                style={{
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  border: '1px solid var(--c-outline)',
+                                  backgroundColor: 'var(--c-surface-container-high)',
+                                  color: 'var(--c-on-surface)',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  outline: 'none',
+                                }}
+                              >
+                                {Array.from({ length: maxAyahs }, (_, i) => i + 1).map((v) => (
+                                  <option key={v} value={v}>
+                                    {v}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>To Ayah</span>
+                              <select
+                                value={toVerse}
+                                onChange={(e) => setToVerse(Number(e.target.value))}
+                                style={{
+                                  padding: '8px 12px',
+                                  borderRadius: '8px',
+                                  border: '1px solid var(--c-outline)',
+                                  backgroundColor: 'var(--c-surface-container-high)',
+                                  color: 'var(--c-on-surface)',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  outline: 'none',
+                                }}
+                              >
+                                {Array.from({ length: maxAyahs - fromVerse + 1 }, (_, i) => i + fromVerse).map((v) => (
+                                  <option key={v} value={v}>
+                                    {v}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleSaveMemorization}
+                            disabled={savingMemorization}
+                            className="primary-btn"
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              backgroundColor: 'var(--c-primary)',
+                              color: 'var(--c-on-primary)',
+                              border: 'none',
+                              fontWeight: 700,
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              alignSelf: 'flex-end',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              boxShadow: 'none',
+                            }}
+                          >
+                            <ScrollText size={14} />
+                            {savingMemorization ? 'Saving...' : 'Save Memorisation'}
+                          </button>
+                        </div>
                       )}
                     </div>
                   );
@@ -531,7 +769,7 @@ export default function SpiritualDashboard({
             {selectedRecord.quranMemorization && (
               <div style={{ marginTop: '20px', padding: '16px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
                 <p className="text-label-sm text-on-surface-variant" style={{ margin: '0 0 8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quran Memorization</p>
-                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{selectedRecord.quranMemorization}</p>
+                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap', fontWeight: 600 }}>{formatQuranMemorization(selectedRecord.quranMemorization)}</p>
               </div>
             )}
           </div>
