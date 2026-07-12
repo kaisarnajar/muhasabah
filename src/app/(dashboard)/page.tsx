@@ -2,12 +2,17 @@ import { getTransactions } from '@/actions';
 import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import Link from 'next/link';
 
-const QUICK_ACTIONS = [
-  { href: '/transactions', icon: 'add_card', label: 'Add Transaction' },
-  { href: '/journal', icon: 'edit_note', label: 'Log Journal' },
-  { href: '/goals', icon: 'flag', label: 'Update Goal' },
-  { href: '/tasks/tomorrow', icon: 'event_upcoming', label: 'Plan Tomorrow' },
-  { href: '/religious', icon: 'auto_awesome', label: 'Spiritual' },
+const ALL_SECTIONS = [
+  { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
+  { href: '/goals',           icon: 'target',         label: 'Goals',           desc: 'Track your objectives'        },
+  { href: '/tasks',           icon: 'checklist',      label: 'Tasks',           desc: 'Daily & recurring tasks'      },
+  { href: '/journal/learning',icon: 'school',         label: 'Learning',        desc: 'Notes from what you learn'    },
+  { href: '/fitness',         icon: 'fitness_center', label: 'Fitness',         desc: 'Workouts & health logs'       },
+  { href: '/journal/office',  icon: 'work',           label: 'Office Work',     desc: 'Work logs & updates'          },
+  { href: '/transactions',    icon: 'payments',       label: 'Finances',        desc: 'Income & expense tracker'     },
+  { href: '/debts',           icon: 'account_balance',label: 'Ledger',          desc: 'Credit & debit records'       },
+  { href: '/notes',           icon: 'sticky_note_2',  label: 'Notes',           desc: 'Quick notes & references'     },
+  { href: '/journal/misc',    icon: 'folder_open',    label: 'Miscellaneous',   desc: 'Everything else'              },
 ];
 
 export default async function Dashboard() {
@@ -65,17 +70,46 @@ export default async function Dashboard() {
         ))}
       </div>
 
-      {/* QUICK ACTIONS */}
-      <div className="quick-actions-container">
-        {QUICK_ACTIONS.map((action, i) => (
-          <Link key={i} href={action.href} className="quick-action-item">
-            <span className="quick-action-icon-wrapper">
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{action.icon}</span>
-            </span>
-            <span className="text-body-md" style={{ fontWeight: 600 }}>{action.label}</span>
-            <span className="quick-action-arrow">→</span>
-          </Link>
-        ))}
+      {/* SECTION NAVIGATION */}
+      <div style={{ marginBottom: '32px' }}>
+        <h3 className="text-title-md" style={{ marginBottom: '16px', fontWeight: 700, color: 'var(--c-on-surface-variant)' }}>Sections</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+          {ALL_SECTIONS.map((section, i) => (
+            <Link
+              key={i}
+              href={section.href}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                padding: '16px',
+                backgroundColor: 'var(--c-surface-container-high)',
+                border: '1px solid var(--c-outline-variant)',
+                borderRadius: '16px',
+                textDecoration: 'none',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
+              }}
+              className="section-nav-card"
+            >
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(195, 150, 38, 0.12)',
+                color: 'var(--c-primary)',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{section.icon}</span>
+              </span>
+              <div>
+                <p className="text-body-md" style={{ fontWeight: 700, marginBottom: '2px', color: 'var(--c-on-surface)' }}>{section.label}</p>
+                <p className="text-label-sm" style={{ color: 'var(--c-on-surface-variant)', lineHeight: 1.4 }}>{section.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="grid-container">
