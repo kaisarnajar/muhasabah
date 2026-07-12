@@ -150,6 +150,7 @@ export default function SpiritualDashboard({
   const [statsFilter, setStatsFilter] = useState<'day' | 'week' | 'month' | 'year' | 'all' | 'custom'>('month');
   const [statsCustomStart, setStatsCustomStart] = useState<string>('');
   const [statsCustomEnd, setStatsCustomEnd] = useState<string>('');
+  const [activeStatsDetail, setActiveStatsDetail] = useState<{ type: 'prayer' | 'quran' | 'deeds'; title: string; prayerName?: string } | null>(null);
 
   const requiredCompleted = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
   const requiredTotal = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name)).length;
@@ -443,6 +444,194 @@ export default function SpiritualDashboard({
 
   const additionalStats = getFilteredAdditionalStats();
 
+  // Helper to get detailed logs for a specific prayer inside the selected stats range
+  const getPrayerPeriodDetails = (prayer: string) => {
+    const today = new Date();
+    const todayStr = dateStr;
+    
+    let startLimit: Date | null = null;
+    let endLimit: Date | null = null;
+
+    if (statsFilter === 'day') {
+      const start = new Date(today);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      const end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'week') {
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(today.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      startLimit = monday;
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      endLimit = sunday;
+    } else if (statsFilter === 'month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'year') {
+      const start = new Date(today.getFullYear(), 0, 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), 11, 31);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'custom') {
+      if (statsCustomStart) {
+        const start = new Date(statsCustomStart);
+        start.setHours(0, 0, 0, 0);
+        startLimit = start;
+      }
+      if (statsCustomEnd) {
+        const end = new Date(statsCustomEnd);
+        end.setHours(23, 59, 59, 999);
+        endLimit = end;
+      }
+    }
+
+    const details: Array<{ date: Date; isCompleted: boolean; prayedWithJamaat: boolean }> = [];
+
+    initialHistory.forEach(record => {
+      const recDate = new Date(record.date);
+      if (startLimit && recDate < startLimit) return;
+      if (endLimit && recDate > endLimit) return;
+
+      const recStr = recDate.toISOString().split('T')[0];
+      if (recStr === todayStr) return;
+
+      const habit = record.habits.find(h => h.name === prayer);
+      details.push({
+        date: recDate,
+        isCompleted: habit?.isCompleted || false,
+        prayedWithJamaat: habit?.prayedWithJamaat || false,
+      });
+    });
+
+    const todayDateObj = new Date();
+    let includeToday = true;
+    if (startLimit && todayDateObj < startLimit) includeToday = false;
+    if (endLimit && todayDateObj > endLimit) includeToday = false;
+
+    if (includeToday) {
+      const habit = initialTodayData.habits.find(h => h.name === prayer);
+      if (habit) {
+        details.push({
+          date: todayDateObj,
+          isCompleted: habit.isCompleted,
+          prayedWithJamaat: habit.prayedWithJamaat,
+        });
+      }
+    }
+
+    return details.sort((a, b) => b.date.getTime() - a.date.getTime());
+  };
+
+  // Helper to get detailed logs for Quran memorisation inside the selected stats range
+  const getQuranPeriodDetails = () => {
+    const today = new Date();
+    const todayStr = dateStr;
+    
+    let startLimit: Date | null = null;
+    let endLimit: Date | null = null;
+
+    if (statsFilter === 'day') {
+      const start = new Date(today);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      const end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'week') {
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(today.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      startLimit = monday;
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      endLimit = sunday;
+    } else if (statsFilter === 'month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'year') {
+      const start = new Date(today.getFullYear(), 0, 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), 11, 31);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (statsFilter === 'custom') {
+      if (statsCustomStart) {
+        const start = new Date(statsCustomStart);
+        start.setHours(0, 0, 0, 0);
+        startLimit = start;
+      }
+      if (statsCustomEnd) {
+        const end = new Date(statsCustomEnd);
+        end.setHours(23, 59, 59, 999);
+        endLimit = end;
+      }
+    }
+
+    const details: Array<{ date: Date; text: string }> = [];
+
+    const processQuran = (quranVal: string | null, d: Date) => {
+      if (!quranVal) return;
+      try {
+        const parsed = JSON.parse(quranVal);
+        if (parsed && typeof parsed === 'object' && 'surahNumber' in parsed) {
+          const surah = QURAN_SURAHS.find(s => s.number === parsed.surahNumber);
+          if (surah) {
+            details.push({
+              date: d,
+              text: `Surah ${surah.englishName} (${parsed.surahNumber}), Verses ${parsed.fromVerse} - ${parsed.toVerse}`,
+            });
+          }
+        }
+      } catch (e) {}
+    };
+
+    initialHistory.forEach(record => {
+      const recDate = new Date(record.date);
+      if (startLimit && recDate < startLimit) return;
+      if (endLimit && recDate > endLimit) return;
+
+      const recStr = recDate.toISOString().split('T')[0];
+      if (recStr === todayStr) return;
+
+      processQuran(record.quranMemorization, recDate);
+    });
+
+    const todayDateObj = new Date();
+    let includeToday = true;
+    if (startLimit && todayDateObj < startLimit) includeToday = false;
+    if (endLimit && todayDateObj > endLimit) includeToday = false;
+
+    if (includeToday && initialTodayData.quranMemorization) {
+      processQuran(initialTodayData.quranMemorization, todayDateObj);
+    }
+
+    return details.sort((a, b) => b.date.getTime() - a.date.getTime());
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
@@ -647,6 +836,7 @@ export default function SpiritualDashboard({
             return (
               <div
                 key={prayer}
+                onClick={() => setActiveStatsDetail({ type: 'prayer', title: `${prayer} Completion Details`, prayerName: prayer })}
                 style={{
                   padding: '16px',
                   borderRadius: '12px',
@@ -655,7 +845,18 @@ export default function SpiritualDashboard({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                  e.currentTarget.style.borderColor = 'var(--c-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -707,7 +908,29 @@ export default function SpiritualDashboard({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         
         {/* QURAN INSIGHTS */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+        <div
+          className="card"
+          onClick={() => setActiveStatsDetail({ type: 'quran', title: 'Quran Memorisation Details' })}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            height: '100%',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+            border: '1px solid var(--c-outline-variant)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+            e.currentTarget.style.borderColor = 'var(--c-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <ScrollText color="var(--c-primary)" size={22} />
             <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700 }}>Quran Memorisation Insights</h3>
@@ -755,7 +978,29 @@ export default function SpiritualDashboard({
         </div>
 
         {/* OTHER ACTIVITIES INSIGHTS */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+        <div
+          className="card"
+          onClick={() => setActiveStatsDetail({ type: 'deeds', title: 'Good Deeds Log' })}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            height: '100%',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+            border: '1px solid var(--c-outline-variant)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+            e.currentTarget.style.borderColor = 'var(--c-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <Plus color="var(--c-secondary)" size={22} />
             <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700 }}>Good Deeds Log</h3>
@@ -1458,6 +1703,165 @@ export default function SpiritualDashboard({
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
               <button
                 onClick={() => setIsManageModalOpen(false)}
+                className="primary-btn"
+                style={{ backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none', padding: '8px 24px', borderRadius: '8px' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* STATISTICS DETAILS MODAL */}
+      {activeStatsDetail && mounted && createPortal(
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveStatsDetail(null); }}
+        >
+          <div
+            className="card"
+            style={{ width: '100%', maxWidth: '560px', maxHeight: '80vh', overflowY: 'auto', padding: '28px', position: 'relative', boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column', gap: '20px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActiveStatsDetail(null)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>{activeStatsDetail.title}</h3>
+            
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              overflowY: 'auto',
+              maxHeight: '60vh',
+              paddingRight: '6px'
+            }}>
+              
+              {/* Prayer details */}
+              {activeStatsDetail.type === 'prayer' && activeStatsDetail.prayerName && (
+                <>
+                  {getPrayerPeriodDetails(activeStatsDetail.prayerName).length > 0 ? (
+                    getPrayerPeriodDetails(activeStatsDetail.prayerName).map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--c-surface-container-low)',
+                          border: '1px solid var(--c-outline-variant)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--c-on-surface)', fontSize: '14px' }}>
+                            {new Date(item.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
+                          {!['Tahajjud', 'Azkaar'].includes(activeStatsDetail.prayerName!) && item.isCompleted && (
+                            <span style={{ fontSize: '11px', color: item.prayedWithJamaat ? 'var(--c-secondary)' : 'var(--c-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                              <Users size={12} /> {item.prayedWithJamaat ? 'Prayed in Congregation' : 'Prayed Individually'}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <span style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '999px',
+                          backgroundColor: item.isCompleted ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)',
+                          color: item.isCompleted ? '#28a745' : '#dc3545',
+                        }}>
+                          {item.isCompleted ? 'Completed' : 'Missed'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: '14px', color: 'var(--c-on-surface-variant)', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>
+                      No tracking records found for this prayer in the selected period.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* Quran details */}
+              {activeStatsDetail.type === 'quran' && (
+                <>
+                  {getQuranPeriodDetails().length > 0 ? (
+                    getQuranPeriodDetails().map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--c-surface-container-low)',
+                          border: '1px solid var(--c-outline-variant)'
+                        }}
+                      >
+                        <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>
+                          {new Date(item.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                        <span style={{ fontWeight: 700, color: 'var(--c-on-surface)', fontSize: '14px' }}>
+                          {item.text}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: '14px', color: 'var(--c-on-surface-variant)', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>
+                      No Quran memorisation recorded in the selected period.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* Good Deeds details */}
+              {activeStatsDetail.type === 'deeds' && (
+                <>
+                  {additionalStats.activities.length > 0 ? (
+                    additionalStats.activities.map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--c-surface-container-low)',
+                          border: '1px solid var(--c-outline-variant)'
+                        }}
+                      >
+                        <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>
+                          {new Date(item.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '14px', color: 'var(--c-on-surface)', whiteSpace: 'pre-wrap', fontWeight: 500, lineHeight: 1.5 }}>
+                          {item.text}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: '14px', color: 'var(--c-on-surface-variant)', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>
+                      No other activities logged in the selected period.
+                    </p>
+                  )}
+                </>
+              )}
+
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px', marginTop: '8px' }}>
+              <button
+                onClick={() => setActiveStatsDetail(null)}
                 className="primary-btn"
                 style={{ backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none', padding: '8px 24px', borderRadius: '8px' }}
               >
