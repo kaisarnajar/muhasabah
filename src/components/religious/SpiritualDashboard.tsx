@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Moon, CheckCircle2, Circle, Plus, X, Settings, Users } from 'lucide-react';
+import { Moon, CheckCircle2, Circle, Plus, X, Settings, Users, ScrollText, Calendar } from 'lucide-react';
 import { toggleSpiritualHabit, addSpiritualHabit, deleteSpiritualHabit, setPrayerJamaat } from '@/actions/religious';
 import DeleteConfirmButton from '@/components/layout/DeleteConfirmButton';
 import { useToast } from '@/context/ToastContext';
@@ -18,7 +18,8 @@ interface HistoryRecord {
   date: Date;
   completedCount: number;
   totalCount: number;
-  habits: Array<{ name: string; isCompleted: boolean }>;
+  quranMemorization: string | null;
+  habits: Array<{ name: string; isCompleted: boolean; prayedWithJamaat: boolean }>;
 }
 
 interface SpiritualDashboardProps {
@@ -41,12 +42,19 @@ export default function SpiritualDashboard({
   // Modal states
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
   const [submittingHabit, setSubmittingHabit] = useState(false);
 
   // Toggling status state
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const prayerNames = new Set(['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha']);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Pagination states for history
   const [currentPage, setCurrentPage] = useState(1);
@@ -96,10 +104,11 @@ export default function SpiritualDashboard({
   };
 
   // Pagination Logic
-  const PAGE_SIZE = 25;
+  const PAGE_SIZE = 20;
   const totalPages = Math.ceil(initialHistory.length / PAGE_SIZE) || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
   const paginatedHistory = initialHistory.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const selectedRecord = selectedHistoryIndex !== null ? initialHistory[selectedHistoryIndex] : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -172,50 +181,95 @@ export default function SpiritualDashboard({
         </button>
       </div>
 
-      {/* SPIRITUAL HISTORY SECTION */}
+      {/* IBADAH REGISTER */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <CheckCircle2 color="var(--c-secondary)" size={24} />
-          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>History Logs</h2>
+          <ScrollText color="var(--c-secondary)" size={24} />
+          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Ibadah Register</h2>
         </div>
 
         {initialHistory.length === 0 ? (
-          <p className="text-on-surface-variant" style={{ margin: 0 }}>No spiritual tracker logs saved yet.</p>
+          <p className="text-on-surface-variant" style={{ margin: 0 }}>No ibadah records saved yet. Start tracking today&apos;s worship to build your register.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {paginatedHistory.map((record, index) => {
-              const formattedDate = new Date(record.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-              const completionRate = record.totalCount > 0 ? (record.completedCount / record.totalCount) * 100 : 0;
+            <div className="spiritual-history-grid">
+              {paginatedHistory.map((record, index) => {
+                const globalIndex = (activePage - 1) * PAGE_SIZE + index;
+                const recordDate = new Date(record.date);
+                const dateStr = recordDate.toISOString().split('T')[0];
+                const todayStr = new Date().toISOString().split('T')[0];
+                const isToday = dateStr === todayStr;
+                const shortDate = recordDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                const completionRate = record.totalCount > 0 ? (record.completedCount / record.totalCount) * 100 : 0;
 
-              return (
-                <div key={index} className="p-16 rounded-12" style={{ backgroundColor: 'var(--c-surface-container-high)', border: '1px solid var(--c-outline-variant)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                    <span className="text-title-md" style={{ fontWeight: 'bold' }}>{formattedDate}</span>
-                    <span className="text-label-sm" style={{ backgroundColor: completionRate === 100 ? 'var(--c-secondary-container)' : 'var(--c-primary-container)', color: completionRate === 100 ? 'var(--c-on-secondary-container)' : 'var(--c-primary)', padding: '4px 12px', borderRadius: '16px', fontWeight: 'bold' }}>
-                      {record.completedCount} / {record.totalCount} Habits Completed
-                    </span>
-                  </div>
-
-                  {record.habits.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }}>
-                      {record.habits.map((h, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {h.isCompleted ? (
-                            <CheckCircle2 size={16} color="var(--c-secondary)" />
-                          ) : (
-                            <Circle size={16} color="var(--c-on-surface-variant)" style={{ opacity: 0.5 }} />
-                          )}
-                          <span className="text-label-sm text-on-surface-variant" style={{ textDecoration: h.isCompleted ? 'none' : 'line-through', opacity: h.isCompleted ? 1 : 0.6 }}>
-                            {h.name}
+                return (
+                  <div
+                    key={globalIndex}
+                    className="card"
+                    style={{
+                      padding: 0,
+                      overflow: 'hidden',
+                      border: isToday ? '1px solid var(--c-primary)' : '1px solid var(--c-outline-variant)',
+                      boxShadow: isToday ? 'var(--shadow-glow-primary)' : 'var(--shadow-sm)',
+                    }}
+                  >
+                    <div
+                      onClick={() => setSelectedHistoryIndex(globalIndex)}
+                      style={{
+                        padding: '20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '14px',
+                        backgroundColor: isToday ? 'var(--c-surface-container-high)' : 'var(--c-surface)',
+                        userSelect: 'none',
+                        transition: 'background-color 0.2s ease',
+                        height: '100%',
+                        justifyContent: 'space-between',
+                      }}
+                      className="accordion-header"
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Calendar size={16} color={isToday ? 'var(--c-primary)' : 'var(--c-on-surface-variant)'} />
+                          <span className="text-label-sm" style={{ fontWeight: 700, color: 'var(--c-on-surface)', whiteSpace: 'nowrap' }}>
+                            {isToday ? `Today (${shortDate})` : shortDate}
                           </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="text-label-sm text-on-surface-variant" style={{ fontWeight: 600 }}>
+                            {record.completedCount} / {record.totalCount}
+                          </span>
+                          <span
+                            className="text-label-sm"
+                            style={{
+                              backgroundColor: completionRate === 100 ? 'var(--c-secondary-container)' : 'var(--c-primary-container)',
+                              color: completionRate === 100 ? 'var(--c-on-secondary-container)' : 'var(--c-primary)',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {Math.round(completionRate)}%
+                          </span>
+                        </div>
+                      </div>
 
-                </div>
-              );
-            })}
+                      <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--c-surface-container-highest)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            width: `${completionRate}%`,
+                            height: '100%',
+                            backgroundColor: completionRate === 100 ? 'var(--c-secondary)' : 'var(--c-primary)',
+                            transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
@@ -341,6 +395,129 @@ export default function SpiritualDashboard({
               </div>
             )}
 
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* IBADAH DETAIL MODAL */}
+      {selectedRecord && mounted && createPortal(
+        <div
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(4px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedHistoryIndex(null); }}
+        >
+          <div
+            className="card"
+            style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', padding: '28px', position: 'relative', boxShadow: 'var(--shadow-lg)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedHistoryIndex(null)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <ScrollText color="var(--c-secondary)" size={22} />
+              <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
+                {new Date(selectedRecord.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </h3>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <span className="text-body-md text-on-surface-variant" style={{ fontWeight: 600 }}>
+                {selectedRecord.completedCount} of {selectedRecord.totalCount} completed
+              </span>
+              <span
+                className="text-label-sm"
+                style={{
+                  backgroundColor: selectedRecord.completedCount === selectedRecord.totalCount ? 'var(--c-secondary-container)' : 'var(--c-primary-container)',
+                  color: selectedRecord.completedCount === selectedRecord.totalCount ? 'var(--c-on-secondary-container)' : 'var(--c-primary)',
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                }}
+              >
+                {selectedRecord.totalCount > 0 ? Math.round((selectedRecord.completedCount / selectedRecord.totalCount) * 100) : 0}%
+              </span>
+            </div>
+
+            {selectedRecord.habits.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {selectedRecord.habits.map((habit, i) => {
+                  const isPrayer = prayerNames.has(habit.name);
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        padding: '14px 16px',
+                        borderRadius: '12px',
+                        backgroundColor: habit.isCompleted ? 'rgba(195, 150, 38, 0.06)' : 'var(--c-surface-container-low)',
+                        border: `1px solid ${habit.isCompleted ? 'var(--c-primary)' : 'var(--c-outline-variant)'}`,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        {habit.isCompleted ? (
+                          <CheckCircle2 size={18} color="var(--c-secondary)" />
+                        ) : (
+                          <Circle size={18} color="var(--c-on-surface-variant)" style={{ opacity: 0.5 }} />
+                        )}
+                        <span
+                          className="text-body-md"
+                          style={{
+                            fontWeight: 600,
+                            margin: 0,
+                            textDecoration: habit.isCompleted ? 'none' : 'line-through',
+                            opacity: habit.isCompleted ? 1 : 0.6,
+                          }}
+                        >
+                          {habit.name}
+                        </span>
+                      </div>
+
+                      {isPrayer && (
+                        <span
+                          className="text-label-sm"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 600,
+                            border: `1px solid ${habit.isCompleted && habit.prayedWithJamaat ? 'var(--c-secondary)' : 'var(--c-outline-variant)'}`,
+                            background: habit.isCompleted && habit.prayedWithJamaat ? 'var(--c-secondary-container)' : 'transparent',
+                            color: !habit.isCompleted
+                              ? 'var(--c-on-surface-variant)'
+                              : habit.prayedWithJamaat
+                                ? 'var(--c-on-secondary-container)'
+                                : 'var(--c-on-surface-variant)',
+                          }}
+                        >
+                          <Users size={14} />
+                          {!habit.isCompleted ? 'Missed' : habit.prayedWithJamaat ? 'With Jamaat' : 'Alone'}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-on-surface-variant" style={{ margin: 0 }}>No habits recorded for this day.</p>
+            )}
+
+            {selectedRecord.quranMemorization && (
+              <div style={{ marginTop: '20px', padding: '16px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
+                <p className="text-label-sm text-on-surface-variant" style={{ margin: '0 0 8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Quran Memorization</p>
+                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{selectedRecord.quranMemorization}</p>
+              </div>
+            )}
           </div>
         </div>,
         document.body

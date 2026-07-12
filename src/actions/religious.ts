@@ -149,7 +149,7 @@ export async function getSpiritualHistory() {
     completedCount: number;
     totalCount: number;
     quranMemorization: string | null;
-    habits: Array<{ name: string; isCompleted: boolean }>;
+    habits: Array<{ name: string; isCompleted: boolean; prayedWithJamaat: boolean }>;
   }> = {};
 
   logs.forEach(log => {
@@ -171,6 +171,7 @@ export async function getSpiritualHistory() {
     historyMap[dateStr].habits.push({
       name: log.habit.name,
       isCompleted: log.isCompleted,
+      prayedWithJamaat: log.prayedWithJamaat,
     });
   });
 
