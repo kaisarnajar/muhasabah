@@ -80,7 +80,7 @@ export default function SpiritualDashboard({
     }
     return 1;
   });
-  const [savingMemorization, setSavingMemorization] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
 
   const formatQuranMemorization = (val: string | null): string => {
     if (!val) return '';
@@ -102,40 +102,37 @@ export default function SpiritualDashboard({
     setToVerse(1);
   };
 
-  const handleSaveMemorization = async () => {
-    setSavingMemorization(true);
+  const handleSaveAll = async () => {
+    setSavingAll(true);
     try {
-      const payload = JSON.stringify({
-        surahNumber: selectedSurahNum,
-        fromVerse,
-        toVerse
-      });
-      await updateQuranMemorization(dateStr, payload);
-      showToast('Quran memorisation progress saved!', 'success');
+      // 1. Save Quran Memorisation if the habit is completed
+      const quranHabit = initialTodayData.habits.find(h => h.name === 'Quran Memorisation');
+      if (quranHabit?.isCompleted) {
+        const payload = JSON.stringify({
+          surahNumber: selectedSurahNum,
+          fromVerse,
+          toVerse
+        });
+        await updateQuranMemorization(dateStr, payload);
+      } else {
+        await updateQuranMemorization(dateStr, '');
+      }
+
+      // 2. Save Other Activities
+      await updateOtherActivities(dateStr, otherActivities);
+
+      showToast('Spiritual tracker progress saved!', 'success');
+      setIsTrackerOpen(false);
     } catch (error) {
       console.error(error);
-      showToast('Failed to save memorisation progress.', 'error');
+      showToast('Failed to save spiritual tracker details.', 'error');
     } finally {
-      setSavingMemorization(false);
+      setSavingAll(false);
     }
   };
 
   // Other activities state
   const [otherActivities, setOtherActivities] = useState<string>(initialTodayData.otherActivities || '');
-  const [savingOtherActivities, setSavingOtherActivities] = useState(false);
-
-  const handleSaveOtherActivities = async () => {
-    setSavingOtherActivities(true);
-    try {
-      await updateOtherActivities(dateStr, otherActivities);
-      showToast('Other activities saved successfully!', 'success');
-    } catch (error) {
-      console.error(error);
-      showToast('Failed to save other activities.', 'error');
-    } finally {
-      setSavingOtherActivities(false);
-    }
-  };
 
   // Toggling status state
   const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -676,31 +673,6 @@ export default function SpiritualDashboard({
                               </select>
                             </div>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={handleSaveMemorization}
-                            disabled={savingMemorization}
-                            className="primary-btn"
-                            style={{
-                              padding: '8px 16px',
-                              borderRadius: '8px',
-                              backgroundColor: 'var(--c-primary)',
-                              color: 'var(--c-on-primary)',
-                              border: 'none',
-                              fontWeight: 700,
-                              fontSize: '13px',
-                              cursor: 'pointer',
-                              alignSelf: 'flex-end',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              boxShadow: 'none',
-                            }}
-                          >
-                            <ScrollText size={14} />
-                            {savingMemorization ? 'Saving...' : 'Save Memorisation'}
-                          </button>
                         </div>
                       )}
                     </div>
@@ -745,29 +717,55 @@ export default function SpiritualDashboard({
                   outline: 'none',
                 }}
               />
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              marginTop: '24px',
+              paddingTop: '16px',
+              borderTop: '1px solid var(--c-outline-variant)'
+            }}>
               <button
                 type="button"
-                onClick={handleSaveOtherActivities}
-                disabled={savingOtherActivities}
+                onClick={() => setIsTrackerOpen(false)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  backgroundColor: 'transparent',
+                  color: 'var(--c-on-surface-variant)',
+                  border: '1px solid var(--c-outline-variant)',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={savingAll}
                 className="primary-btn"
                 style={{
-                  padding: '8px 16px',
+                  padding: '10px 24px',
                   borderRadius: '8px',
                   backgroundColor: 'var(--c-primary)',
                   color: 'var(--c-on-primary)',
                   border: 'none',
                   fontWeight: 700,
-                  fontSize: '13px',
+                  fontSize: '14px',
                   cursor: 'pointer',
-                  alignSelf: 'flex-end',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   boxShadow: 'none',
                 }}
               >
-                <ScrollText size={14} />
-                {savingOtherActivities ? 'Saving...' : 'Save Other Activities'}
+                <CheckCircle2 size={16} />
+                {savingAll ? 'Saving...' : 'Save'}
               </button>
             </div>
 
