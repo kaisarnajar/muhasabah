@@ -50,18 +50,29 @@ model Goal {
   createdAt   DateTime     @default(now()) @db.Timestamptz()
 }
 
-model ReligiousActivity {
-  id                 Int      @id @default(autoincrement())
-  date               DateTime @unique @default(now()) @db.Date
-  fajr               Boolean  @default(false)
-  dhuhr              Boolean  @default(false)
-  asr                Boolean  @default(false)
-  maghrib            Boolean  @default(false)
-  isha               Boolean  @default(false)
-  quranReading       Boolean  @default(false)
-  adhkar             Boolean  @default(false)
-  quranMemorization  String?  @db.Text
-  createdAt          DateTime @default(now()) @db.Timestamptz()
+model SpiritualHabit {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique
+  createdAt DateTime            @default(now()) @db.Timestamptz()
+  logs      SpiritualHabitLog[]
+}
+
+model SpiritualHabitLog {
+  id          Int            @id @default(autoincrement())
+  habitId     Int
+  habit       SpiritualHabit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date        DateTime       @db.Date
+  isCompleted Boolean        @default(false)
+  createdAt   DateTime       @default(now()) @db.Timestamptz()
+
+  @@unique([habitId, date])
+}
+
+model SpiritualDayLog {
+  id                Int      @id @default(autoincrement())
+  date              DateTime @unique @db.Date
+  quranMemorization String?  @db.Text
+  createdAt         DateTime @default(now()) @db.Timestamptz()
 }
 
 enum JournalCategory {
