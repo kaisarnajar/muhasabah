@@ -57,40 +57,55 @@ export default async function Dashboard() {
     },
   });
 
-  const OPTIONAL_HABITS = new Set(['Tahajjud']);
-
-  const calculateSpiritualRate = (filteredLogs: typeof habitLogs) => {
-    if (filteredLogs.length === 0) return 0;
-    
-    let completed = 0;
-    let total = 0;
-    
-    filteredLogs.forEach(l => {
-      const isOptional = OPTIONAL_HABITS.has(l.habit.name);
-      if (isOptional) {
-        if (l.isCompleted) {
-          completed += 1;
-          total += 1;
-        }
-      } else {
-        total += 1;
-        if (l.isCompleted) {
-          completed += 1;
-        }
-      }
-    });
-    
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
-  };
-
-  const todayLogs = habitLogs.filter(l => new Date(l.date) >= todayStart);
-  const weeklyLogs = habitLogs.filter(l => new Date(l.date) >= weekStart);
+  // 1. Calculate monthly prayer stats
   const monthlyLogs = habitLogs.filter(l => new Date(l.date) >= startOfMonth);
+  const prayers = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Tahajjud'];
+  const monthlyPrayerStats = prayers.map(p => {
+    const pLogs = monthlyLogs.filter(l => l.habit.name === p);
+    const completed = pLogs.filter(l => l.isCompleted).length;
+    const total = pLogs.length || 1;
+    const rate = Math.round((completed / total) * 100);
+    return { name: p, rate };
+  });
 
-  const todayRate = calculateSpiritualRate(todayLogs);
-  const weeklyRate = calculateSpiritualRate(weeklyLogs);
-  const monthlyRate = calculateSpiritualRate(monthlyLogs);
-  const yearlyRate = calculateSpiritualRate(habitLogs);
+  // 2. Fetch spiritual day logs for the current month
+  const monthlyDayLogs = await prisma.spiritualDayLog.findMany({
+    where: {
+      date: {
+        gte: startOfMonth,
+      },
+    },
+  });
+
+  // 3. Calculate Quran Memorisation insights for current month
+  let monthlyQuranVerses = 0;
+  const monthlyQuranSurahs = new Set<number>();
+  
+  monthlyDayLogs.forEach(log => {
+    if (log.quranMemorization) {
+      try {
+        const parsed = JSON.parse(log.quranMemorization);
+        if (parsed && typeof parsed === 'object' && 'surahNumber' in parsed) {
+          const count = (parsed.toVerse - parsed.fromVerse) + 1;
+          if (count > 0) monthlyQuranVerses += count;
+          monthlyQuranSurahs.add(parsed.surahNumber);
+        }
+      } catch (e) {}
+    }
+  });
+
+  // 4. Extract recent good deeds logs for current month
+  const recentGoodDeeds = monthlyDayLogs
+    .filter(l => l.otherActivities && l.otherActivities.trim())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3)
+    .map(l => {
+      const text = l.otherActivities!.split('\n')[0].trim();
+      return {
+        date: l.date,
+        text: text.length > 50 ? text.substring(0, 47) + '...' : text,
+      };
+    });
 
   return (
     <>
@@ -154,30 +169,120 @@ export default async function Dashboard() {
 
         {/* SPIRITUAL SUMMARY */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <h4 className="text-title-sm" style={{ fontWeight: 700, color: 'var(--c-on-surface-variant)', margin: 0 }}>Spiritual Consistency</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-            {[
-              { label: 'TODAY', value: `${todayRate}%` },
-              { label: 'THIS WEEK', value: `${weeklyRate}%` },
-              { label: 'THIS MONTH', value: `${monthlyRate}%`, highlight: true },
-              { label: 'THIS YEAR', value: `${yearlyRate}%` }
-            ].map((item, i) => (
-              <div 
-                key={i} 
-                className={`card flex-col justify-center p-16 ${item.highlight ? 'highlight-card' : ''}`}
-                style={{ 
-                  backgroundColor: 'var(--c-surface-container-high)',
-                  borderTop: item.highlight ? '3px solid var(--c-secondary)' : '1px solid var(--c-outline-variant)',
-                  padding: '16px',
-                  borderRadius: '12px'
-                }}
-              >
-                <span className="text-label-sm text-on-surface-variant mb-8">{item.label}</span>
-                <h3 className="summary-amount" style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: item.highlight ? 'var(--c-secondary)' : 'var(--c-on-surface)' }}>
-                  {item.value}
-                </h3>
+          <h4 className="text-title-sm" style={{ fontWeight: 700, color: 'var(--c-on-surface-variant)', margin: 0 }}>Spiritual Insights (This Month)</h4>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', justifyContent: 'space-between' }}>
+            
+            {/* 1. Prayer Status Card */}
+            <Link 
+              href="/religious"
+              className="card" 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--c-surface-container-high)',
+                border: '1px solid var(--c-outline-variant)',
+                textDecoration: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-secondary)', letterSpacing: '0.05em' }}>PRAYERS CONSISTENCY</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-surface-variant)' }}>arrow_forward</span>
               </div>
-            ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
+                {monthlyPrayerStats.map(p => (
+                  <div key={p.name} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', minWidth: '42px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>{p.name.substring(0, 4)}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--c-on-surface)' }}>{p.rate}%</span>
+                  </div>
+                ))}
+              </div>
+            </Link>
+
+            {/* 2. Quran Memorisation Insights Card */}
+            <Link 
+              href="/religious"
+              className="card" 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--c-surface-container-high)',
+                border: '1px solid var(--c-outline-variant)',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease'
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-secondary)', letterSpacing: '0.05em' }}>QURAN MEMORISATION</span>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
+                    {monthlyQuranVerses} <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--c-on-surface-variant)' }}>verses</span>
+                  </span>
+                  <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
+                    {monthlyQuranSurahs.size} <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--c-on-surface-variant)' }}>surahs</span>
+                  </span>
+                </div>
+              </div>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-surface-variant)' }}>arrow_forward</span>
+            </Link>
+
+            {/* 3. Good Deeds Log Card */}
+            <Link 
+              href="/religious"
+              className="card" 
+              style={{ 
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                backgroundColor: 'var(--c-surface-container-high)',
+                border: '1px solid var(--c-outline-variant)',
+                textDecoration: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                flexGrow: 1,
+                justifyContent: 'center',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-secondary)', letterSpacing: '0.05em' }}>RECENT GOOD DEEDS</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-surface-variant)' }}>arrow_forward</span>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {recentGoodDeeds.length > 0 ? (
+                  recentGoodDeeds.map((deed, idx) => (
+                    <div 
+                      key={idx} 
+                      style={{ 
+                        fontSize: '11px', 
+                        color: 'var(--c-on-surface)', 
+                        textOverflow: 'ellipsis', 
+                        overflow: 'hidden', 
+                        whiteSpace: 'nowrap',
+                        borderLeft: '2px solid var(--c-secondary)',
+                        paddingLeft: '6px'
+                      }}
+                    >
+                      {deed.text}
+                    </div>
+                  ))
+                ) : (
+                  <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontStyle: 'italic' }}>
+                    No activities logged this month.
+                  </span>
+                )}
+              </div>
+            </Link>
+
           </div>
         </div>
 
