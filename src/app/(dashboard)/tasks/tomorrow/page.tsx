@@ -1,4 +1,5 @@
 import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
+import Link from 'next/link';
 
 export default async function TomorrowPage() {
   const now = new Date();
@@ -8,6 +9,10 @@ export default async function TomorrowPage() {
 
   return (
     <div>
+      <Link href="/tasks" className="nav-item flex-row mb-24" style={{ width: 'fit-content', padding: '8px 16px', gap: '8px' }}>
+        <span className="material-symbols-outlined">arrow_back</span>
+        <span>Back to Tasks</span>
+      </Link>
       <TasksOfTheDay dateStr={tomorrowStr} />
     </div>
   );
