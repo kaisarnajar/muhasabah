@@ -59,6 +59,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">auto_awesome</span>
             <span className="text-body-md">Spiritual</span>
           </Link>
+          <Link href="/dua" className={`nav-item ${pathname === '/dua' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">favorite</span>
+            <span className="text-body-md">Dua List</span>
+          </Link>
           <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">target</span>
             <span className="text-body-md">Goals</span>

@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 
 const ALL_SECTIONS = [
   { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
+  { href: '/dua',             icon: 'favorite',       label: 'Dua List',        desc: 'Personal supplications & prayers' },
   { href: '/goals',           icon: 'target',         label: 'Goals',           desc: 'Track your objectives'        },
   { href: '/tasks',           icon: 'checklist',      label: 'Tasks',           desc: 'Daily & recurring tasks'      },
   { href: '/journal/learning',icon: 'school',         label: 'Career Learnings', desc: 'Notes from what you learn'  },

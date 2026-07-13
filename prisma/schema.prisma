@@ -170,3 +170,20 @@ model RecurringTracker {
   lastDone  DateTime? @db.Date
   createdAt DateTime @default(now()) @db.Timestamptz()
 }
+
+enum DuaCategory {
+  PERSONAL
+  FAMILY
+  CAREER
+  GENERAL
+}
+
+model Dua {
+  id          Int         @id @default(autoincrement())
+  title       String
+  content     String      @db.Text
+  translation String?     @db.Text
+  category    DuaCategory @default(PERSONAL)
+  createdAt   DateTime    @default(now()) @db.Timestamptz()
+}
+
