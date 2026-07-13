@@ -151,6 +151,9 @@ model JournalEntry {
   ticketId  String?
   workType  String?
   duration  String?
+  location  String?
+  activity  String?
+  tag       String?
   date      DateTime        @default(now()) @db.Date
   createdAt DateTime        @default(now()) @db.Timestamptz()
 }

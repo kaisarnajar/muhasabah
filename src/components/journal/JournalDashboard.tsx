@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, X, Edit, Trash2, Calendar, BookOpen, GraduationCap, Briefcase, Clock, Tag } from 'lucide-react';
+import { Plus, X, Edit, Trash2, Calendar, BookOpen, GraduationCap, Briefcase, Clock, MapPin, Tag } from 'lucide-react';
 import { addJournalEntry, deleteJournalEntry, editJournalEntry } from '@/actions';
 import { useToast } from '@/context/ToastContext';
 import { JournalEntry, JournalCategory } from '@prisma/client';
@@ -20,6 +20,17 @@ const WORK_TYPES = [
   'Meeting',
   'Deployment',
   'Support',
+  'Other'
+];
+
+const MISC_ACTIVITIES = [
+  'Travel',
+  'Food',
+  'Social',
+  'Shopping',
+  'Health',
+  'Thoughts',
+  'Entertainment',
   'Other'
 ];
 
@@ -65,6 +76,27 @@ function getWorkTypeStyle(type: string) {
   }
 }
 
+function getMiscActivityStyle(activity: string) {
+  switch (activity) {
+    case 'Travel':
+      return { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' }; // Sky
+    case 'Food':
+      return { bg: '#ffedd5', text: '#c2410c', border: '#fed7aa' }; // Orange
+    case 'Social':
+      return { bg: '#fce7f3', text: '#be185d', border: '#fbcfe8' }; // Pink
+    case 'Shopping':
+      return { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' }; // Purple
+    case 'Health':
+      return { bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' }; // Green
+    case 'Thoughts':
+      return { bg: '#e2fbf7', text: '#0f766e', border: '#99f6e4' }; // Teal
+    case 'Entertainment':
+      return { bg: '#e0e7ff', text: '#4338ca', border: '#c7d2fe' }; // Indigo
+    default:
+      return { bg: '#f3f4f6', text: '#374151', border: '#e5e7eb' }; // Gray
+  }
+}
+
 const PREDEFINED_TOPICS = [
   'Android Development',
   'Backend Development',
@@ -89,6 +121,9 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
   const [ticketId, setTicketId] = useState('');
   const [workType, setWorkType] = useState('Feature');
   const [duration, setDuration] = useState('');
+  const [location, setLocation] = useState('');
+  const [activity, setActivity] = useState('Other');
+  const [tag, setTag] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [filterPeriod, setFilterPeriod] = useState('ALL');
@@ -105,6 +140,9 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
   const [editTicketId, setEditTicketId] = useState('');
   const [editWorkType, setEditWorkType] = useState('Feature');
   const [editDuration, setEditDuration] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editActivity, setEditActivity] = useState('Other');
+  const [editTag, setEditTag] = useState('');
   
   const [mounted, setMounted] = useState(false);
 
@@ -134,6 +172,12 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
         if (workType) formData.append('workType', workType);
         if (duration.trim()) formData.append('duration', duration.trim());
       }
+
+      if (category === 'MISC') {
+        if (location.trim()) formData.append('location', location.trim());
+        if (activity) formData.append('activity', activity);
+        if (tag.trim()) formData.append('tag', tag.trim());
+      }
       
       await addJournalEntry(formData);
       setContent('');
@@ -143,6 +187,9 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
       setTicketId('');
       setWorkType('Feature');
       setDuration('');
+      setLocation('');
+      setActivity('Other');
+      setTag('');
       setIsAddOpen(false);
       setCurrentPage(1);
       showToast('Entry added successfully!', 'success');
@@ -210,7 +257,6 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
       const typeStyle = getWorkTypeStyle(entry.workType || 'Other');
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
-          {/* Card Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)', wordBreak: 'break-word', lineHeight: 1.4 }}>
               {entry.project || 'General Work'}
@@ -230,23 +276,13 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
             </span>
           </div>
 
-          {/* Metadata Row */}
           {(entry.ticketId || entry.duration) && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '11px', fontWeight: 600, color: 'var(--c-on-surface-variant)', opacity: 0.85 }}>
-              {entry.ticketId && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  🎫 {entry.ticketId}
-                </span>
-              )}
-              {entry.duration && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  ⏱️ {entry.duration}
-                </span>
-              )}
+              {entry.ticketId && <span>🎫 {entry.ticketId}</span>}
+              {entry.duration && <span>⏱️ {entry.duration}</span>}
             </div>
           )}
 
-          {/* Description */}
           <p className="text-body-md" style={{ 
             whiteSpace: 'pre-wrap', 
             lineHeight: 1.6, 
@@ -261,7 +297,6 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
             fontSize: '13px'
           }}>{entry.content}</p>
 
-          {/* Footer */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
@@ -321,6 +356,75 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
             fontWeight: 500
           }}>{entry.content}</p>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
+            <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
+            <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
+              {new Date(entry.createdAt).toLocaleDateString()}
+            </span>
+          </div>
+        </div>
+      );
+    } else if (category === 'MISC') {
+      const typeStyle = getMiscActivityStyle(entry.activity || 'Other');
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
+          {/* Card Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)', display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.4 }}>
+              <MapPin size={13} color="var(--c-primary)" />
+              {entry.location || 'Everyday Event'}
+            </h4>
+            <span style={{ 
+              fontSize: '10px', 
+              fontWeight: 700, 
+              padding: '2px 8px', 
+              borderRadius: '20px', 
+              backgroundColor: typeStyle.bg,
+              color: typeStyle.text,
+              border: `1.5px solid ${typeStyle.border}`,
+              whiteSpace: 'nowrap',
+              textTransform: 'uppercase'
+            }}>
+              {entry.activity || 'Other'}
+            </span>
+          </div>
+
+          {/* Tags row */}
+          {entry.tag && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <span style={{ 
+                fontSize: '11px', 
+                fontWeight: 600, 
+                color: 'var(--c-primary)', 
+                backgroundColor: 'rgba(191,145,41,0.06)', 
+                border: '1.5px dashed rgba(191,145,41,0.2)',
+                padding: '2px 8px', 
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                🏷️ {entry.tag}
+              </span>
+            </div>
+          )}
+
+          {/* Description */}
+          <p className="text-body-md" style={{ 
+            whiteSpace: 'pre-wrap', 
+            lineHeight: 1.6, 
+            margin: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            wordBreak: 'break-word',
+            color: 'var(--c-on-surface-variant)',
+            fontSize: '13px'
+          }}>{entry.content}</p>
+
+          {/* Footer */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
@@ -472,7 +576,7 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
           <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--c-outline-variant)', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
-                {category === 'OFFICE' ? 'Log Office Work' : category === 'LEARNING' ? 'What did I learn today?' : 'New Journal Entry'}
+                {category === 'OFFICE' ? 'Log Office Work' : category === 'LEARNING' ? 'What did I learn today?' : category === 'MISC' ? 'Log Life Event' : 'New Journal Entry'}
               </h3>
               <button onClick={() => setIsAddOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}><X size={20} /></button>
             </div>
@@ -579,12 +683,61 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
               </>
             )}
 
+            {category === 'MISC' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Location / Place (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bengaluru, Nandi Hills"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="search-input"
+                      style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Activity Type
+                    </label>
+                    <select
+                      value={activity}
+                      onChange={(e) => setActivity(e.target.value)}
+                      className="search-input"
+                      style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px', padding: '10px 14px', backgroundColor: 'var(--c-surface-container-high)', border: '1px solid var(--c-outline-variant)' }}
+                    >
+                      {MISC_ACTIVITIES.map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Tag / Occasion (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. two days trip, dinner outside, weekend outing"
+                    value={tag}
+                    onChange={(e) => setTag(e.target.value)}
+                    className="search-input"
+                    style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px' }}
+                  />
+                </div>
+              </>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Description
               </label>
               <textarea
-                placeholder={category === 'OFFICE' ? "Write about what work you accomplished..." : "Write entry details..."}
+                placeholder={category === 'OFFICE' ? "Write about what work you accomplished..." : category === 'MISC' ? "Describe your activity (e.g. Went for dining, sightseeing...)" : "Write entry details..."}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="search-input"
@@ -643,6 +796,20 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
                     {selectedEntry.workType}
                   </span>
                 )}
+                {category === 'MISC' && selectedEntry.activity && (
+                  <span style={{ 
+                    fontSize: '10px', 
+                    fontWeight: 700, 
+                    padding: '2px 8px', 
+                    borderRadius: '20px', 
+                    backgroundColor: getMiscActivityStyle(selectedEntry.activity).bg,
+                    color: getMiscActivityStyle(selectedEntry.activity).text,
+                    border: `1px solid ${getMiscActivityStyle(selectedEntry.activity).border}`,
+                    textTransform: 'uppercase'
+                  }}>
+                    {selectedEntry.activity}
+                  </span>
+                )}
               </div>
 
               {category === 'OFFICE' && selectedEntry.project && (
@@ -651,10 +818,22 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
                 </h4>
               )}
 
+              {category === 'MISC' && selectedEntry.location && (
+                <h4 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  📍 Place: {selectedEntry.location}
+                </h4>
+              )}
+
               {category === 'OFFICE' && (selectedEntry.ticketId || selectedEntry.duration) && (
                 <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontWeight: 700, color: 'var(--c-on-surface-variant)', backgroundColor: 'var(--c-surface-container-low)', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--c-outline-variant)' }}>
                   {selectedEntry.ticketId && <span>🎫 Ticket: {selectedEntry.ticketId}</span>}
                   {selectedEntry.duration && <span>⏱️ Duration: {selectedEntry.duration}</span>}
+                </div>
+              )}
+
+              {category === 'MISC' && selectedEntry.tag && (
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontWeight: 700, color: 'var(--c-primary)', backgroundColor: 'rgba(191,145,41,0.06)', padding: '8px 12px', borderRadius: '8px', border: '1px dashed rgba(191,145,41,0.2)', width: 'fit-content' }}>
+                  <span>🏷️ Tag: {selectedEntry.tag}</span>
                 </div>
               )}
 
@@ -674,19 +853,14 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
               <button
                 onClick={() => {
                   setEditContent(selectedEntry.content);
-                  const subj = selectedEntry.subject || '';
-                  setEditSubject(subj);
-                  if (PREDEFINED_TOPICS.includes(subj)) {
-                    setEditSelectedTopicOption(subj);
-                  } else if (subj) {
-                    setEditSelectedTopicOption('OTHER');
-                  } else {
-                    setEditSelectedTopicOption('');
-                  }
+                  setEditSubject(selectedEntry.subject || '');
                   setEditProject(selectedEntry.project || '');
                   setEditTicketId(selectedEntry.ticketId || '');
                   setEditWorkType(selectedEntry.workType || 'Feature');
                   setEditDuration(selectedEntry.duration || '');
+                  setEditLocation(selectedEntry.location || '');
+                  setEditActivity(selectedEntry.activity || 'Other');
+                  setEditTag(selectedEntry.tag || '');
                   setIsEditOpen(true);
                 }}
                 className="primary-btn"
@@ -827,6 +1001,55 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
               </>
             )}
 
+            {category === 'MISC' && (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Location / Place (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Bengaluru, Nandi Hills"
+                      value={editLocation}
+                      onChange={(e) => setEditLocation(e.target.value)}
+                      className="search-input"
+                      style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Activity Type
+                    </label>
+                    <select
+                      value={editActivity}
+                      onChange={(e) => setEditActivity(e.target.value)}
+                      className="search-input"
+                      style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px', padding: '10px 14px', backgroundColor: 'var(--c-surface-container-high)', border: '1px solid var(--c-outline-variant)' }}
+                    >
+                      {MISC_ACTIVITIES.map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Tag / Occasion (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. two days trip, dinner outside, weekend outing"
+                    value={editTag}
+                    onChange={(e) => setEditTag(e.target.value)}
+                    className="search-input"
+                    style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px' }}
+                  />
+                </div>
+              </>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Description
@@ -851,6 +1074,9 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
                   const ticketValue = category === 'OFFICE' ? editTicketId.trim() || null : null;
                   const typeValue = category === 'OFFICE' ? editWorkType : null;
                   const durationValue = category === 'OFFICE' ? editDuration.trim() || null : null;
+                  const locationValue = category === 'MISC' ? editLocation.trim() || null : null;
+                  const activityValue = category === 'MISC' ? editActivity : null;
+                  const tagValue = category === 'MISC' ? editTag.trim() || null : null;
                   
                   await editJournalEntry(
                     selectedEntry.id, 
@@ -859,7 +1085,10 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
                     projectValue,
                     ticketValue,
                     typeValue,
-                    durationValue
+                    durationValue,
+                    locationValue,
+                    activityValue,
+                    tagValue
                   );
                   
                   setIsEditOpen(false);

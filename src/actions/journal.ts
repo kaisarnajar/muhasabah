@@ -30,6 +30,9 @@ export async function addJournalEntry(formData: FormData) {
   const ticketId = formData.get('ticketId') as string || null;
   const workType = formData.get('workType') as string || null;
   const duration = formData.get('duration') as string || null;
+  const location = formData.get('location') as string || null;
+  const activity = formData.get('activity') as string || null;
+  const tag = formData.get('tag') as string || null;
 
   if (!content || !category) throw new Error('Content and category are required.');
 
@@ -42,6 +45,9 @@ export async function addJournalEntry(formData: FormData) {
       ticketId,
       workType,
       duration,
+      location,
+      activity,
+      tag,
       date: new Date(),
       userId: user.id,
     },
@@ -72,7 +78,10 @@ export async function editJournalEntry(
   project?: string | null,
   ticketId?: string | null,
   workType?: string | null,
-  duration?: string | null
+  duration?: string | null,
+  location?: string | null,
+  activity?: string | null,
+  tag?: string | null
 ) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
@@ -86,6 +95,9 @@ export async function editJournalEntry(
       ...(ticketId !== undefined ? { ticketId } : {}),
       ...(workType !== undefined ? { workType } : {}),
       ...(duration !== undefined ? { duration } : {}),
+      ...(location !== undefined ? { location } : {}),
+      ...(activity !== undefined ? { activity } : {}),
+      ...(tag !== undefined ? { tag } : {}),
     },
   });
   revalidatePath('/journal/office');
