@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Sun, Sunrise, Briefcase, Dumbbell, BookOpen, Moon, Clock, Play, CheckCircle
-} from 'lucide-react';
+import { Sun, Sunrise, Briefcase, Dumbbell, BookOpen, Moon, Clock, BedDouble } from 'lucide-react';
 
 interface TimetableData {
   wakeUpTime: string;
@@ -18,300 +16,221 @@ interface TimetableData {
   sleepTime: string;
 }
 
+function formatTime(t: string) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function timeToMinutes(t: string) {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
 export default function TimetableDashboardCard({ timetable }: { timetable: TimetableData }) {
   const [currentTime, setCurrentTime] = useState('');
-  
+
   useEffect(() => {
-    const updateTime = () => {
+    const update = () => {
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
+      setCurrentTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
     };
-    
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
+    update();
+    const iv = setInterval(update, 60000);
+    return () => clearInterval(iv);
   }, []);
 
-  // helper to compare HH:MM times
-  const timeToMinutes = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number);
-    return h * 60 + m;
-  };
+  const nowMin = currentTime ? timeToMinutes(currentTime) : -1;
 
-  // Build the timeline array dynamically based on preferences
-  const timelineItems = [];
+  const slots = [
+    {
+      key: 'wakeup',
+      icon: <Sun size={16} />,
+      label: 'Wake Up',
+      time: formatTime(timetable.wakeUpTime),
+      desc: 'Start of day',
+      color: '#f59e0b',
+      startMin: timeToMinutes(timetable.wakeUpTime),
+      endMin: timeToMinutes(timetable.wakeUpTime) + 30,
+    },
+    ...(timetable.gymMorningPreference === 'AFTER_FAJR' ? [{
+      key: 'gym-fajr',
+      icon: <Dumbbell size={16} />,
+      label: 'Gym',
+      time: 'After Fajr',
+      desc: 'Morning workout',
+      color: '#e11d48',
+      startMin: timeToMinutes(timetable.wakeUpTime) + 30,
+      endMin: timeToMinutes(timetable.wakeUpTime) + 90,
+    }] : []),
+    {
+      key: 'sunrise',
+      icon: <Sunrise size={16} />,
+      label: 'Till Sunrise',
+      time: 'Sunrise Routine',
+      desc: timetable.tillSunrise,
+      color: '#f97316',
+      startMin: timeToMinutes(timetable.wakeUpTime) + 30,
+      endMin: timeToMinutes(timetable.officeDeparture) - 60,
+    },
+    ...(timetable.gymMorningPreference === 'BEFORE_OFFICE' ? [{
+      key: 'gym-office',
+      icon: <Dumbbell size={16} />,
+      label: 'Gym',
+      time: 'Before Office',
+      desc: 'Morning workout',
+      color: '#e11d48',
+      startMin: timeToMinutes(timetable.officeDeparture) - 90,
+      endMin: timeToMinutes(timetable.officeDeparture),
+    }] : []),
+    {
+      key: 'office-leave',
+      icon: <Briefcase size={16} />,
+      label: 'Leave Office',
+      time: formatTime(timetable.officeDeparture),
+      desc: 'Depart for work',
+      color: '#6366f1',
+      startMin: timeToMinutes(timetable.officeDeparture),
+      endMin: timeToMinutes(timetable.officeReturn),
+    },
+    {
+      key: 'office-work',
+      icon: <Briefcase size={16} />,
+      label: 'Office',
+      time: `${formatTime(timetable.officeDeparture)} – ${formatTime(timetable.officeReturn)}`,
+      desc: 'Professional work',
+      color: '#6366f1',
+      startMin: timeToMinutes(timetable.officeDeparture),
+      endMin: timeToMinutes(timetable.officeReturn),
+    },
+    {
+      key: 'maghrib',
+      icon: <BookOpen size={16} />,
+      label: 'Maghrib–Isha',
+      time: 'Maghrib',
+      desc: timetable.maghribToIsha,
+      color: '#8b5cf6',
+      startMin: timeToMinutes(timetable.officeReturn),
+      endMin: timeToMinutes(timetable.officeReturn) + 120,
+    },
+    ...(timetable.gymEveningPreference === 'MAGHRIB_TO_ISHA' ? [{
+      key: 'gym-maghrib',
+      icon: <Dumbbell size={16} />,
+      label: 'Gym',
+      time: 'Maghrib–Isha',
+      desc: 'Evening workout',
+      color: '#e11d48',
+      startMin: timeToMinutes(timetable.officeReturn) + 30,
+      endMin: timeToMinutes(timetable.officeReturn) + 90,
+    }] : []),
+    {
+      key: 'isha',
+      icon: <BookOpen size={16} />,
+      label: 'Isha–Hifz',
+      time: 'Isha',
+      desc: timetable.ishaToHifz,
+      color: '#a855f7',
+      startMin: timeToMinutes(timetable.officeReturn) + 120,
+      endMin: timeToMinutes(timetable.sleepTime) - 30,
+    },
+    ...(timetable.gymEveningPreference === 'AFTER_ISHA' ? [{
+      key: 'gym-isha',
+      icon: <Dumbbell size={16} />,
+      label: 'Gym',
+      time: 'After Isha',
+      desc: 'Evening workout',
+      color: '#e11d48',
+      startMin: timeToMinutes(timetable.officeReturn) + 120,
+      endMin: timeToMinutes(timetable.officeReturn) + 180,
+    }] : []),
+    {
+      key: 'sleep',
+      icon: <BedDouble size={16} />,
+      label: 'Sleep',
+      time: formatTime(timetable.sleepTime),
+      desc: 'Rest & recovery',
+      color: '#0ea5e9',
+      startMin: timeToMinutes(timetable.sleepTime),
+      endMin: timeToMinutes(timetable.sleepTime) + 30,
+    },
+  ];
 
-  // 1. Wake Up
-  timelineItems.push({
-    time: timetable.wakeUpTime,
-    title: 'Wake Up',
-    desc: 'Start of the day',
-    icon: <Sun size={18} color="var(--c-primary)" />,
-  });
+  const isActive = (slot: (typeof slots)[0]) =>
+    nowMin >= slot.startMin && nowMin < slot.endMin;
 
-  // 2. Till Sunrise
-  timelineItems.push({
-    time: timetable.wakeUpTime, // starts at wake up
-    title: 'Till Sunrise Routine',
-    desc: timetable.tillSunrise,
-    icon: <Sunrise size={18} color="var(--c-primary)" />,
-  });
-
-  // 2.1 Gym right after Fajr (Morning Gym Preference = AFTER_FAJR)
-  if (timetable.gymMorningPreference === 'AFTER_FAJR') {
-    timelineItems.push({
-      time: '',
-      title: 'Gym Session',
-      desc: 'Workout right after Fajr prayer.',
-      icon: <Dumbbell size={18} color="#e11d48" />,
-      isGym: true
-    });
-  }
-
-  // 3. Sunrise till Office Departure
-  timelineItems.push({
-    time: 'Sunrise',
-    title: 'Morning Spiritual & Knowledge Segments',
-    desc: timetable.sunriseTillOffice,
-    icon: <BookOpen size={18} color="var(--c-primary)" />,
-  });
-
-  // 3.1 Gym before office (Morning Gym Preference = BEFORE_OFFICE)
-  if (timetable.gymMorningPreference === 'BEFORE_OFFICE') {
-    timelineItems.push({
-      time: '',
-      title: 'Gym Session',
-      desc: 'Workout before leaving for office.',
-      icon: <Dumbbell size={18} color="#e11d48" />,
-      isGym: true
-    });
-  }
-
-  // 4. Office Departure
-  timelineItems.push({
-    time: timetable.officeDeparture,
-    title: 'Leave for Office',
-    desc: 'Depart for work.',
-    icon: <Briefcase size={18} color="var(--c-primary)" />,
-  });
-
-  // 5. Office Hours (Departure to Return)
-  timelineItems.push({
-    time: `${timetable.officeDeparture} - ${timetable.officeReturn}`,
-    title: 'Office Hours',
-    desc: 'Professional work commitments.',
-    icon: <Briefcase size={18} color="var(--c-primary)" />,
-  });
-
-  // 6. Office Return
-  timelineItems.push({
-    time: timetable.officeReturn,
-    title: 'Return from Office',
-    desc: 'Arrival back home.',
-    icon: <Briefcase size={18} color="var(--c-primary)" />,
-  });
-
-  // 7. Maghrib to Isha Routine
-  timelineItems.push({
-    time: 'Maghrib',
-    title: 'Maghrib to Isha Segment',
-    desc: timetable.maghribToIsha,
-    icon: <BookOpen size={18} color="var(--c-primary)" />,
-  });
-
-  // 7.1 Gym Maghrib to Isha (Evening Gym Preference = MAGHRIB_TO_ISHA)
-  if (timetable.gymEveningPreference === 'MAGHRIB_TO_ISHA') {
-    timelineItems.push({
-      time: '',
-      title: 'Gym Session',
-      desc: 'Workout between Maghrib and Isha prayers.',
-      icon: <Dumbbell size={18} color="#e11d48" />,
-      isGym: true
-    });
-  }
-
-  // 8. Isha till Quran Hifz Class
-  timelineItems.push({
-    time: 'Isha',
-    title: 'Isha to Hifz Class Routine',
-    desc: timetable.ishaToHifz,
-    icon: <BookOpen size={18} color="var(--c-primary)" />,
-  });
-
-  // 8.1 Gym after Isha (Evening Gym Preference = AFTER_ISHA)
-  if (timetable.gymEveningPreference === 'AFTER_ISHA') {
-    timelineItems.push({
-      time: '',
-      title: 'Gym Session',
-      desc: 'Workout after Isha prayer.',
-      icon: <Dumbbell size={18} color="#e11d48" />,
-      isGym: true
-    });
-  }
-
-  // 9. Sleep Time
-  timelineItems.push({
-    time: timetable.sleepTime,
-    title: 'Sleep',
-    desc: 'End of the day routine.',
-    icon: <Moon size={18} color="var(--c-primary)" />,
-  });
-
-  // Simple active slot matching using static boundaries (approximation)
-  const getActiveIndex = () => {
-    if (!currentTime) return -1;
-    const currentMin = timeToMinutes(currentTime);
-    const wakeMin = timeToMinutes(timetable.wakeUpTime);
-    const sleepMin = timeToMinutes(timetable.sleepTime);
-    const officeDepMin = timeToMinutes(timetable.officeDeparture);
-    const officeRetMin = timeToMinutes(timetable.officeReturn);
-
-    // If sleeping
-    if (sleepMin > wakeMin) {
-      if (currentMin >= sleepMin || currentMin < wakeMin) return timelineItems.length - 1;
-    } else {
-      if (currentMin >= sleepMin && currentMin < wakeMin) return timelineItems.length - 1;
-    }
-
-    // Office hours
-    if (currentMin >= officeDepMin && currentMin < officeRetMin) {
-      return 5; // Office hours item
-    }
-
-    // Wake Up to office departure
-    if (currentMin >= wakeMin && currentMin < officeDepMin) {
-      // split morning
-      const midPoint = wakeMin + (officeDepMin - wakeMin) / 2;
-      return currentMin < midPoint ? 1 : 3;
-    }
-
-    // Office return to sleep
-    if (currentMin >= officeRetMin && currentMin < sleepMin) {
-      const midPoint = officeRetMin + (sleepMin - officeRetMin) / 2;
-      return currentMin < midPoint ? 8 : 10;
-    }
-
-    return -1;
-  };
-
-  const activeIndex = getActiveIndex();
+  const activeSlot = slots.find(isActive);
 
   return (
-    <div className="card w-full" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="text-title-lg" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--c-primary)' }}>
-          <Clock size={22} />
+    <div className="card" style={{ padding: '20px 24px', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--c-primary)' }}>
+          <Clock size={18} />
           Today&apos;s Time Table
         </h2>
-        {currentTime && (
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--c-surface-container-low)', padding: '4px 10px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)' }}>
-            <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--c-primary)', borderRadius: '50%', display: 'inline-block' }}></span>
-            {currentTime}
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {activeSlot && (
+            <span style={{ fontSize: '12px', fontWeight: 600, color: activeSlot.color, backgroundColor: `${activeSlot.color}18`, padding: '4px 12px', borderRadius: '20px', border: `1px solid ${activeSlot.color}40` }}>
+              Now: {activeSlot.label}
+            </span>
+          )}
+          {currentTime && (
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--c-primary-container)', padding: '4px 12px', borderRadius: '20px' }}>
+              <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--c-primary)', borderRadius: '50%', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+              {formatTime(currentTime)}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '520px', overflowY: 'auto', paddingRight: '4px' }}>
-        {timelineItems.map((item, idx) => {
-          const isActive = idx === activeIndex;
-          
+      {/* Horizontal timeline cards */}
+      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
+        {slots.map((slot, i) => {
+          const active = isActive(slot);
           return (
-            <div 
-              key={idx} 
-              style={{ 
-                display: 'flex', 
-                gap: '16px', 
-                position: 'relative',
-                opacity: activeIndex !== -1 && !isActive ? 0.65 : 1,
-                transform: isActive ? 'scale(1.01)' : 'none',
+            <div
+              key={`${slot.key}-${i}`}
+              style={{
+                flexShrink: 0,
+                minWidth: '130px',
+                maxWidth: '160px',
+                padding: '12px 14px',
+                borderRadius: '14px',
+                border: `1.5px solid ${active ? slot.color : 'var(--c-outline-variant)'}`,
+                backgroundColor: active ? `${slot.color}14` : 'var(--c-surface-container-low)',
                 transition: 'all 0.3s ease',
+                transform: active ? 'translateY(-3px)' : 'none',
+                boxShadow: active ? `0 4px 16px ${slot.color}30` : 'none',
+                position: 'relative',
               }}
             >
-              {/* Timeline line connector */}
-              {idx < timelineItems.length - 1 && (
-                <div 
-                  style={{ 
-                    position: 'absolute', 
-                    left: '17px', 
-                    top: '36px', 
-                    bottom: '-16px', 
-                    width: '2px', 
-                    background: isActive ? 'linear-gradient(to bottom, var(--c-primary) 0%, var(--c-outline-variant) 100%)' : 'var(--c-outline-variant)',
-                    zIndex: 1 
-                  }}
-                />
+              {/* Active indicator dot */}
+              {active && (
+                <span style={{ position: 'absolute', top: '8px', right: '8px', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: slot.color, display: 'block' }} />
               )}
 
-              {/* Icon / Time indicator */}
-              <div 
-                style={{ 
-                  width: '36px', 
-                  height: '36px', 
-                  borderRadius: '50%', 
-                  backgroundColor: isActive ? 'var(--c-primary-container)' : item.isGym ? 'rgba(225, 29, 72, 0.08)' : 'var(--c-surface-container-low)', 
-                  border: `1px solid ${isActive ? 'var(--c-primary)' : item.isGym ? 'rgba(225, 29, 72, 0.2)' : 'var(--c-outline-variant)'}`,
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  zIndex: 2,
-                  flexShrink: 0
-                }}
-              >
-                {isActive ? <Play size={16} color="var(--c-primary)" /> : item.icon}
+              {/* Icon */}
+              <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: active ? slot.color : `${slot.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', color: active ? '#fff' : slot.color }}>
+                {slot.icon}
               </div>
 
-              {/* Content box */}
-              <div 
-                style={{ 
-                  flex: 1, 
-                  backgroundColor: isActive ? 'var(--c-primary-container)' : 'transparent',
-                  padding: isActive ? '12px 16px' : '0px',
-                  borderRadius: '12px',
-                  border: isActive ? '1px solid var(--c-primary)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
-                  <h4 
-                    style={{ 
-                      margin: 0, 
-                      fontSize: '14px', 
-                      fontWeight: 700, 
-                      color: item.isGym ? '#e11d48' : isActive ? 'var(--c-primary)' : 'var(--c-on-surface)' 
-                    }}
-                  >
-                    {item.title}
-                  </h4>
-                  {item.time && (
-                    <span 
-                      style={{ 
-                        fontSize: '11px', 
-                        fontWeight: 600, 
-                        color: isActive ? 'var(--c-primary)' : 'var(--c-on-surface-variant)',
-                        backgroundColor: isActive ? 'rgba(191,145,41,0.1)' : 'var(--c-surface-container-low)',
-                        padding: '2px 8px',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      {item.time}
-                    </span>
-                  )}
-                </div>
-                <p 
-                  style={{ 
-                    margin: 0, 
-                    fontSize: '13px', 
-                    lineHeight: 1.5,
-                    color: isActive ? 'var(--c-on-surface)' : 'var(--c-on-surface-variant)' 
-                  }}
-                >
-                  {item.desc}
-                </p>
-              </div>
+              {/* Label */}
+              <p style={{ margin: '0 0 2px 0', fontSize: '13px', fontWeight: 700, color: active ? slot.color : 'var(--c-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {slot.label}
+              </p>
+
+              {/* Time */}
+              <p style={{ margin: '0 0 4px 0', fontSize: '11px', fontWeight: 600, color: active ? slot.color : 'var(--c-primary)', opacity: active ? 1 : 0.85 }}>
+                {slot.time}
+              </p>
+
+              {/* Description */}
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--c-on-surface-variant)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {slot.desc}
+              </p>
             </div>
           );
         })}
