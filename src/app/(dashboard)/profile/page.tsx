@@ -1,6 +1,7 @@
 import { getAuthenticatedUser } from '@/actions/auth';
 import { User, Mail, ShieldCheck, LogOut } from 'lucide-react';
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
+import UpdateProfileForm from '@/components/profile/UpdateProfileForm';
 
 export default async function Profile() {
   const user = await getAuthenticatedUser();
@@ -19,23 +20,25 @@ export default async function Profile() {
           Personal Details
         </h2>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <span className="text-label-sm text-on-surface-variant">FULL NAME</span>
-            <div className="text-body-lg" style={{ marginTop: '4px' }}>{user.name}</div>
+        <UpdateProfileForm initialName={user.name} initialEmail={user.email} />
+        
+        <div style={{ marginTop: '24px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
+          <span className="text-label-sm text-on-surface-variant">EMAIL STATUS</span>
+          <div className="text-body-lg" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {user.emailVerified ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-primary)' }}>
+                <ShieldCheck size={18} /> Verified
+              </span>
+            ) : (
+              <span style={{ color: 'var(--c-error)' }}>Unverified</span>
+            )}
           </div>
-          <div>
-            <span className="text-label-sm text-on-surface-variant">EMAIL ADDRESS</span>
-            <div className="text-body-lg" style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {user.email}
-              {user.emailVerified && <ShieldCheck size={18} color="var(--c-primary)" />}
-            </div>
-          </div>
-          <div>
-            <span className="text-label-sm text-on-surface-variant">MEMBER SINCE</span>
-            <div className="text-body-lg" style={{ marginTop: '4px' }}>
-              {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-            </div>
+        </div>
+
+        <div style={{ marginTop: '16px' }}>
+          <span className="text-label-sm text-on-surface-variant">MEMBER SINCE</span>
+          <div className="text-body-lg" style={{ marginTop: '4px' }}>
+            {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </div>
       </div>
