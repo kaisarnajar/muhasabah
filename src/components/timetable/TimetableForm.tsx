@@ -143,6 +143,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
   
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [selectedGym, setSelectedGym] = useState(initialData.gymPreference || 'NONE');
+  const [gymSaving, setGymSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -214,10 +215,14 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
     }
   };
 
-  const handleGymChange = async (val: string) => {
+  const handleGymClick = (val: string) => {
     setSelectedGym(val);
+  };
+
+  const handleGymSave = async () => {
+    setGymSaving(true);
     const fd = new FormData();
-    fd.append('gymPreference', val);
+    fd.append('gymPreference', selectedGym);
     try {
       const res = await updateTimeTable(fd);
       if (res.success) {
@@ -226,6 +231,8 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
       }
     } catch (err: any) {
       showToast(err.message || 'Failed to update gym preference', 'error');
+    } finally {
+      setGymSaving(false);
     }
   };
 
@@ -406,9 +413,9 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
 
       {/* Gym Preference — single choice from all 4 slots */}
       <div className="card" style={{ padding: '24px' }}>
-        {sectionHeader(<Dumbbell size={18} />, 'Gym Preference', 'Choose one time slot for your gym session (Auto-saves on selection)')}
+        {sectionHeader(<Dumbbell size={18} />, 'Gym Preference', 'Choose one time slot for your gym session')}
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px', marginBottom: '16px' }}>
             {gymOptions.map((opt) => {
               const isSelected = selectedGym === opt.value;
               const badgeColor = opt.badge === 'Morning' ? '#f97316' : opt.badge === 'Evening' ? '#8b5cf6' : 'transparent';
@@ -416,7 +423,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => handleGymChange(opt.value)}
+                  onClick={() => handleGymClick(opt.value)}
                   style={{
                     padding: '16px',
                     borderRadius: '14px',
@@ -465,6 +472,18 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                 </button>
               );
             })}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button 
+              type="button" 
+              onClick={handleGymSave} 
+              className="primary-btn" 
+              disabled={gymSaving} 
+              style={{ padding: '10px 24px', fontSize: '13px' }}
+            >
+              {gymSaving ? 'Saving...' : 'Save Gym Preference'}
+            </button>
           </div>
         </div>
       </div>
