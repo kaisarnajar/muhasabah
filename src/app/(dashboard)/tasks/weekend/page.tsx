@@ -2,10 +2,14 @@ import { getWeekendTasks } from '@/actions/tasks';
 import WeekendTasksClient from '@/components/weekend/WeekendTasksClient';
 import { CalendarHeart } from 'lucide-react';
 import prisma from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/actions/auth';
 
 import Link from 'next/link';
 
 export default async function WeekendPage() {
+  const user = await getAuthenticatedUser();
+  if (!user) return null;
+
   const tasks = await getWeekendTasks();
 
   // If the database is empty, seed it on first load!
@@ -17,7 +21,7 @@ export default async function WeekendPage() {
       'Tasks Tracker', 'Iron Clothes'
     ];
     for (const title of initialTasks) {
-      await prisma.weekendTask.create({ data: { title } });
+      await prisma.weekendTask.create({ data: { title, userId: user.id } });
     }
     // Refresh the list after seeding
     const newTasks = await getWeekendTasks();
