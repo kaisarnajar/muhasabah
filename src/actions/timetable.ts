@@ -27,43 +27,35 @@ export async function updateTimeTable(formData: FormData) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
-  const wakeUpTime = formData.get('wakeUpTime') as string;
-  const tillSunrise = formData.get('tillSunrise') as string;
-  const sunriseTillOffice = formData.get('sunriseTillOffice') as string;
-  const officeDeparture = formData.get('officeDeparture') as string;
-  const officeReturn = formData.get('officeReturn') as string;
-  const gymPreference = formData.get('gymPreference') as string;
-  const maghribToIsha = formData.get('maghribToIsha') as string;
-  const ishaToHifz = formData.get('ishaToHifz') as string;
-  const sleepTime = formData.get('sleepTime') as string;
-  const hifzClassTime = formData.get('hifzClassTime') as string;
+  const updateData: any = {};
+  const fields = [
+    'wakeUpTime', 'tillSunrise', 'sunriseTillOffice', 
+    'officeDeparture', 'officeReturn', 'gymPreference', 
+    'maghribToIsha', 'ishaToHifz', 'sleepTime', 'hifzClassTime'
+  ];
+
+  for (const f of fields) {
+    const val = formData.get(f);
+    if (val !== null) {
+      updateData[f] = val as string;
+    }
+  }
 
   await prisma.timeTable.upsert({
     where: { userId: user.id },
-    update: {
-      wakeUpTime,
-      tillSunrise,
-      sunriseTillOffice,
-      officeDeparture,
-      officeReturn,
-      gymPreference,
-      maghribToIsha,
-      ishaToHifz,
-      sleepTime,
-      hifzClassTime
-    },
+    update: updateData,
     create: {
       userId: user.id,
-      wakeUpTime,
-      tillSunrise,
-      sunriseTillOffice,
-      officeDeparture,
-      officeReturn,
-      gymPreference,
-      maghribToIsha,
-      ishaToHifz,
-      sleepTime,
-      hifzClassTime
+      wakeUpTime: updateData.wakeUpTime || '05:00',
+      tillSunrise: updateData.tillSunrise || 'Dhikr & Quran reading',
+      sunriseTillOffice: updateData.sunriseTillOffice || 'Breakfast & prepare for office',
+      officeDeparture: updateData.officeDeparture || '09:00',
+      officeReturn: updateData.officeReturn || '17:00',
+      gymPreference: updateData.gymPreference || 'NONE',
+      maghribToIsha: updateData.maghribToIsha || 'Spiritual reading, family time',
+      ishaToHifz: updateData.ishaToHifz || 'Isha prayer and Quran review',
+      sleepTime: updateData.sleepTime || '22:30',
+      hifzClassTime: updateData.hifzClassTime || '22:00',
     }
   });
 

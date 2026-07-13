@@ -1,7 +1,8 @@
 import { getTimeTable } from '@/actions/timetable';
 import { getAuthenticatedUser } from '@/actions/auth';
 import prisma from '@/lib/prisma';
-import TimetableSettings from '@/components/timetable/TimetableSettings';
+import TimetableForm from '@/components/timetable/TimetableForm';
+import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCard';
 import { CalendarRange } from 'lucide-react';
 
 export default async function TimetablePage() {
@@ -32,14 +33,18 @@ export default async function TimetablePage() {
   };
 
   return (
-    <div style={{ padding: '0 24px 60px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+    <div style={{ padding: '0 24px 60px 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <CalendarRange color="var(--c-primary)" size={28} />
         <h2 className="text-headline-md" style={{ margin: 0 }}>Daily Time Table</h2>
       </div>
 
+      <div className="w-full" style={{ marginBottom: '12px' }}>
+        <TimetableDashboardCard timetable={initialData} prayerTimes={prayerTimes} />
+      </div>
+
       <div className="w-full">
-        <TimetableSettings initialData={initialData} prayerTimes={prayerTimes} />
+        <TimetableForm initialData={initialData} />
       </div>
     </div>
   );
