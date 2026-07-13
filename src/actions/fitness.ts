@@ -10,24 +10,25 @@ export async function getFitnessLogs() {
 
   return await prisma.fitnessLog.findMany({
     where: { userId: user.id },
-    orderBy: { date: 'desc' },
+    orderBy: [
+      { date: 'desc' },
+      { createdAt: 'desc' }
+    ],
   });
 }
 
-export async function addFitnessLog(formData: FormData) {
+export async function addFitnessLog(
+  activity: string,
+  duration: number,
+  distance: number | null,
+  notes: string | null,
+  date: Date
+) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
-  const activity = formData.get('activity') as string;
-  const duration = Number(formData.get('duration'));
-  const distanceStr = formData.get('distance') as string;
-  const distance = distanceStr ? Number(distanceStr) : null;
-  const notes = formData.get('notes') as string | null;
-  const dateStr = formData.get('date') as string;
-
-  if (!activity || !duration || !dateStr) {
-    throw new Error('Missing required fields');
-  }
+  if (!activity) throw new Error('Activity type is required.');
+  if (duration <= 0) throw new Error('Duration must be greater than 0.');
 
   await prisma.fitnessLog.create({
     data: {
@@ -35,13 +36,11 @@ export async function addFitnessLog(formData: FormData) {
       duration,
       distance,
       notes,
-      date: new Date(dateStr),
+      date,
       userId: user.id,
-    }
+    },
   });
-
   revalidatePath('/fitness');
-  revalidatePath('/');
 }
 
 export async function deleteFitnessLog(id: number) {
@@ -52,5 +51,4 @@ export async function deleteFitnessLog(id: number) {
     where: { id, userId: user.id },
   });
   revalidatePath('/fitness');
-  revalidatePath('/');
 }
