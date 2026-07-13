@@ -32,6 +32,7 @@ async function main() {
   await prisma.dua.deleteMany();
   await prisma.book.deleteMany();
   await prisma.relapseLog.deleteMany();
+  await prisma.timeTable.deleteMany();
   // Finally delete users
   await prisma.user.deleteMany();
 
@@ -44,6 +45,10 @@ async function main() {
       email: 'test1@example.com',
       passwordHash,
       emailVerified: true,
+      latitude: 12.9716,
+      longitude: 77.5946,
+      locationName: 'Bengaluru, India',
+      calculationMethod: 2,
     }
   });
 
@@ -57,6 +62,25 @@ async function main() {
   });
 
   const uId = user1.id;
+
+  // --- TIMETABLE ---
+  console.log('Seeding Time Table...');
+  await prisma.timeTable.create({
+    data: {
+      userId: uId,
+      wakeUpTime: '05:00',
+      tillSunrise: 'Adhkar, Quran Memorisation & morning reflection',
+      sunriseTillOffice: 'Exercise at home, study technical concepts & breakfast',
+      officeDeparture: '08:30',
+      officeReturn: '17:30',
+      gymPreference: 'AFTER_ISHA',
+      maghribToIsha: 'Dua class, Arabic grammar revision & family dinner',
+      ishaToHifz: 'Isha prayer, revision of previous Juz, dinner prep',
+      hifzClassTime: '22:00',
+      sleepTime: '22:30',
+    }
+  });
+
   console.log(`Seeding massive data for Test User 1 (ID: ${uId})...`);
 
   const today = new Date();
