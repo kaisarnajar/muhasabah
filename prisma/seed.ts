@@ -179,13 +179,86 @@ async function main() {
   console.log('Seeding Journal Entries...');
   const journalData = [];
   const categories = Object.values(JournalCategory);
+  
+  const officeProjects = ["Muhasabah App", "Payment Gateway", "Auth Service", "Notification Engine", "Reports Portal"];
+  const officeTickets = ["JIRA-1042", "JIRA-2940", "JIRA-3811", "JIRA-4022", "JIRA-1190"];
+  const officeWorkTypes = ["Feature", "Bug Fix", "Refactor", "Meeting", "Deployment", "Support", "Other"];
+  const officeDurations = ["1.5h", "3h", "4.5h", "2h", "45m", "8h"];
+  const officeContents = [
+    "Worked on integrating Aladhan API for dynamic prayer timings.",
+    "Fixed a bug where the sidebar is not scrollable on small screens.",
+    "Refactored the dashboard components for better performance.",
+    "Sprint planning meeting with team and discussing architecture.",
+    "Deployed build v1.2.0 to staging and ran sanity checks.",
+    "Resolved customer ticket regarding password reset failure.",
+    "Updated Prisma models to support custom fields in dev log cards."
+  ];
+
+  const learningSubjects = [
+    "Android Development",
+    "Backend Development",
+    "Frontend Development",
+    "Java",
+    "C++",
+    "DSA",
+    "Machine Learning",
+    "AI & ML",
+    "AI Engineering",
+    "System Design",
+    "TypeScript",
+    "Next.js"
+  ];
+  const learningContents = [
+    "Learned about standard Asr time computation in Shafi Fiqh.",
+    "Explored React Portals for modal rendering outside parent DOM tree.",
+    "Studied hash-based dynamic color generator for topic badges.",
+    "Solved 3 medium LeetCode problems on Dynamic Programming.",
+    "Watched a tutorial on building neural networks with TensorFlow.",
+    "Practiced multithreading concepts and synchronization in Java.",
+    "Built a simple application using Jetpack Compose in Android."
+  ];
+
+  const miscLocations = ["Bengaluru", "Nandi Hills", "Mysuru", "Koramangala", "Indiranagar", "Bannerghatta Park"];
+  const miscActivities = ["Travel", "Food", "Social", "Shopping", "Health", "Thoughts", "Entertainment", "Other"];
+  const miscTags = ["two days trip", "dinner outside", "weekend outing", "birthday party", "evening run", "shopping spree"];
+  const miscContents = [
+    "Went to Nandi Hills for sunrise on a two days trip. Amazing weather!",
+    "Had a delicious dinner outside with family at Koramangala.",
+    "Met up with college friends after a long time. Had deep conversations.",
+    "Purchased some new winter clothes and books from the local store.",
+    "Went for an evening run around the lake. Felt very refreshed.",
+    "Reflected on personal growth goals and drafted a plan for the next month.",
+    "Visited the Bannerghatta national park and saw the safari animals."
+  ];
+
   for (let i = 0; i < 100; i++) {
-    journalData.push({
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const entryDate = getPastDate(Math.floor(Math.random() * 365));
+    
+    let entry: any = {
       userId: uId,
-      content: `Journal entry ${i}. Reflecting on the day, tracking progress, noting challenges...`,
-      category: categories[Math.floor(Math.random() * categories.length)],
-      date: getPastDate(Math.floor(Math.random() * 365)),
-    });
+      category,
+      date: entryDate,
+      createdAt: entryDate,
+    };
+
+    if (category === 'OFFICE') {
+      entry.project = officeProjects[Math.floor(Math.random() * officeProjects.length)];
+      entry.ticketId = Math.random() > 0.3 ? officeTickets[Math.floor(Math.random() * officeTickets.length)] : null;
+      entry.workType = officeWorkTypes[Math.floor(Math.random() * officeWorkTypes.length)];
+      entry.duration = Math.random() > 0.2 ? officeDurations[Math.floor(Math.random() * officeDurations.length)] : null;
+      entry.content = officeContents[Math.floor(Math.random() * officeContents.length)];
+    } else if (category === 'LEARNING') {
+      entry.subject = Math.random() > 0.15 ? learningSubjects[Math.floor(Math.random() * learningSubjects.length)] : null;
+      entry.content = learningContents[Math.floor(Math.random() * learningContents.length)];
+    } else if (category === 'MISC') {
+      entry.location = Math.random() > 0.25 ? miscLocations[Math.floor(Math.random() * miscLocations.length)] : null;
+      entry.activity = miscActivities[Math.floor(Math.random() * miscActivities.length)];
+      entry.tag = Math.random() > 0.3 ? miscTags[Math.floor(Math.random() * miscTags.length)] : null;
+      entry.content = miscContents[Math.floor(Math.random() * miscContents.length)];
+    }
+
+    journalData.push(entry);
   }
   await prisma.journalEntry.createMany({ data: journalData });
 
