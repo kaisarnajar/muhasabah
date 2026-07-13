@@ -211,7 +211,7 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
       </div>
 
       {/* Horizontal timeline cards */}
-      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
+      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '10px 4px 20px 4px', margin: '-10px -4px -10px -4px' }}>
         {slots.map((slot, i) => {
           const active = isActive(slot);
           return (
