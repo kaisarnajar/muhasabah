@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { updateTimeTable, updateUserLocation } from '@/actions/timetable';
+import { updateTimeTable, updateUserLocation, updateCalculationMethod } from '@/actions/timetable';
 import { useToast } from '@/context/ToastContext';
 import { Sun, Briefcase, Home, Dumbbell, BookOpen, Moon, Clock, Sunrise, MapPin, Edit3, X } from 'lucide-react';
 
@@ -22,6 +22,7 @@ interface TimetableFormProps {
     latitude?: number | null;
     longitude?: number | null;
     locationName?: string | null;
+    calculationMethod?: number;
   };
 }
 
@@ -116,6 +117,18 @@ function TextAreaInput({ name, label, icon, defaultValue, placeholder }: {
     </div>
   );
 }
+
+const calculationMethods = [
+  { id: 1, name: 'University of Islamic Sciences, Karachi' },
+  { id: 2, name: 'Islamic Society of North America (ISNA)' },
+  { id: 3, name: 'Muslim World League (MWL)' },
+  { id: 4, name: 'Umm Al-Qura University, Makkah' },
+  { id: 5, name: 'Egyptian General Authority of Survey' },
+  { id: 7, name: 'Institute of Geophysics, University of Tehran' },
+  { id: 12, name: 'Union Organisation Islamique de France' },
+  { id: 13, name: 'Diyanet İşleri Başkanlığı, Turkey' },
+  { id: 14, name: 'Spiritual Administration of Muslims of Russia' }
+];
 
 export default function TimetableForm({ initialData }: TimetableFormProps) {
   const router = useRouter();
@@ -254,25 +267,55 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
       {/* Location for Prayer Times */}
       <div className="card" style={{ padding: '24px' }}>
         {sectionHeader(<MapPin size={18} />, 'Prayer Times Location', 'Set your location to automatically fetch Shafi prayer timings')}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)' }}>
-          <div>
-            <p style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
-              {hasLocation ? `✅ Location: ${locationName || 'Detected Coordinates'}` : '❌ Location not set'}
-            </p>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-on-surface-variant)' }}>
-              {hasLocation ? `We will automatically adjust your timetable slots based on prayer times for ${locationName || 'your coordinates'}.` : 'We need your location to fetch accurate prayer times.'}
-            </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+            <div>
+              <p style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+                {hasLocation ? `✅ Location: ${locationName || 'Detected Coordinates'}` : '❌ Location not set'}
+              </p>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-on-surface-variant)' }}>
+                {hasLocation ? `We will automatically adjust your timetable slots based on prayer times for ${locationName || 'your coordinates'}.` : 'We need your location to fetch accurate prayer times.'}
+              </p>
+            </div>
+            <button 
+              type="button" 
+              onClick={handleGetLocation} 
+              disabled={locLoading}
+              className="secondary-btn" 
+              style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+            >
+              <MapPin size={14} />
+              {locLoading ? 'Detecting...' : hasLocation ? 'Update Location' : 'Set Location'}
+            </button>
           </div>
-          <button 
-            type="button" 
-            onClick={handleGetLocation} 
-            disabled={locLoading}
-            className="secondary-btn" 
-            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
-          >
-            <MapPin size={14} />
-            {locLoading ? 'Detecting...' : hasLocation ? 'Update Location' : 'Set Location'}
-          </button>
+
+          {/* Calculation Method Dropdown */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Clock size={13} /> Calculation Method (For timing accuracy)
+            </label>
+            <select
+              value={initialData.calculationMethod ?? 1}
+              onChange={async (e) => {
+                const val = Number(e.target.value);
+                try {
+                  const res = await updateCalculationMethod(val);
+                  if (res.success) {
+                    showToast(res.success, 'success');
+                    router.refresh();
+                  }
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to update method', 'error');
+                }
+              }}
+              className="search-input"
+              style={{ borderRadius: '10px', fontWeight: 600, fontSize: '14px', padding: '10px 14px', width: '100%', maxWidth: '350px', backgroundColor: 'var(--c-surface-container-high)', border: '1px solid var(--c-outline-variant)' }}
+            >
+              {calculationMethods.map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

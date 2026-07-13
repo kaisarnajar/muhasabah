@@ -33,8 +33,9 @@ export default async function Dashboard() {
   let prayerTimes = null;
   if (user?.latitude && user?.longitude) {
     try {
-      // method=2 is ISNA, school=0 is Shafi
-      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=2&school=0`, { next: { revalidate: 3600 } });
+      // method is dynamic, school=0 is Shafi
+      const method = user.calculationMethod ?? 1;
+      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=${method}&school=0`, { next: { revalidate: 3600 } });
       const data = await res.json();
       if (data && data.data && data.data.timings) {
         prayerTimes = data.data.timings; // { Fajr: "05:00", Sunrise: "06:30", Dhuhr: "12:00", Asr: "15:00", Sunset: "18:00", Maghrib: "18:00", Isha: "19:30" ... }

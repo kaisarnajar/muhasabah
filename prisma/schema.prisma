@@ -12,10 +12,11 @@ model User {
   email         String    @unique
   passwordHash  String
   emailVerified Boolean   @default(false)
-  latitude      Float?
-  longitude     Float?
-  locationName  String?
-  createdAt     DateTime  @default(now()) @db.Timestamptz()
+  latitude          Float?
+  longitude         Float?
+  locationName      String?
+  calculationMethod Int       @default(1)
+  createdAt         DateTime  @default(now()) @db.Timestamptz()
   updatedAt     DateTime  @updatedAt @db.Timestamptz()
 
   transactions      Transaction[]

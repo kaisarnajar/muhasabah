@@ -79,3 +79,18 @@ export async function updateUserLocation(latitude: number, longitude: number, lo
 
   return { success: 'Location updated successfully. Prayer times will now be synced.' };
 }
+
+export async function updateCalculationMethod(methodId: number) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { calculationMethod: methodId }
+  });
+
+  revalidatePath('/');
+  revalidatePath('/timetable');
+
+  return { success: 'Calculation method updated successfully. Prayer times will adjust immediately.' };
+}

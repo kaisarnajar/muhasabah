@@ -16,7 +16,8 @@ export default async function TimetablePage() {
   let prayerTimes = null;
   if (user?.latitude && user?.longitude) {
     try {
-      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=2&school=0`, { next: { revalidate: 3600 } });
+      const method = user.calculationMethod ?? 1;
+      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=${method}&school=0`, { next: { revalidate: 3600 } });
       const data = await res.json();
       if (data && data.data && data.data.timings) {
         prayerTimes = data.data.timings;
@@ -31,6 +32,7 @@ export default async function TimetablePage() {
     latitude: user?.latitude || null,
     longitude: user?.longitude || null,
     locationName: user?.locationName || null,
+    calculationMethod: user?.calculationMethod ?? 1,
   };
 
   return (
