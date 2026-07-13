@@ -7,7 +7,7 @@ const ALL_SECTIONS = [
   { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
   { href: '/goals',           icon: 'target',         label: 'Goals',           desc: 'Track your objectives'        },
   { href: '/tasks',           icon: 'checklist',      label: 'Tasks',           desc: 'Daily & recurring tasks'      },
-  { href: '/journal/learning',icon: 'school',         label: 'Learning',        desc: 'Notes from what you learn'    },
+  { href: '/journal/learning',icon: 'school',         label: 'Career Learnings', desc: 'Notes from what you learn'  },
   { href: '/fitness',         icon: 'fitness_center', label: 'Fitness',         desc: 'Workouts & health logs'       },
   { href: '/journal/office',  icon: 'work',           label: 'Office Work',     desc: 'Work logs & updates'          },
   { href: '/transactions',    icon: 'payments',       label: 'Finances',        desc: 'Income & expense tracker'     },

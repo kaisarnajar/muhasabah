@@ -69,7 +69,7 @@ export default function Navigation() {
           </Link>
           <Link href="/journal/learning" className={`nav-item ${pathname.startsWith('/journal/learning') ? 'active' : ''}`}>
             <span className="material-symbols-outlined">school</span>
-            <span className="text-body-md">Learning</span>
+            <span className="text-body-md">Career Learnings</span>
           </Link>
           <Link href="/fitness" className={`nav-item ${pathname === '/fitness' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">fitness_center</span>

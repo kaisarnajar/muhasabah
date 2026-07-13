@@ -40,3 +40,14 @@ export async function deleteJournalEntry(id: number) {
   revalidatePath('/journal/misc');
   revalidatePath('/');
 }
+
+export async function editJournalEntry(id: number, content: string) {
+  await prisma.journalEntry.update({
+    where: { id },
+    data: { content },
+  });
+  revalidatePath('/journal/office');
+  revalidatePath('/journal/learning');
+  revalidatePath('/journal/misc');
+  revalidatePath('/');
+}
