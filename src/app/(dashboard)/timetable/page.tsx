@@ -1,9 +1,19 @@
 import { getTimeTable } from '@/actions/timetable';
+import { getAuthenticatedUser } from '@/actions/auth';
+import prisma from '@/lib/prisma';
 import TimetableForm from '@/components/timetable/TimetableForm';
 import { CalendarRange } from 'lucide-react';
 
 export default async function TimetablePage() {
   const timetable = await getTimeTable();
+  const sessionUser = await getAuthenticatedUser();
+  const user = sessionUser ? await prisma.user.findUnique({ where: { id: sessionUser.id } }) : null;
+
+  const initialData = {
+    ...timetable,
+    latitude: user?.latitude || null,
+    longitude: user?.longitude || null,
+  };
 
   return (
     <div style={{ padding: '0 24px 60px 24px' }}>
@@ -13,7 +23,7 @@ export default async function TimetablePage() {
       </div>
 
       <div className="w-full">
-        <TimetableForm initialData={timetable} />
+        <TimetableForm initialData={initialData} />
       </div>
     </div>
   );

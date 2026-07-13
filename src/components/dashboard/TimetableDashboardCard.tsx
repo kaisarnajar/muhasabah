@@ -29,7 +29,7 @@ function timeToMinutes(t: string) {
   return h * 60 + m;
 }
 
-export default function TimetableDashboardCard({ timetable }: { timetable: TimetableData }) {
+export default function TimetableDashboardCard({ timetable, prayerTimes }: { timetable: TimetableData, prayerTimes?: Record<string, string> | null }) {
   const [currentTime, setCurrentTime] = useState('');
 
   useEffect(() => {
@@ -49,6 +49,15 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
   const depMin  = timeToMinutes(timetable.officeDeparture);
   const retMin  = timeToMinutes(timetable.officeReturn);
   const sleepMin = timeToMinutes(timetable.sleepTime);
+
+  // Extract prayer times safely (Aladhan API sometimes returns "05:12 (IST)", so we substring)
+  const getPT = (name: string) => prayerTimes?.[name] ? timeToMinutes(prayerTimes[name].substring(0, 5)) : null;
+  const getPTFmt = (name: string) => prayerTimes?.[name] ? formatTime(prayerTimes[name].substring(0, 5)) : null;
+
+  const fajrMin = getPT('Fajr') || wakeMin + 45;
+  const sunriseMin = getPT('Sunrise') || depMin - 90;
+  const maghribMin = getPT('Maghrib') || retMin + 60;
+  const ishaMin = getPT('Isha') || retMin + 180;
 
   type Slot = {
     key: string;
@@ -70,27 +79,27 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
       desc: 'Start of the day — Fajr & Dhikr',
       color: '#f59e0b',
       startMin: wakeMin,
-      endMin: wakeMin + 45,
+      endMin: fajrMin,
     },
     ...(gym === 'AFTER_FAJR' ? [{
       key: 'gym',
       icon: <Dumbbell size={16} />,
       label: 'Gym',
-      time: 'After Fajr',
+      time: getPTFmt('Fajr') ? `After Fajr (${getPTFmt('Fajr')})` : 'After Fajr',
       desc: 'Morning workout right after Fajr prayer',
       color: '#e11d48',
-      startMin: wakeMin + 45,
-      endMin: wakeMin + 135,
+      startMin: fajrMin,
+      endMin: fajrMin + 90,
     }] : []),
     {
       key: 'sunrise',
       icon: <Sunrise size={16} />,
       label: 'Till Sunrise',
-      time: 'Sunrise Routine',
+      time: getPTFmt('Sunrise') ? `Till Sunrise (${getPTFmt('Sunrise')})` : 'Sunrise Routine',
       desc: timetable.tillSunrise,
       color: '#f97316',
-      startMin: wakeMin + 45,
-      endMin: depMin - 90,
+      startMin: gym === 'AFTER_FAJR' ? fajrMin + 90 : fajrMin,
+      endMin: sunriseMin,
     },
     ...(gym === 'BEFORE_OFFICE' ? [{
       key: 'gym',
@@ -106,11 +115,11 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
       key: 'morning-routine',
       icon: <BookOpen size={16} />,
       label: 'Morning Routine',
-      time: `Sunrise – ${formatTime(timetable.officeDeparture)}`,
+      time: getPTFmt('Sunrise') ? `${getPTFmt('Sunrise')} – ${formatTime(timetable.officeDeparture)}` : `Sunrise – ${formatTime(timetable.officeDeparture)}`,
       desc: timetable.sunriseTillOffice,
       color: '#10b981',
-      startMin: depMin - 90,
-      endMin: depMin,
+      startMin: sunriseMin,
+      endMin: gym === 'BEFORE_OFFICE' ? depMin - 90 : depMin,
     },
     {
       key: 'office',
@@ -130,7 +139,7 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
       desc: 'Arrived back home',
       color: '#0ea5e9',
       startMin: retMin,
-      endMin: retMin + 60,
+      endMin: gym === 'MAGHRIB_TO_ISHA' ? maghribMin - 60 : maghribMin,
     },
     ...(gym === 'MAGHRIB_TO_ISHA' ? [{
       key: 'gym',
@@ -139,37 +148,37 @@ export default function TimetableDashboardCard({ timetable }: { timetable: Timet
       time: 'Maghrib–Isha',
       desc: 'Evening workout between prayers',
       color: '#e11d48',
-      startMin: retMin + 30,
-      endMin: retMin + 120,
+      startMin: maghribMin - 60,
+      endMin: maghribMin,
     }] : []),
     {
       key: 'maghrib',
       icon: <Moon size={16} />,
       label: 'Maghrib–Isha',
-      time: 'Maghrib',
+      time: (getPTFmt('Maghrib') && getPTFmt('Isha')) ? `${getPTFmt('Maghrib')} – ${getPTFmt('Isha')}` : 'Maghrib',
       desc: timetable.maghribToIsha,
       color: '#8b5cf6',
-      startMin: retMin + 60,
-      endMin: retMin + 180,
+      startMin: maghribMin,
+      endMin: ishaMin,
     },
     ...(gym === 'AFTER_ISHA' ? [{
       key: 'gym',
       icon: <Dumbbell size={16} />,
       label: 'Gym',
-      time: 'After Isha',
+      time: getPTFmt('Isha') ? `After Isha (${getPTFmt('Isha')})` : 'After Isha',
       desc: 'Evening workout after Isha prayer',
       color: '#e11d48',
-      startMin: retMin + 180,
-      endMin: retMin + 270,
+      startMin: ishaMin,
+      endMin: ishaMin + 90,
     }] : []),
     {
       key: 'isha',
       icon: <BookOpen size={16} />,
       label: 'Isha–Hifz',
-      time: 'Isha',
+      time: getPTFmt('Isha') ? `${getPTFmt('Isha')} onwards` : 'Isha',
       desc: timetable.ishaToHifz,
       color: '#a855f7',
-      startMin: retMin + 180,
+      startMin: gym === 'AFTER_ISHA' ? ishaMin + 90 : ishaMin,
       endMin: sleepMin,
     },
     {

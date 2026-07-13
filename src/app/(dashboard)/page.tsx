@@ -1,4 +1,5 @@
 import { getTransactions, getTimeTable } from '@/actions';
+import { getAuthenticatedUser } from '@/actions/auth';
 import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCard';
 import Link from 'next/link';
@@ -23,9 +24,25 @@ const ALL_SECTIONS = [
 export default async function Dashboard() {
   const transactions = await getTransactions();
   const timetable = await getTimeTable();
+  const sessionUser = await getAuthenticatedUser();
+  const user = sessionUser ? await prisma.user.findUnique({ where: { id: sessionUser.id } }) : null;
 
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
+
+  let prayerTimes = null;
+  if (user?.latitude && user?.longitude) {
+    try {
+      // method=2 is ISNA, school=0 is Shafi
+      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=2&school=0`, { next: { revalidate: 3600 } });
+      const data = await res.json();
+      if (data && data.data && data.data.timings) {
+        prayerTimes = data.data.timings; // { Fajr: "05:00", Sunrise: "06:30", Dhuhr: "12:00", Asr: "15:00", Sunset: "18:00", Maghrib: "18:00", Isha: "19:30" ... }
+      }
+    } catch (e) {
+      console.error('Failed to fetch prayer times', e);
+    }
+  }
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -179,7 +196,7 @@ export default async function Dashboard() {
 
       {/* TIMETABLE SECTION */}
       <div style={{ marginBottom: '24px' }}>
-        <TimetableDashboardCard timetable={timetable} />
+        <TimetableDashboardCard timetable={timetable} prayerTimes={prayerTimes} />
       </div>
 
       {/* SUMMARY GRIDS */}

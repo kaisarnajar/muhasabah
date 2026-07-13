@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { updateTimeTable } from '@/actions/timetable';
+import { updateTimeTable, updateUserLocation } from '@/actions/timetable';
 import { useToast } from '@/context/ToastContext';
-import { Sun, Briefcase, Home, Dumbbell, BookOpen, Moon, Clock, Sunrise } from 'lucide-react';
+import { Sun, Briefcase, Home, Dumbbell, BookOpen, Moon, Clock, Sunrise, MapPin } from 'lucide-react';
 
 interface TimetableFormProps {
   initialData: {
@@ -16,6 +16,8 @@ interface TimetableFormProps {
     maghribToIsha: string;
     ishaToHifz: string;
     sleepTime: string;
+    latitude?: number | null;
+    longitude?: number | null;
   };
 }
 
@@ -124,7 +126,6 @@ function GymOptionCards({ defaultValue }: { defaultValue: string }) {
                 position: 'relative',
               }}
             >
-              {/* Morning / Evening badge */}
               {opt.badge && (
                 <span style={{
                   position: 'absolute',
@@ -152,7 +153,6 @@ function GymOptionCards({ defaultValue }: { defaultValue: string }) {
                 {opt.desc}
               </div>
 
-              {/* Selected checkmark */}
               {isSelected && (
                 <div style={{ position: 'absolute', bottom: '10px', right: '10px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>✓</span>
@@ -168,6 +168,8 @@ function GymOptionCards({ defaultValue }: { defaultValue: string }) {
 
 export default function TimetableForm({ initialData }: TimetableFormProps) {
   const [loading, setLoading] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+  const [hasLocation, setHasLocation] = useState(!!initialData.latitude);
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -185,6 +187,33 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
     }
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      showToast('Geolocation is not supported by your browser', 'error');
+      return;
+    }
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const res = await updateUserLocation(position.coords.latitude, position.coords.longitude);
+          if (res.success) {
+            setHasLocation(true);
+            showToast(res.success, 'success');
+          }
+        } catch (err: any) {
+          showToast(err.message || 'Failed to update location', 'error');
+        } finally {
+          setLocLoading(false);
+        }
+      },
+      (error) => {
+        setLocLoading(false);
+        showToast('Unable to retrieve your location. Please check browser permissions.', 'error');
+      }
+    );
+  };
+
   const sectionHeader = (icon: React.ReactNode, title: string, subtitle: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
       <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--c-primary-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}>
@@ -198,65 +227,92 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
   );
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-      {/* Daily Timings */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Location for Prayer Times */}
       <div className="card" style={{ padding: '24px' }}>
-        {sectionHeader(<Clock size={18} />, 'Daily Timings', 'Set your key time anchors for the day')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-          <TimeInput name="wakeUpTime" label="Wake Up Time" icon={<Sun size={13} />} defaultValue={initialData.wakeUpTime} />
-          <TimeInput name="officeDeparture" label="Leave for Office" icon={<Briefcase size={13} />} defaultValue={initialData.officeDeparture} />
-          <TimeInput name="officeReturn" label="Return from Office" icon={<Home size={13} />} defaultValue={initialData.officeReturn} />
-          <TimeInput name="sleepTime" label="Sleep Time" icon={<Moon size={13} />} defaultValue={initialData.sleepTime} />
+        {sectionHeader(<MapPin size={18} />, 'Prayer Times Location', 'Set your location to automatically fetch Shafi prayer timings')}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', backgroundColor: 'var(--c-surface-container-low)', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)' }}>
+          <div>
+            <p style={{ margin: '0 0 4px 0', fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+              {hasLocation ? '✅ Location is set' : '❌ Location not set'}
+            </p>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-on-surface-variant)' }}>
+              {hasLocation ? 'We will automatically adjust your timetable slots based on daily prayer times.' : 'We need your location to fetch accurate prayer times.'}
+            </p>
+          </div>
+          <button 
+            type="button" 
+            onClick={handleGetLocation} 
+            disabled={locLoading}
+            className="secondary-btn" 
+            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}
+          >
+            <MapPin size={14} />
+            {locLoading ? 'Detecting...' : hasLocation ? 'Update Location' : 'Set Location'}
+          </button>
         </div>
       </div>
 
-      {/* Routine Activities */}
-      <div className="card" style={{ padding: '24px' }}>
-        {sectionHeader(<BookOpen size={18} />, 'Routine Activities', 'Describe what you do in each time block')}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <TextAreaInput
-            name="tillSunrise"
-            label="What to do till Sunrise"
-            icon={<Sunrise size={13} />}
-            defaultValue={initialData.tillSunrise}
-            placeholder="e.g., Quran recitation, Morning Adhkar, Fajr prayer, Dhikr..."
-          />
-          <TextAreaInput
-            name="sunriseTillOffice"
-            label="What to do from Sunrise till leaving Office"
-            icon={<Sun size={13} />}
-            defaultValue={initialData.sunriseTillOffice}
-            placeholder="e.g., Reading, Quran memorisation, breakfast, getting ready..."
-          />
-          <TextAreaInput
-            name="maghribToIsha"
-            label="What to do from Maghrib to Isha"
-            icon={<BookOpen size={13} />}
-            defaultValue={initialData.maghribToIsha}
-            placeholder="e.g., Quran recitation, family time, review of the day..."
-          />
-          <TextAreaInput
-            name="ishaToHifz"
-            label="What to do from Isha till Quran Hifz Class"
-            icon={<Moon size={13} />}
-            defaultValue={initialData.ishaToHifz}
-            placeholder="e.g., Dinner, revising Quran portions, Hifz class preparation..."
-          />
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Daily Timings */}
+        <div className="card" style={{ padding: '24px' }}>
+          {sectionHeader(<Clock size={18} />, 'Daily Timings', 'Set your key time anchors for the day')}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+            <TimeInput name="wakeUpTime" label="Wake Up Time" icon={<Sun size={13} />} defaultValue={initialData.wakeUpTime} />
+            <TimeInput name="officeDeparture" label="Leave for Office" icon={<Briefcase size={13} />} defaultValue={initialData.officeDeparture} />
+            <TimeInput name="officeReturn" label="Return from Office" icon={<Home size={13} />} defaultValue={initialData.officeReturn} />
+            <TimeInput name="sleepTime" label="Sleep Time" icon={<Moon size={13} />} defaultValue={initialData.sleepTime} />
+          </div>
         </div>
-      </div>
 
-      {/* Gym Preference — single choice from all 4 slots */}
-      <div className="card" style={{ padding: '24px' }}>
-        {sectionHeader(<Dumbbell size={18} />, 'Gym Preference', 'Choose one time slot for your gym session')}
-        <GymOptionCards defaultValue={initialData.gymPreference} />
-      </div>
+        {/* Routine Activities */}
+        <div className="card" style={{ padding: '24px' }}>
+          {sectionHeader(<BookOpen size={18} />, 'Routine Activities', 'Describe what you do in each time block')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <TextAreaInput
+              name="tillSunrise"
+              label="What to do till Sunrise"
+              icon={<Sunrise size={13} />}
+              defaultValue={initialData.tillSunrise}
+              placeholder="e.g., Quran recitation, Morning Adhkar, Fajr prayer, Dhikr..."
+            />
+            <TextAreaInput
+              name="sunriseTillOffice"
+              label="What to do from Sunrise till leaving Office"
+              icon={<Sun size={13} />}
+              defaultValue={initialData.sunriseTillOffice}
+              placeholder="e.g., Reading, Quran memorisation, breakfast, getting ready..."
+            />
+            <TextAreaInput
+              name="maghribToIsha"
+              label="What to do from Maghrib to Isha"
+              icon={<BookOpen size={13} />}
+              defaultValue={initialData.maghribToIsha}
+              placeholder="e.g., Quran recitation, family time, review of the day..."
+            />
+            <TextAreaInput
+              name="ishaToHifz"
+              label="What to do from Isha till Quran Hifz Class"
+              icon={<Moon size={13} />}
+              defaultValue={initialData.ishaToHifz}
+              placeholder="e.g., Dinner, revising Quran portions, Hifz class preparation..."
+            />
+          </div>
+        </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button type="submit" className="primary-btn" disabled={loading} style={{ padding: '13px 36px', fontSize: '14px' }}>
-          {loading ? 'Saving…' : '💾  Save Time Table'}
-        </button>
-      </div>
-    </form>
+        {/* Gym Preference — single choice from all 4 slots */}
+        <div className="card" style={{ padding: '24px' }}>
+          {sectionHeader(<Dumbbell size={18} />, 'Gym Preference', 'Choose one time slot for your gym session')}
+          <GymOptionCards defaultValue={initialData.gymPreference} />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" className="primary-btn" disabled={loading} style={{ padding: '13px 36px', fontSize: '14px' }}>
+            {loading ? 'Saving…' : '💾  Save Time Table'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
+
