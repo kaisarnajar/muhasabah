@@ -72,27 +72,79 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
     endMin: number;
   };
 
-  const slots: Slot[] = [
-    {
+  const morningSlots: Slot[] = [];
+
+  if (fajrMin < wakeMin) {
+    morningSlots.push({
+      key: 'fajr-prayer',
+      icon: <Clock size={16} />,
+      label: 'Fajr Prayer',
+      time: getPTFmt('Fajr') || 'Fajr',
+      desc: 'Praying Fajr at dawn',
+      color: '#3b82f6',
+      startMin: fajrMin,
+      endMin: Math.min(fajrMin + 30, wakeMin),
+    });
+    
+    const wakeEnd = wakeMin < sunriseMin ? sunriseMin : wakeMin + 30;
+    morningSlots.push({
       key: 'wakeup',
       icon: <Sun size={16} />,
       label: 'Wake Up',
       time: formatTime(timetable.wakeUpTime),
-      desc: 'Start of the day — Fajr & Dhikr',
+      desc: 'Wake up and prepare for the day',
+      color: '#f59e0b',
+      startMin: wakeMin,
+      endMin: wakeEnd,
+    });
+    
+    if (wakeMin < sunriseMin) {
+      morningSlots.push({
+        key: 'sunrise',
+        icon: <Sunrise size={16} />,
+        label: 'Till Sunrise',
+        time: getPTFmt('Sunrise') ? `Till Sunrise (${getPTFmt('Sunrise')})` : 'Sunrise Routine',
+        desc: timetable.tillSunrise,
+        color: '#f97316',
+        startMin: Math.max(wakeMin, sunriseMin - 15),
+        endMin: sunriseMin,
+      });
+    }
+  } else {
+    morningSlots.push({
+      key: 'wakeup',
+      icon: <Sun size={16} />,
+      label: 'Wake Up',
+      time: formatTime(timetable.wakeUpTime),
+      desc: 'Wake up and prepare for Fajr',
       color: '#f59e0b',
       startMin: wakeMin,
       endMin: fajrMin,
-    },
-    {
+    });
+    morningSlots.push({
+      key: 'fajr-prayer',
+      icon: <Clock size={16} />,
+      label: 'Fajr Prayer',
+      time: getPTFmt('Fajr') || 'Fajr',
+      desc: 'Praying Fajr and early morning adhkar',
+      color: '#3b82f6',
+      startMin: fajrMin,
+      endMin: Math.min(fajrMin + 30, sunriseMin),
+    });
+    morningSlots.push({
       key: 'sunrise',
       icon: <Sunrise size={16} />,
       label: 'Till Sunrise',
       time: getPTFmt('Sunrise') ? `Till Sunrise (${getPTFmt('Sunrise')})` : 'Sunrise Routine',
       desc: timetable.tillSunrise,
       color: '#f97316',
-      startMin: fajrMin,
+      startMin: Math.min(fajrMin + 30, sunriseMin),
       endMin: sunriseMin,
-    },
+    });
+  }
+
+  const slots: Slot[] = [
+    ...morningSlots,
     ...(gym === 'AFTER_FAJR' ? [{
       key: 'gym',
       icon: <Dumbbell size={16} />,
