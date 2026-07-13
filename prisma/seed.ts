@@ -23,6 +23,7 @@ async function main() {
   await prisma.note.deleteMany();
   await prisma.fitnessLog.deleteMany();
   await prisma.dua.deleteMany();
+  await prisma.relapseLog.deleteMany();
 
   console.log('Seeding massive data...');
 
@@ -448,6 +449,24 @@ async function main() {
     },
   ];
   await prisma.book.createMany({ data: books });
+
+  // --- RELAPSE LOGS ---
+  console.log('Seeding Relapse Logs...');
+  const relapseLogs = [
+    {
+      date: getPastDate(30),
+      notes: 'Had a stressful day at work. Need to identify triggers early.',
+    },
+    {
+      date: getPastDate(20),
+      notes: 'Felt bored late at night. Need to keep phone away from bed.',
+    },
+    {
+      date: getPastDate(5),
+      notes: 'Slipped after being tired. Reflection: sleep early next time.',
+    },
+  ];
+  await prisma.relapseLog.createMany({ data: relapseLogs });
 
   console.log('✅ Seeding completed successfully!');
 }

@@ -197,4 +197,12 @@ model Book {
   createdAt DateTime @default(now()) @db.Timestamptz()
 }
 
+model RelapseLog {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @default(now()) @db.Timestamptz()
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz()
+}
+
+
 

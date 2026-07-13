@@ -9,3 +9,4 @@ export * from './notes';
 export * from './fitness';
 export * from './dua';
 export * from './books';
+export * from './relapse';
