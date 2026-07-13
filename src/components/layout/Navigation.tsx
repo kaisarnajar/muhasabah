@@ -63,6 +63,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">favorite</span>
             <span className="text-body-md">Dua List</span>
           </Link>
+          <Link href="/books" className={`nav-item ${pathname === '/books' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">menu_book</span>
+            <span className="text-body-md">Books</span>
+          </Link>
           <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">target</span>
             <span className="text-body-md">Goals</span>

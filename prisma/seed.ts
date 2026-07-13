@@ -415,6 +415,40 @@ async function main() {
   ];
   await prisma.dua.createMany({ data: duas });
 
+  // --- BOOKS ---
+  console.log('Seeding Books...');
+  const books = [
+    {
+      title: 'Atomic Habits',
+      author: 'James Clear',
+      driveLink: 'https://drive.google.com/file/d/1_T0O-1x5y8U_9a8B8j7y6a/view',
+      notes: 'An easy & proven way to build good habits & break bad ones. Fundamental takeaways:\n1. 1% better every day adds up exponentially.\n2. Focus on systems rather than goals.\n3. Make habits obvious, attractive, easy, and satisfying.',
+      date: getPastDate(2),
+    },
+    {
+      title: 'Deep Work',
+      author: 'Cal Newport',
+      driveLink: 'https://drive.google.com/file/d/1_U0O-2x5y8V_9b8C8k7z6b/view',
+      notes: 'Rules for focused success in a distracted world. Deep work is the ability to focus without distraction on a cognitively demanding task.',
+      date: getPastDate(5),
+    },
+    {
+      title: 'The Prophetic Biography (Ar-Raheeq Al-Makhtum)',
+      author: 'Safiur Rahman Mubarakpuri',
+      driveLink: 'https://drive.google.com/file/d/1_V0O-3x5y8W_9c8D8l7a6c/view',
+      notes: 'A complete authoritative book on the life of Prophet Muhammad (PBUH). Highly detailed and spiritually uplifting.',
+      date: getPastDate(10),
+    },
+    {
+      title: 'Thinking, Fast and Slow',
+      author: 'Daniel Kahneman',
+      driveLink: null,
+      notes: 'Explains the two systems that drive the way we think: System 1 (fast, intuitive, and emotional) and System 2 (slow, more deliberative, and more logical).',
+      date: getPastDate(15),
+    },
+  ];
+  await prisma.book.createMany({ data: books });
+
   console.log('✅ Seeding completed successfully!');
 }
 
