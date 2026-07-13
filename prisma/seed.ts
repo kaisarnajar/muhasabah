@@ -1,4 +1,4 @@
-import { PrismaClient, TransactionType, GoalCategory, GoalPriority, JournalCategory, DebtType, DebtStatus } from '@prisma/client';
+import { PrismaClient, TransactionType, GoalCategory, GoalPriority, JournalCategory, DebtType, DebtStatus, DuaCategory } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -22,6 +22,7 @@ async function main() {
   await prisma.weekendTask.deleteMany();
   await prisma.note.deleteMany();
   await prisma.fitnessLog.deleteMany();
+  await prisma.dua.deleteMany();
 
   console.log('Seeding massive data...');
 
@@ -359,6 +360,60 @@ async function main() {
     });
   }
   await prisma.fitnessLog.createMany({ data: fitnessLogs });
+
+  // --- DUAS ---
+  console.log('Seeding Duas...');
+  const duas = [
+    {
+      title: 'Dua for Knowledge & Understanding',
+      content: 'اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي وَعَلِّمْنِي مَا يَنْفَعُنِي وَزِدْنِي عِلْمًا',
+      translation: 'O Allah, benefit me with what You have taught me, teach me what will benefit me, and increase me in knowledge.',
+      category: DuaCategory.CAREER,
+    },
+    {
+      title: 'Dua for Success & Ease',
+      content: 'اللَّهُمَّ لَا سَهْلَ إِلَّا مَا جَعَلْتَهُ سَهْلًا وَأَنْتَ تَجْعَلُ الْحَزْنَ إِذَا شِئْتَ سَهْلًا',
+      translation: 'O Allah, there is no ease except in what You make easy, and You make the difficult easy if You will.',
+      category: DuaCategory.CAREER,
+    },
+    {
+      title: 'Dua for Parents',
+      content: 'رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا',
+      translation: 'My Lord, have mercy upon them as they brought me up when I was small.',
+      category: DuaCategory.FAMILY,
+    },
+    {
+      title: 'Dua for Family & Offspring',
+      content: 'رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا',
+      translation: 'Our Lord, grant us from among our wives and offspring comfort to our eyes and make us an example for the righteous.',
+      category: DuaCategory.FAMILY,
+    },
+    {
+      title: 'Dua for Guidance & Steadfastness',
+      content: 'يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ',
+      translation: 'O Changer of hearts, keep my heart steadfast on Your religion.',
+      category: DuaCategory.PERSONAL,
+    },
+    {
+      title: 'Dua for Forgiveness (Sayyid al-Istighfar)',
+      content: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ لَكَ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ',
+      translation: 'O Allah, You are my Lord, there is no deity except You. You created me and I am Your servant, and I am faithful to my covenant and my promise to the best of my ability. I seek refuge in You from the evil of what I have done. I acknowledge before You Your favor upon me, and I acknowledge my sin. So forgive me, for indeed, none can forgive sins except You.',
+      category: DuaCategory.PERSONAL,
+    },
+    {
+      title: 'Dua for General Goodness',
+      content: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ',
+      translation: 'Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.',
+      category: DuaCategory.GENERAL,
+    },
+    {
+      title: 'Dua for Protection from Anxiety & Grief',
+      content: 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ وَالْعَجْزِ وَالْكَسَلِ وَالْبُخْلِ وَالْجُبْنِ وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ',
+      translation: 'O Allah, I seek refuge in You from anxiety and sorrow, weakness and laziness, miserliness and cowardice, the burden of debts and from being overpowered by men.',
+      category: DuaCategory.GENERAL,
+    },
+  ];
+  await prisma.dua.createMany({ data: duas });
 
   console.log('✅ Seeding completed successfully!');
 }
