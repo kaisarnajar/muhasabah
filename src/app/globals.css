@@ -758,7 +758,7 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
 }
 
 .quote-arabic {
-  font-family: 'Amiri', serif;
+  font-family: 'Amiri', 'Scheherazade New', serif;
   font-size: 28px;
   line-height: 2.0;
   text-align: center;
