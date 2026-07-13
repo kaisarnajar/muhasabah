@@ -14,33 +14,17 @@ export async function getRelapseLogs() {
   });
 }
 
-export async function addRelapseLog(formData: FormData) {
+export async function addRelapseLog(date: Date, notes: string | null) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
-  const notes = formData.get('notes') as string | null;
-  const dateStr = formData.get('date') as string;
-
-  if (!dateStr) {
-    throw new Error('Date is required');
-  }
-
-  // Use the time provided or current time if only date is passed
-  let dateObj = new Date(dateStr);
-  if (dateStr.length === 10) { 
-    // It's just YYYY-MM-DD
-    const now = new Date();
-    dateObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
-  }
-
   await prisma.relapseLog.create({
     data: {
-      date: dateObj,
+      date: new Date(date),
       notes: notes?.trim() || null,
       userId: user.id,
-    }
+    },
   });
-
   revalidatePath('/relapse');
   revalidatePath('/');
 }
