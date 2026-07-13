@@ -296,6 +296,7 @@ model TimeTable {
   gymPreference         String   @default("NONE") // NONE, AFTER_FAJR, BEFORE_OFFICE, MAGHRIB_TO_ISHA, AFTER_ISHA
   maghribToIsha         String   @default("Spiritual reading, family time")
   ishaToHifz            String   @default("Isha prayer and Quran review")
+  hifzClassTime         String   @default("22:00")
   sleepTime             String   @default("22:30")
   createdAt             DateTime @default(now()) @db.Timestamptz()
   updatedAt             DateTime @updatedAt @db.Timestamptz()

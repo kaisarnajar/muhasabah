@@ -16,6 +16,7 @@ interface TimetableFormProps {
     maghribToIsha: string;
     ishaToHifz: string;
     sleepTime: string;
+    hifzClassTime: string;
     latitude?: number | null;
     longitude?: number | null;
   };
@@ -166,7 +167,7 @@ function GymOptionCards({ defaultValue }: { defaultValue: string }) {
   );
 }
 
-export default function TimetableForm({ initialData }: TimetableFormProps) {
+export default function TimetableForm({ initialData, onSuccess }: TimetableFormProps & { onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
   const [hasLocation, setHasLocation] = useState(!!initialData.latitude);
@@ -178,7 +179,10 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
     const formData = new FormData(e.currentTarget);
     try {
       const res = await updateTimeTable(formData);
-      if (res.success) showToast(res.success, 'success');
+      if (res.success) {
+        showToast(res.success, 'success');
+        if (onSuccess) onSuccess();
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       showToast(message, 'error');
@@ -262,6 +266,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
             <TimeInput name="officeDeparture" label="Leave for Office" icon={<Briefcase size={13} />} defaultValue={initialData.officeDeparture} />
             <TimeInput name="officeReturn" label="Return from Office" icon={<Home size={13} />} defaultValue={initialData.officeReturn} />
             <TimeInput name="sleepTime" label="Sleep Time" icon={<Moon size={13} />} defaultValue={initialData.sleepTime} />
+            <TimeInput name="hifzClassTime" label="Hifz Class Time" icon={<BookOpen size={13} />} defaultValue={initialData.hifzClassTime} />
           </div>
         </div>
 

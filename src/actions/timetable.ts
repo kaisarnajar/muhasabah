@@ -36,6 +36,7 @@ export async function updateTimeTable(formData: FormData) {
   const maghribToIsha = formData.get('maghribToIsha') as string;
   const ishaToHifz = formData.get('ishaToHifz') as string;
   const sleepTime = formData.get('sleepTime') as string;
+  const hifzClassTime = formData.get('hifzClassTime') as string;
 
   await prisma.timeTable.upsert({
     where: { userId: user.id },
@@ -48,7 +49,8 @@ export async function updateTimeTable(formData: FormData) {
       gymPreference,
       maghribToIsha,
       ishaToHifz,
-      sleepTime
+      sleepTime,
+      hifzClassTime
     },
     create: {
       userId: user.id,
@@ -60,7 +62,8 @@ export async function updateTimeTable(formData: FormData) {
       gymPreference,
       maghribToIsha,
       ishaToHifz,
-      sleepTime
+      sleepTime,
+      hifzClassTime
     }
   });
 

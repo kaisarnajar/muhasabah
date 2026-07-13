@@ -1,13 +1,29 @@
 import { getTimeTable } from '@/actions/timetable';
 import { getAuthenticatedUser } from '@/actions/auth';
 import prisma from '@/lib/prisma';
-import TimetableForm from '@/components/timetable/TimetableForm';
+import TimetableSettings from '@/components/timetable/TimetableSettings';
 import { CalendarRange } from 'lucide-react';
 
 export default async function TimetablePage() {
   const timetable = await getTimeTable();
   const sessionUser = await getAuthenticatedUser();
   const user = sessionUser ? await prisma.user.findUnique({ where: { id: sessionUser.id } }) : null;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  let prayerTimes = null;
+  if (user?.latitude && user?.longitude) {
+    try {
+      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=2&school=0`, { next: { revalidate: 3600 } });
+      const data = await res.json();
+      if (data && data.data && data.data.timings) {
+        prayerTimes = data.data.timings;
+      }
+    } catch (e) {
+      console.error('Failed to fetch prayer times', e);
+    }
+  }
 
   const initialData = {
     ...timetable,
@@ -23,7 +39,7 @@ export default async function TimetablePage() {
       </div>
 
       <div className="w-full">
-        <TimetableForm initialData={initialData} />
+        <TimetableSettings initialData={initialData} prayerTimes={prayerTimes} />
       </div>
     </div>
   );

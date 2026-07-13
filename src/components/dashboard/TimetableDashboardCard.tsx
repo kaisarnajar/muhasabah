@@ -13,6 +13,7 @@ interface TimetableData {
   maghribToIsha: string;
   ishaToHifz: string;
   sleepTime: string;
+  hifzClassTime: string;
 }
 
 function formatTime(t: string) {
@@ -49,6 +50,7 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
   const depMin  = timeToMinutes(timetable.officeDeparture);
   const retMin  = timeToMinutes(timetable.officeReturn);
   const sleepMin = timeToMinutes(timetable.sleepTime);
+  const hifzClassMin = timeToMinutes(timetable.hifzClassTime);
 
   // Extract prayer times safely (Aladhan API sometimes returns "05:12 (IST)", so we substring)
   const getPT = (name: string) => prayerTimes?.[name] ? timeToMinutes(prayerTimes[name].substring(0, 5)) : null;
@@ -69,8 +71,6 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
     startMin: number;
     endMin: number;
   };
-
-  const hifzClassMin = 22 * 60; // 10:00 PM
 
   const slots: Slot[] = [
     {
