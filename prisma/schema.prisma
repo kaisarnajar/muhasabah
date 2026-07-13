@@ -239,8 +239,9 @@ model FitnessLog {
   activity  String   // e.g., 'Running', 'Gym', 'Walking', 'Cycling', 'Yoga', 'Swimming', 'Other'
   duration  Int      // Workout duration in minutes
   distance  Decimal? @db.Decimal(5, 2) // Optional distance in kilometers
-  notes     String?  @db.Text
-  date      DateTime @default(now()) @db.Date // Workout date
+  notes       String?  @db.Text
+  muscleGroup String?
+  date        DateTime @default(now()) @db.Date // Workout date
   createdAt DateTime @default(now()) @db.Timestamptz()
 }
 

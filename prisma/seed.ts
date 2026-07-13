@@ -326,14 +326,18 @@ async function main() {
   // --- FITNESS LOGS ---
   console.log('Seeding Fitness Logs...');
   const fitnessLogs = [];
-  const activitiesList = ['Running', 'Gym', 'Walking'];
+  const activitiesList = ['Running', 'Gym'];
+  const musclesList = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body'];
   for (let i = 0; i < 25; i++) {
+    const activity = activitiesList[Math.floor(Math.random() * activitiesList.length)];
+    const isGym = activity === 'Gym';
     fitnessLogs.push({
       userId: uId,
-      activity: activitiesList[Math.floor(Math.random() * activitiesList.length)],
-      duration: 30,
-      distance: 5.0,
-      notes: null,
+      activity,
+      duration: isGym ? 45 + Math.floor(Math.random() * 30) : 20 + Math.floor(Math.random() * 40),
+      distance: isGym ? null : 3 + Math.random() * 7,
+      muscleGroup: isGym ? musclesList[Math.floor(Math.random() * musclesList.length)] : null,
+      notes: isGym ? 'Great pump today, felt strong.' : 'Paced run, felt good.',
       date: getPastDate(Math.floor(Math.random() * 30)),
     });
   }

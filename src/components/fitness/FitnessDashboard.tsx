@@ -13,18 +13,23 @@ function getActivityStyle(activity: string) {
       return { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa', accent: '#f97316' }; // Warm Orange
     case 'Running':
       return { bg: '#fef2f2', text: '#b91c1c', border: '#fecaca', accent: '#ef4444' }; // Red
-    case 'Walking':
-      return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', accent: '#10b981' }; // Emerald
-    case 'Cycling':
-      return { bg: '#eff6ff', text: '#1e40af', border: '#bfdbfe', accent: '#3b82f6' }; // Blue
-    case 'Yoga':
-      return { bg: '#faf5ff', text: '#6b21a8', border: '#e9d5ff', accent: '#8b5cf6' }; // Purple
     case 'Swimming':
       return { bg: '#ecfeff', text: '#0e7490', border: '#c5f2f7', accent: '#06b6d4' }; // Sky
     default:
       return { bg: '#f9fafb', text: '#374151', border: '#e5e7eb', accent: '#64748b' }; // Slate
   }
 }
+
+const MUSCLE_GROUPS = [
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
+  'Full Body',
+  'Other'
+];
 
 export default function FitnessDashboard({ initialLogs }: { initialLogs: FitnessLog[] }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,33 +43,24 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
     setMounted(true);
   }, []);
 
+  // Filter and Custom range states
+  const [filterPeriod, setFilterPeriod] = useState('WEEK');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+
   // Form states
   const [activity, setActivity] = useState('Gym');
   const [duration, setDuration] = useState('30');
   const [distance, setDistance] = useState('');
+  const [muscleGroup, setMuscleGroup] = useState('Chest');
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-
-  // Summary logic (this week - starting Monday)
-  const getMondayOfCurrentWeek = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
-    return monday;
-  };
-
-  const monday = getMondayOfCurrentWeek();
-  const weekLogs = initialLogs.filter(log => new Date(log.date) >= monday);
-  const totalMinutes = weekLogs.reduce((sum, log) => sum + log.duration, 0);
-  const workoutCount = weekLogs.length;
-  const totalDistance = weekLogs.reduce((sum, log) => sum + (log.distance ? Number(log.distance) : 0), 0);
 
   const openModal = () => {
     setActivity('Gym');
     setDuration('30');
     setDistance('');
+    setMuscleGroup('Chest');
     setNotes('');
     setDate(new Date().toISOString().split('T')[0]);
     setIsModalOpen(true);
@@ -94,7 +90,8 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
         durNum,
         distNum,
         notes.trim() || null,
-        new Date(date)
+        new Date(date),
+        activity === 'Gym' ? muscleGroup : null
       );
       setCurrentPage(1); // Reset page on add
       closeModal();
@@ -107,11 +104,78 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
     }
   };
 
-  // Pagination Logic
+  const handleFilterChange = (newPeriod: string) => {
+    setFilterPeriod(newPeriod);
+    setCurrentPage(1);
+  };
+
+  // Filter logs by period
+  const filteredLogs = initialLogs.filter(log => {
+    const d = new Date(log.date);
+    const now = new Date();
+
+    if (filterPeriod === 'ALL') return true;
+    if (filterPeriod === 'TODAY') {
+      return d.toISOString().split('T')[0] === now.toISOString().split('T')[0];
+    }
+    if (filterPeriod === 'WEEK') {
+      const weekStart = new Date(now);
+      weekStart.setHours(0, 0, 0, 0);
+      weekStart.setDate(weekStart.getDate() - (weekStart.getDay() === 0 ? 6 : weekStart.getDay() - 1)); // Monday
+      return d >= weekStart;
+    }
+    if (filterPeriod === 'MONTH') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+    if (filterPeriod === 'YEAR') {
+      return d.getFullYear() === now.getFullYear();
+    }
+    if (filterPeriod === 'CUSTOM') {
+      if (!customStart || !customEnd) return true;
+      const start = new Date(customStart);
+      const end = new Date(customEnd);
+      end.setHours(23, 59, 59, 999);
+      return d >= start && d <= end;
+    }
+    return true;
+  });
+
+  // pagination
   const PAGE_SIZE = 25;
-  const totalPages = Math.ceil(initialLogs.length / PAGE_SIZE) || 1;
+  const totalPages = Math.ceil(filteredLogs.length / PAGE_SIZE) || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
-  const paginatedLogs = initialLogs.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const paginatedLogs = filteredLogs.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+
+  // Gym Stats
+  const gymLogs = filteredLogs.filter(log => log.activity === 'Gym');
+  const gymCount = gymLogs.length;
+
+  const muscleBreakdown: Record<string, number> = {
+    Chest: 0,
+    Back: 0,
+    Legs: 0,
+    Shoulders: 0,
+    Arms: 0,
+    Core: 0,
+    'Full Body': 0,
+    Other: 0
+  };
+  gymLogs.forEach(log => {
+    const focus = log.muscleGroup || 'Other';
+    if (focus in muscleBreakdown) {
+      muscleBreakdown[focus]++;
+    } else {
+      muscleBreakdown['Other']++;
+    }
+  });
+
+  // Running Stats
+  const runningLogs = filteredLogs.filter(log => log.activity === 'Running');
+  const runningMinutes = runningLogs.reduce((sum, log) => sum + log.duration, 0);
+  const runningDistance = runningLogs.reduce((sum, log) => sum + (log.distance ? Number(log.distance) : 0), 0);
+
+  // Total active minutes in period
+  const totalMinutes = filteredLogs.reduce((sum, log) => sum + log.duration, 0);
 
   // Icon mapping helper
   const getActivityIcon = (type: string, color: string) => {
@@ -120,28 +184,65 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
         return <Flame size={18} color={color} />;
       case 'Gym':
         return <Dumbbell size={18} color={color} />;
-      case 'Walking':
-        return <Compass size={18} color={color} />;
-      case 'Cycling':
-        return <TrendingUp size={18} color={color} />;
-      case 'Yoga':
+      case 'Swimming':
         return <Activity size={18} color={color} />;
       default:
         return <Sparkles size={18} color={color} />;
     }
   };
 
+  const filterTabs = [
+    { id: 'TODAY', label: 'Today' },
+    { id: 'WEEK', label: 'This Week' },
+    { id: 'MONTH', label: 'This Month' },
+    { id: 'YEAR', label: 'This Year' },
+    { id: 'ALL', label: 'All Time' },
+    { id: 'CUSTOM', label: 'Custom Range' },
+  ];
+
   return (
     <div>
+      {/* FILTER TABS */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+        {filterTabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => handleFilterChange(tab.id)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '24px',
+              fontWeight: 600,
+              fontSize: '13px',
+              backgroundColor: filterPeriod === tab.id ? 'var(--c-primary)' : 'var(--c-surface-container-high)',
+              color: filterPeriod === tab.id ? 'var(--c-on-primary)' : 'var(--c-on-surface-variant)',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Custom Range date inputs */}
+      {filterPeriod === 'CUSTOM' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <input type="date" value={customStart} onChange={(e) => { setCustomStart(e.target.value); setCurrentPage(1); }} className="search-input" style={{ borderRadius: '10px' }} />
+          <span className="text-on-surface-variant" style={{ fontWeight: 600 }}>to</span>
+          <input type="date" value={customEnd} onChange={(e) => { setCustomEnd(e.target.value); setCurrentPage(1); }} className="search-input" style={{ borderRadius: '10px' }} />
+        </div>
+      )}
+
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '36px' }}>
-        {/* Active Minutes Card */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '36px' }}>
+        {/* Gym Workouts Summary Card */}
         <div 
           className="card" 
           style={{ 
             display: 'flex', 
-            alignItems: 'center', 
-            gap: '20px', 
+            flexDirection: 'column',
+            gap: '16px', 
             padding: '24px',
             border: '1.5px solid var(--c-outline-variant)',
             borderRadius: '20px',
@@ -149,7 +250,106 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
             transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.02)';
+            e.currentTarget.style.transform = 'scale(1.01)';
+            e.currentTarget.style.borderColor = 'rgba(249,115,22,0.4)';
+            e.currentTarget.style.boxShadow = '0 10px 30px rgba(249,115,22,0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ padding: '12px', backgroundColor: 'rgba(249,115,22,0.1)', color: '#f97316', borderRadius: '16px', display: 'flex' }}>
+              <Dumbbell size={24} />
+            </div>
+            <div>
+              <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Gym Sessions</span>
+              <h3 className="text-display-sm" style={{ margin: '2px 0 0 0', fontWeight: 800, color: '#f97316', fontSize: '24px' }}>{gymCount} <span style={{ fontSize: '13px', fontWeight: 600 }}>workouts done</span></h3>
+            </div>
+          </div>
+
+          {/* Muscle breakdown badges */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px' }}>
+            {Object.entries(muscleBreakdown).map(([focus, count]) => {
+              if (count === 0) return null;
+              return (
+                <span key={focus} style={{ 
+                  fontSize: '10px', 
+                  fontWeight: 700, 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  backgroundColor: 'rgba(249,115,22,0.06)', 
+                  color: '#ea580c', 
+                  border: '1px solid rgba(249,115,22,0.12)' 
+                }}>
+                  💪 {focus}: {count}
+                </span>
+              );
+            })}
+            {gymCount === 0 && (
+              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontStyle: 'italic' }}>No muscle focus logged</span>
+            )}
+          </div>
+        </div>
+
+        {/* Running Summary Card */}
+        <div 
+          className="card" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '16px', 
+            padding: '24px',
+            border: '1.5px solid var(--c-outline-variant)',
+            borderRadius: '20px',
+            backgroundColor: 'var(--c-surface-container-low)',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.01)';
+            e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)';
+            e.currentTarget.style.boxShadow = '0 10px 30px rgba(239,68,68,0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ padding: '12px', backgroundColor: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: '16px', display: 'flex' }}>
+              <Flame size={24} />
+            </div>
+            <div>
+              <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Running Stats</span>
+              <h3 className="text-display-sm" style={{ margin: '2px 0 0 0', fontWeight: 800, color: '#ef4444', fontSize: '24px' }}>
+                {runningDistance.toFixed(2)} <span style={{ fontSize: '13px', fontWeight: 600 }}>km</span>
+              </h3>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', color: 'var(--c-on-surface-variant)', fontSize: '11px', fontWeight: 700 }}>
+            <span>⏱️ Total Time: {runningMinutes} mins</span>
+          </div>
+        </div>
+
+        {/* Total Active Minutes Card */}
+        <div 
+          className="card" 
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '16px', 
+            padding: '24px',
+            border: '1.5px solid var(--c-outline-variant)',
+            borderRadius: '20px',
+            backgroundColor: 'var(--c-surface-container-low)',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.01)';
             e.currentTarget.style.borderColor = 'rgba(191,145,41,0.4)';
             e.currentTarget.style.boxShadow = '0 10px 30px rgba(191,145,41,0.08)';
           }}
@@ -159,78 +359,20 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          <div style={{ padding: '16px', backgroundColor: 'rgba(191,145,41,0.1)', color: 'var(--c-primary)', borderRadius: '16px', display: 'flex' }}>
-            <Clock size={28} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ padding: '12px', backgroundColor: 'rgba(191,145,41,0.1)', color: 'var(--c-primary)', borderRadius: '16px', display: 'flex' }}>
+              <Clock size={24} />
+            </div>
+            <div>
+              <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Active Minutes</span>
+              <h3 className="text-display-sm" style={{ margin: '2px 0 0 0', fontWeight: 800, color: 'var(--c-primary)', fontSize: '24px' }}>
+                {totalMinutes} <span style={{ fontSize: '13px', fontWeight: 600 }}>mins</span>
+              </h3>
+            </div>
           </div>
-          <div>
-            <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Active Minutes</span>
-            <h3 className="text-display-sm" style={{ margin: '4px 0 0 0', fontWeight: 800, color: 'var(--c-primary)', fontSize: '26px' }}>{totalMinutes} <span style={{ fontSize: '14px', fontWeight: 600 }}>mins</span></h3>
-          </div>
-        </div>
 
-        {/* Workouts Completed Card */}
-        <div 
-          className="card" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '20px', 
-            padding: '24px',
-            border: '1.5px solid var(--c-outline-variant)',
-            borderRadius: '20px',
-            backgroundColor: 'var(--c-surface-container-low)',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.02)';
-            e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)';
-            e.currentTarget.style.boxShadow = '0 10px 30px rgba(16,185,129,0.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
-          <div style={{ padding: '16px', backgroundColor: 'rgba(16,185,129,0.1)', color: '#10b981', borderRadius: '16px', display: 'flex' }}>
-            <Dumbbell size={28} />
-          </div>
-          <div>
-            <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Workouts</span>
-            <h3 className="text-display-sm" style={{ margin: '4px 0 0 0', fontWeight: 800, color: '#10b981', fontSize: '26px' }}>{workoutCount} <span style={{ fontSize: '14px', fontWeight: 600 }}>this week</span></h3>
-          </div>
-        </div>
-
-        {/* Distance Card */}
-        <div 
-          className="card" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '20px', 
-            padding: '24px',
-            border: '1.5px solid var(--c-outline-variant)',
-            borderRadius: '20px',
-            backgroundColor: 'var(--c-surface-container-low)',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.02)';
-            e.currentTarget.style.borderColor = 'rgba(59,130,246,0.4)';
-            e.currentTarget.style.boxShadow = '0 10px 30px rgba(59,130,246,0.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
-        >
-          <div style={{ padding: '16px', backgroundColor: 'rgba(59,130,246,0.1)', color: '#3b82f6', borderRadius: '16px', display: 'flex' }}>
-            <Compass size={28} />
-          </div>
-          <div>
-            <span className="text-label-md text-on-surface-variant" style={{ fontWeight: 600 }}>Total Distance</span>
-            <h3 className="text-display-sm" style={{ margin: '4px 0 0 0', fontWeight: 800, color: '#3b82f6', fontSize: '26px' }}>{totalDistance.toFixed(2)} <span style={{ fontSize: '14px', fontWeight: 600 }}>km</span></h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', color: 'var(--c-on-surface-variant)', fontSize: '11px', fontWeight: 600, fontStyle: 'italic' }}>
+            <span>Across all activities logged in this period</span>
           </div>
         </div>
       </div>
@@ -305,6 +447,25 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
                 </span>
               </div>
 
+              {/* Gym Muscle Focus detail row */}
+              {log.activity === 'Gym' && log.muscleGroup && (
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  fontSize: '12px', 
+                  fontWeight: 700, 
+                  backgroundColor: 'rgba(249,115,22,0.06)', 
+                  color: '#ea580c', 
+                  padding: '6px 12px', 
+                  borderRadius: '8px',
+                  width: 'fit-content',
+                  border: '1px solid rgba(249,115,22,0.1)'
+                }}>
+                  💪 Focus: {log.muscleGroup}
+                </div>
+              )}
+
               {/* Distance Detail Row */}
               {distanceVal !== null && (
                 <div style={{ 
@@ -365,9 +526,9 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
           );
         })}
 
-        {initialLogs.length === 0 && (
+        {filteredLogs.length === 0 && (
           <div className="card" style={{ padding: '48px', textAlign: 'center', gridColumn: '1 / -1', border: '1px dashed var(--c-outline)', backgroundColor: 'var(--c-surface-container-low)' }}>
-            <p className="text-on-surface-variant" style={{ margin: 0, fontStyle: 'italic', fontWeight: 600 }}>No workouts logged yet. Log your first workout to get started!</p>
+            <p className="text-on-surface-variant" style={{ margin: 0, fontStyle: 'italic', fontWeight: 600 }}>No workouts logged for this time period.</p>
           </div>
         )}
       </div>
@@ -424,13 +585,27 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
                 >
                   <option value="Gym">Gym / Workout</option>
                   <option value="Running">Running</option>
-                  <option value="Walking">Walking</option>
-                  <option value="Cycling">Cycling</option>
-                  <option value="Yoga">Yoga</option>
                   <option value="Swimming">Swimming</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              {activity === 'Gym' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label className="text-label-md" style={{ fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Workout Focus (Muscle Group)</label>
+                  <select 
+                    value={muscleGroup}
+                    onChange={(e) => setMuscleGroup(e.target.value)}
+                    className="search-input"
+                    style={{ width: '100%', borderRadius: '10px', fontWeight: 600, fontSize: '14px', padding: '10px 14px', backgroundColor: 'var(--c-surface-container-high)', border: '1px solid var(--c-outline-variant)' }}
+                    required
+                  >
+                    {MUSCLE_GROUPS.map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

@@ -22,7 +22,8 @@ export async function addFitnessLog(
   duration: number,
   distance: number | null,
   notes: string | null,
-  date: Date
+  date: Date,
+  muscleGroup: string | null = null
 ) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
@@ -36,6 +37,7 @@ export async function addFitnessLog(
       duration,
       distance,
       notes,
+      muscleGroup,
       date,
       userId: user.id,
     },
