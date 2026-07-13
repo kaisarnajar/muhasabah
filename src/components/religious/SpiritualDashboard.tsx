@@ -152,12 +152,13 @@ export default function SpiritualDashboard({
   const [statsCustomEnd, setStatsCustomEnd] = useState<string>('');
   const [activeStatsDetail, setActiveStatsDetail] = useState<{ type: 'prayer' | 'quran' | 'deeds'; title: string; prayerName?: string } | null>(null);
 
-  const requiredCompleted = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
-  const requiredTotal = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name)).length;
-  const optionalCompleted = initialTodayData.habits.filter(h => OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
+  // Register Filter States
+  const [registerFilter, setRegisterFilter] = useState<'day' | 'week' | 'month' | 'year' | 'all' | 'custom'>('all');
+  const [registerCustomStart, setRegisterCustomStart] = useState<string>('');
+  const [registerCustomEnd, setRegisterCustomEnd] = useState<string>('');
 
-  const completedCount = requiredCompleted + optionalCompleted;
-  const totalCount = requiredTotal + optionalCompleted;
+  const completedCount = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
+  const totalCount = initialTodayData.habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name)).length;
 
   const handleToggle = async (habitId: number, currentCompleted: boolean) => {
     setTogglingId(habitId);
@@ -204,12 +205,72 @@ export default function SpiritualDashboard({
     }
   };
 
+  // Filtered History for Ibadah Register
+  const filteredHistory = initialHistory.filter(record => {
+    const recDate = new Date(record.date);
+    const today = new Date();
+    
+    let startLimit: Date | null = null;
+    let endLimit: Date | null = null;
+
+    if (registerFilter === 'day') {
+      const start = new Date(today);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      const end = new Date(today);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (registerFilter === 'week') {
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Monday
+      const monday = new Date(today.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+      startLimit = monday;
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      endLimit = sunday;
+    } else if (registerFilter === 'month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (registerFilter === 'year') {
+      const start = new Date(today.getFullYear(), 0, 1);
+      start.setHours(0, 0, 0, 0);
+      startLimit = start;
+      
+      const end = new Date(today.getFullYear(), 11, 31);
+      end.setHours(23, 59, 59, 999);
+      endLimit = end;
+    } else if (registerFilter === 'custom') {
+      if (registerCustomStart) {
+        const start = new Date(registerCustomStart);
+        start.setHours(0, 0, 0, 0);
+        startLimit = start;
+      }
+      if (registerCustomEnd) {
+        const end = new Date(registerCustomEnd);
+        end.setHours(23, 59, 59, 999);
+        endLimit = end;
+      }
+    }
+
+    if (startLimit && recDate < startLimit) return false;
+    if (endLimit && recDate > endLimit) return false;
+    return true;
+  });
+
   // Pagination Logic
   const PAGE_SIZE = 20;
-  const totalPages = Math.ceil(initialHistory.length / PAGE_SIZE) || 1;
+  const totalPages = Math.ceil(filteredHistory.length / PAGE_SIZE) || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
-  const paginatedHistory = initialHistory.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
-  const selectedRecord = selectedHistoryIndex !== null ? initialHistory[selectedHistoryIndex] : null;
+  const paginatedHistory = filteredHistory.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+  const selectedRecord = selectedHistoryIndex !== null ? filteredHistory[selectedHistoryIndex] : null;
 
   // Helper to calculate statistics based on active filters
   const getFilteredPrayerStats = () => {
@@ -1065,8 +1126,71 @@ export default function SpiritualDashboard({
           <p className="text-on-surface-variant" style={{ margin: 0 }}>No ibadah records saved yet. Start tracking today&apos;s worship to build your register.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className="spiritual-history-grid">
-              {paginatedHistory.map((record, index) => {
+            {/* Filter Tabs */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+              {[
+                { id: 'day', label: 'Today' },
+                { id: 'week', label: 'This Week' },
+                { id: 'month', label: 'This Month' },
+                { id: 'year', label: 'This Year' },
+                { id: 'all', label: 'All Time' },
+                { id: 'custom', label: 'Custom Range' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setRegisterFilter(tab.id as any);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    backgroundColor: registerFilter === tab.id ? 'var(--c-primary)' : 'var(--c-surface-container-high)',
+                    color: registerFilter === tab.id ? 'var(--c-on-primary)' : 'var(--c-on-surface-variant)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Range Inputs */}
+            {registerFilter === 'custom' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="date"
+                  value={registerCustomStart}
+                  onChange={(e) => {
+                    setRegisterCustomStart(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                  style={{ borderRadius: '8px' }}
+                />
+                <span className="text-on-surface-variant" style={{ fontWeight: 600 }}>to</span>
+                <input
+                  type="date"
+                  value={registerCustomEnd}
+                  onChange={(e) => {
+                    setRegisterCustomEnd(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                  style={{ borderRadius: '8px' }}
+                />
+              </div>
+            )}
+
+            {filteredHistory.length === 0 ? (
+              <p className="text-on-surface-variant" style={{ margin: '20px 0', textAlign: 'center' }}>No records found for this filter.</p>
+            ) : (
+              <div className="spiritual-history-grid">
+                {paginatedHistory.map((record, index) => {
                 const globalIndex = (activePage - 1) * PAGE_SIZE + index;
                 const recordDate = new Date(record.date);
                 const dateStr = recordDate.toISOString().split('T')[0];
@@ -1177,6 +1301,7 @@ export default function SpiritualDashboard({
                 );
               })}
             </div>
+            )}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (

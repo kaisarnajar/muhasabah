@@ -220,13 +220,12 @@ export async function getSpiritualHistory() {
       const habits = mergeHistoryHabits(entry.habits, allHabits);
       const requiredCompleted = habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
       const requiredTotal = habits.filter(h => !OPTIONAL_HABIT_NAMES.has(h.name)).length;
-      const optionalCompleted = habits.filter(h => OPTIONAL_HABIT_NAMES.has(h.name) && h.isCompleted).length;
 
       return {
         ...entry,
         habits,
-        completedCount: requiredCompleted + optionalCompleted,
-        totalCount: requiredTotal + optionalCompleted,
+        completedCount: requiredCompleted,
+        totalCount: requiredTotal,
       };
     })
     .sort((a, b) => b.date.getTime() - a.date.getTime());
