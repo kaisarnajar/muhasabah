@@ -671,6 +671,18 @@ button { background: none; border: none; cursor: pointer; font-family: inherit; 
   }
 }
 
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+@media (min-width: 900px) {
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Umar RA Quote Card Styles */
 .quote-card {
   position: relative;

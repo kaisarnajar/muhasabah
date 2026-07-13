@@ -154,7 +154,7 @@ export default async function Dashboard() {
       </div>
 
       {/* SUMMARY GRIDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+      <div className="dashboard-summary-grid">
         
         {/* SPENDING SUMMARY */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
