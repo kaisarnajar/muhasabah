@@ -22,6 +22,7 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [viewingDoc, setViewingDoc] = useState<Document | null>(null);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -225,6 +226,7 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
               <div 
                 key={doc.id} 
                 className="card"
+                onClick={() => setViewingDoc(doc)}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -235,7 +237,8 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
                   backgroundColor: 'var(--c-surface-container-low)',
                   transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                   position: 'relative',
-                  boxShadow: 'var(--shadow-sm)'
+                  boxShadow: 'var(--shadow-sm)',
+                  cursor: 'pointer',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-4px)';
@@ -289,6 +292,7 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
                       href={doc.link} 
                       target="_blank" 
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="primary-btn"
                       style={{
                         padding: '6px 12px',
@@ -304,7 +308,8 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
                     </a>
 
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedDoc(doc);
                         setTitle(doc.title);
                         setLink(doc.link);
@@ -334,7 +339,7 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
                     </button>
 
                     <button
-                      onClick={() => handleDelete(doc.id)}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(doc.id); }}
                       style={{
                         padding: '6px',
                         backgroundColor: 'transparent',
@@ -386,6 +391,83 @@ export default function DocumentsDashboard({ initialDocuments }: { initialDocume
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* Document Viewer */}
+      {viewingDoc && (
+        <div
+          role="presentation"
+          onClick={() => setViewingDoc(null)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(6px)' }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="doc-viewer-title"
+            onClick={(e) => e.stopPropagation()}
+            className="card"
+            style={{ width: '100%', maxWidth: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '16px', padding: '28px', position: 'relative', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--c-outline-variant)' }}
+          >
+            <button
+              type="button"
+              onClick={() => setViewingDoc(null)}
+              aria-label="Close document viewer"
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            {/* Header */}
+            <div style={{ paddingRight: '32px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(191,145,41,0.1)', color: 'var(--c-primary)', borderRadius: '12px', display: 'flex', flexShrink: 0 }}>
+                <FileText size={22} />
+              </div>
+              <div>
+                <h3 id="doc-viewer-title" className="text-headline-sm" style={{ margin: 0, fontWeight: 700, wordBreak: 'break-word', lineHeight: 1.3 }}>
+                  {viewingDoc.title}
+                </h3>
+                <span className="text-label-sm text-on-surface-variant" style={{ display: 'block', marginTop: '6px' }}>
+                  Saved: {new Date(viewingDoc.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid var(--c-outline-variant)' }} />
+
+            {/* Notes */}
+            {viewingDoc.notes ? (
+              <div style={{ overflowY: 'auto' }}>
+                <p className="text-label-md" style={{ margin: '0 0 8px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes / Context</p>
+                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.65, wordBreak: 'break-word', color: 'var(--c-on-surface)' }}>
+                  {viewingDoc.notes}
+                </p>
+              </div>
+            ) : (
+              <p className="text-body-md text-on-surface-variant" style={{ margin: 0, fontStyle: 'italic' }}>No notes added for this document.</p>
+            )}
+
+            {/* Open Link */}
+            <div style={{ borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setViewingDoc(null)}
+                style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: 'transparent', color: 'var(--c-on-surface-variant)', border: '1px solid var(--c-outline-variant)', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <a
+                href={viewingDoc.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="primary-btn"
+                style={{ padding: '10px 20px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+              >
+                <ExternalLink size={15} /> Open Document
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
