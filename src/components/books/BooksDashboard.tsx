@@ -215,96 +215,122 @@ export default function BooksDashboard({ initialBooks }: { initialBooks: Book[] 
           <p className="text-on-surface-variant text-body-md" style={{ textAlign: 'center', padding: '40px', gridColumn: '1 / -1' }}>No books found for this period. Click &quot;Add Book&quot; to begin building your library.</p>
         ) : (
           paginatedBooks.map(book => {
+            const dateStr = new Date(book.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
             return (
-              <div 
-                key={book.id} 
+              <div
+                key={book.id}
                 className="card"
                 onClick={() => setSelectedBook(book)}
-                style={{ 
-                  padding: '18px', 
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  padding: '24px',
+                  borderRadius: '16px',
+                  border: '1.5px solid var(--c-outline-variant)',
+                  backgroundColor: 'var(--c-surface-container-low)',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  position: 'relative',
+                  boxShadow: 'var(--shadow-sm)',
                   cursor: 'pointer',
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: '12px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--c-outline-variant)',
-                  justifyContent: 'space-between',
-                  minHeight: '160px',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.borderColor = 'var(--c-primary)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(191,145,41,0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span 
-                      style={{ 
-                        fontSize: '10px', 
-                        fontWeight: 700, 
-                        backgroundColor: 'rgba(195, 150, 38, 0.12)', 
-                        color: 'var(--c-primary)', 
-                        padding: '2px 8px', 
-                        borderRadius: '12px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
-                      }}
-                    >
-                      Book Entry
-                    </span>
+                {/* Header: Title and Icon */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ padding: '10px', backgroundColor: 'rgba(191,145,41,0.1)', color: 'var(--c-primary)', borderRadius: '12px', display: 'flex', flexShrink: 0 }}>
+                    <BookOpen size={20} />
                   </div>
-                  
-                  <h3 
-                    className="text-title-md" 
-                    style={{ 
-                      margin: 0, 
-                      fontWeight: 700, 
-                      overflow: 'hidden', 
-                      textOverflow: 'ellipsis', 
-                      display: '-webkit-box', 
-                      WebkitLineClamp: 1, 
-                      WebkitBoxOrient: 'vertical',
-                      color: 'var(--c-on-surface)' 
-                    }}
-                  >
-                    {book.title}
-                  </h3>
-
-                  {book.author && (
-                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
-                      by {book.author}
-                    </p>
-                  )}
-
-                  {book.notes && (
-                    <p 
-                      className="text-body-md"
-                      style={{ 
-                        whiteSpace: 'pre-wrap', 
-                        margin: '4px 0 0 0',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        lineHeight: 1.5,
-                        color: 'var(--c-on-surface-variant)'
-                      }}
-                    >
-                      {book.notes}
-                    </p>
-                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 className="text-title-md" style={{ margin: 0, fontWeight: 700, color: 'var(--c-on-surface)', wordBreak: 'break-word', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+                      {book.title}
+                    </h4>
+                    {book.author && (
+                      <p style={{ margin: '4px 0 0 0', fontSize: '12px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
+                        by {book.author}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                  <span className="text-label-sm text-on-surface-variant">
-                    {new Date(book.date).toLocaleDateString()}
+                {/* Notes preview */}
+                {book.notes && (
+                  <p style={{
+                    margin: 0,
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--c-surface-container-high)',
+                    fontSize: '13px',
+                    color: 'var(--c-on-surface-variant)',
+                    lineHeight: 1.5,
+                    fontStyle: 'italic',
+                    borderLeft: '4px solid var(--c-primary)',
+                    wordBreak: 'break-word',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                  }}>
+                    &quot;{book.notes}&quot;
+                  </p>
+                )}
+
+                {/* Footer and Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: 'auto' }}>
+                  <span className="text-body-sm text-on-surface-variant" style={{ fontWeight: 600 }}>
+                    Saved: {dateStr}
                   </span>
-                  {book.driveLink && (
-                    <span 
-                      onClick={(e) => { e.stopPropagation(); window.open(book.driveLink!, '_blank'); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--c-primary)', fontWeight: 700 }}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {book.driveLink && (
+                      <a
+                        href={book.driveLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="primary-btn"
+                        style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', borderRadius: '8px', boxShadow: 'none' }}
+                      >
+                        <ExternalLink size={13} /> Link
+                      </a>
+                    )}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedBook(book);
+                        setTitle(book.title);
+                        setAuthor(book.author || '');
+                        setDriveLink(book.driveLink || '');
+                        setNotes(book.notes || '');
+                        setIsEditOpen(true);
+                      }}
+                      style={{ padding: '6px', backgroundColor: 'transparent', border: '1px solid var(--c-outline-variant)', borderRadius: '8px', color: 'var(--c-on-surface-variant)', cursor: 'pointer', display: 'flex', transition: 'all 0.2s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)'; e.currentTarget.style.color = 'var(--c-primary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--c-on-surface-variant)'; }}
                     >
-                      <ExternalLink size={12} /> Drive
-                    </span>
-                  )}
+                      <Edit size={14} />
+                    </button>
+
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(book.id); }}
+                      style={{ padding: '6px', backgroundColor: 'transparent', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', display: 'flex', transition: 'all 0.2s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.06)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -409,94 +435,115 @@ export default function BooksDashboard({ initialBooks }: { initialBooks: Book[] 
       )}
 
       {/* BOOK DETAILS MODAL */}
-      {selectedBook && mounted && createPortal(
+      {selectedBook && !isEditOpen && mounted && createPortal(
         <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(4px)' }}
+          role="presentation"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(6px)' }}
           onClick={() => setSelectedBook(null)}
         >
-          <div className="card" style={{ width: '100%', maxWidth: '550px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span 
-                  style={{ 
-                    alignSelf: 'flex-start',
-                    fontSize: '10px', 
-                    fontWeight: 700, 
-                    backgroundColor: 'rgba(195, 150, 38, 0.12)', 
-                    color: 'var(--c-primary)', 
-                    padding: '2px 8px', 
-                    borderRadius: '12px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}
-                >
-                  Book Details
-                </span>
-                <h3 className="text-headline-sm" style={{ margin: '4px 0 0 0', fontWeight: 700 }}>{selectedBook.title}</h3>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="book-viewer-title"
+            className="card"
+            style={{ width: '100%', maxWidth: '600px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '16px', padding: '28px', position: 'relative', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--c-outline-variant)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedBook(null)}
+              aria-label="Close book viewer"
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            {/* Header */}
+            <div style={{ paddingRight: '32px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+              <div style={{ padding: '10px', backgroundColor: 'rgba(191,145,41,0.1)', color: 'var(--c-primary)', borderRadius: '12px', display: 'flex', flexShrink: 0 }}>
+                <BookOpen size={22} />
+              </div>
+              <div>
+                <h3 id="book-viewer-title" className="text-headline-sm" style={{ margin: 0, fontWeight: 700, wordBreak: 'break-word', lineHeight: 1.3 }}>
+                  {selectedBook.title}
+                </h3>
                 {selectedBook.author && (
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
                     by {selectedBook.author}
                   </p>
                 )}
-              </div>
-              <button onClick={() => setSelectedBook(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}><X size={20} /></button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>ADDED ON</span>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-on-surface)' }}>
-                  {new Date(selectedBook.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                <span className="text-label-sm text-on-surface-variant" style={{ display: 'block', marginTop: '6px' }}>
+                  Saved: {new Date(selectedBook.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
               </div>
             </div>
 
-            {selectedBook.notes && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes & reflections</span>
-                <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)' }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--c-on-surface)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {selectedBook.notes}
-                  </p>
-                </div>
+            {/* Divider */}
+            <div style={{ borderTop: '1px solid var(--c-outline-variant)' }} />
+
+            {/* Notes */}
+            {selectedBook.notes ? (
+              <div style={{ overflowY: 'auto' }}>
+                <p className="text-label-md" style={{ margin: '0 0 8px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes &amp; Reflections</p>
+                <p className="text-body-md" style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.65, wordBreak: 'break-word', color: 'var(--c-on-surface)' }}>
+                  {selectedBook.notes}
+                </p>
               </div>
+            ) : (
+              <p className="text-body-md text-on-surface-variant" style={{ margin: 0, fontStyle: 'italic' }}>No notes added for this book.</p>
             )}
 
-            {selectedBook.driveLink && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Google drive reference</span>
+            {/* Footer */}
+            <div style={{ borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => window.open(selectedBook.driveLink!, '_blank')}
-                  className="primary-btn"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 20px', borderRadius: '8px', width: '100%' }}
+                  type="button"
+                  onClick={() => {
+                    setTitle(selectedBook.title);
+                    setAuthor(selectedBook.author || '');
+                    setDriveLink(selectedBook.driveLink || '');
+                    setNotes(selectedBook.notes || '');
+                    setIsEditOpen(true);
+                  }}
+                  style={{ padding: '8px', backgroundColor: 'transparent', border: '1px solid var(--c-outline-variant)', borderRadius: '8px', color: 'var(--c-on-surface-variant)', cursor: 'pointer', display: 'flex', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)'; e.currentTarget.style.color = 'var(--c-primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--c-on-surface-variant)'; }}
+                  title="Edit book"
                 >
-                  <ExternalLink size={16} /> Open in Google Drive
+                  <Edit size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(selectedBook.id)}
+                  style={{ padding: '8px', backgroundColor: 'transparent', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', cursor: 'pointer', display: 'flex', transition: 'all 0.2s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.06)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                  title="Delete book"
+                >
+                  <Trash2 size={16} />
                 </button>
               </div>
-            )}
 
-            {/* Actions buttons */}
-            <div style={{ display: 'flex', gap: '10px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '20px', marginTop: '10px' }}>
-              <button
-                onClick={() => {
-                  setTitle(selectedBook.title);
-                  setAuthor(selectedBook.author || '');
-                  setDriveLink(selectedBook.driveLink || '');
-                  setNotes(selectedBook.notes || '');
-                  setIsEditOpen(true);
-                }}
-                className="primary-btn"
-                style={{ flex: 1, padding: '10px 16px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, boxShadow: 'none' }}
-              >
-                <Edit size={16} /> Edit
-              </button>
-              <button
-                onClick={() => handleDelete(selectedBook.id)}
-                className="primary-btn"
-                style={{ flex: 1, padding: '10px 16px', borderRadius: '8px', backgroundColor: 'rgba(220, 53, 69, 0.1)', color: '#dc3545', border: '1px solid rgba(220, 53, 69, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, boxShadow: 'none' }}
-              >
-                <Trash2 size={16} /> Delete
-              </button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedBook(null)}
+                  style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: 'transparent', color: 'var(--c-on-surface-variant)', border: '1px solid var(--c-outline-variant)', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+                {selectedBook.driveLink && (
+                  <a
+                    href={selectedBook.driveLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="primary-btn"
+                    style={{ padding: '10px 20px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
+                  >
+                    <ExternalLink size={15} /> Open Book
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>,
