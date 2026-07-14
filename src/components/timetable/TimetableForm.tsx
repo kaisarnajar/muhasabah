@@ -138,7 +138,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
   const [hasLocation, setHasLocation] = useState(!!initialData.latitude);
   const [locationName, setLocationName] = useState<string | null>(initialData.locationName || null);
   
-  const [isTimingsOpen, setIsTimingsOpen] = useState(false);
+  const [editingTiming, setEditingTiming] = useState<{ key: string; label: string; icon: React.ReactNode; value: string } | null>(null);
   const [timingsLoading, setTimingsLoading] = useState(false);
   
   const [activitiesLoading, setActivitiesLoading] = useState(false);
@@ -204,7 +204,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
       const res = await updateTimeTable(formData);
       if (res.success) {
         showToast('Daily timings updated successfully.', 'success');
-        setIsTimingsOpen(false);
+        setEditingTiming(null);
         router.refresh();
       }
     } catch (err: unknown) {
@@ -331,34 +331,25 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
         {sectionHeader(
           <Clock size={18} />, 
           'Daily Timings', 
-          'Key time anchors for the day (Click Edit to update)',
-          <button
-            type="button"
-            onClick={() => setIsTimingsOpen(true)}
-            className="secondary-btn"
-            style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
-          >
-            <Edit3 size={14} />
-            Edit Timings
-          </button>
+          'Key time anchors for the day (Click the pencil to edit one)'
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
           {[
-            { label: 'Wake Up Time', val: initialData.wakeUpTime, icon: <Sun size={15} color="#f59e0b" /> },
-            { label: 'Leave for Office', val: initialData.officeDeparture, icon: <Briefcase size={15} color="#6366f1" /> },
-            { label: 'Return from Office', val: initialData.officeReturn, icon: <Home size={15} color="#0ea5e9" /> },
-            { label: 'Hifz Class Time', val: initialData.hifzClassTime, icon: <BookOpen size={15} color="#a855f7" /> },
-            { label: 'Sleep Time', val: initialData.sleepTime, icon: <Moon size={15} color="#10b981" /> }
+            { key: 'wakeUpTime',       label: 'Wake Up Time',         val: initialData.wakeUpTime,       icon: <Sun size={15} color="#f59e0b" /> },
+            { key: 'officeDeparture',  label: 'Leave for Office',     val: initialData.officeDeparture,  icon: <Briefcase size={15} color="#6366f1" /> },
+            { key: 'officeReturn',     label: 'Return from Office',   val: initialData.officeReturn,     icon: <Home size={15} color="#0ea5e9" /> },
+            { key: 'hifzClassTime',    label: 'Hifz Class Time',      val: initialData.hifzClassTime,    icon: <BookOpen size={15} color="#a855f7" /> },
+            { key: 'sleepTime',        label: 'Sleep Time',           val: initialData.sleepTime,        icon: <Moon size={15} color="#10b981" /> }
           ].map((item, idx) => (
-            <div 
-              key={idx} 
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container-low)' }}
+            <div
+              key={idx}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container-low)', position: 'relative' }}
             >
               <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-highest)', display: 'flex' }}>
                 {item.icon}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {item.label}
                 </span>
@@ -366,6 +357,16 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                   {formatTime(item.val)}
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={() => setEditingTiming({ key: item.key, label: item.label, icon: item.icon, value: item.val })}
+                style={{ padding: '5px', background: 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', color: 'var(--c-on-surface-variant)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--c-primary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--c-on-surface-variant)'; }}
+                title={`Edit ${item.label}`}
+              >
+                <Edit3 size={14} />
+              </button>
             </div>
           ))}
         </div>
@@ -488,57 +489,54 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
         </div>
       </div>
 
-      {/* Daily Timings Modal */}
-      {isTimingsOpen && mounted && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '20px' }}>
-          <div 
-            style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} 
-            onClick={() => setIsTimingsOpen(false)} 
-          />
-          
-          <form 
+      {/* Single Timing Edit Modal */}
+      {editingTiming && mounted && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(6px)', backgroundColor: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setEditingTiming(null)}
+        >
+          <form
             onSubmit={handleTimingsSubmit}
-            className="card" 
-            style={{ position: 'relative', width: '100%', maxWidth: '500px', margin: '0 auto', maxHeight: '90vh', overflowY: 'auto', padding: '0' }}
+            className="card"
+            style={{ position: 'relative', width: '100%', maxWidth: '380px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--c-outline-variant)' }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ position: 'sticky', top: 0, backgroundColor: 'var(--c-surface-container)', padding: '16px 24px', borderBottom: '1px solid var(--c-outline-variant)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--c-on-surface)' }}>Edit Daily Timings</h3>
-              <button 
-                type="button"
-                onClick={() => setIsTimingsOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)', padding: '4px', borderRadius: '50%', display: 'flex' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <TimeInput name="wakeUpTime" label="Wake Up Time" icon={<Sun size={13} />} defaultValue={initialData.wakeUpTime} />
-              <TimeInput name="officeDeparture" label="Leave for Office" icon={<Briefcase size={13} />} defaultValue={initialData.officeDeparture} />
-              <TimeInput name="officeReturn" label="Return from Office" icon={<Home size={13} />} defaultValue={initialData.officeReturn} />
-              <TimeInput name="hifzClassTime" label="Hifz Class Time" icon={<BookOpen size={13} />} defaultValue={initialData.hifzClassTime} />
-              <TimeInput name="sleepTime" label="Sleep Time" icon={<Moon size={13} />} defaultValue={initialData.sleepTime} />
-            </div>
+            <button
+              type="button"
+              onClick={() => setEditingTiming(null)}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)', display: 'flex' }}
+            >
+              <X size={20} />
+            </button>
 
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button 
-                type="button" 
-                onClick={() => setIsTimingsOpen(false)}
-                className="secondary-btn"
-                style={{ padding: '8px 16px', fontSize: '13px' }}
+            <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: 'var(--c-on-surface)', paddingRight: '28px' }}>
+              Edit — {editingTiming.label}
+            </h3>
+
+            <TimeInput
+              name={editingTiming.key}
+              label={editingTiming.label}
+              icon={editingTiming.icon}
+              defaultValue={editingTiming.value}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingTiming(null)}
+                style={{ padding: '10px 20px', borderRadius: '8px', backgroundColor: 'transparent', color: 'var(--c-on-surface-variant)', border: '1px solid var(--c-outline-variant)', fontWeight: 600, cursor: 'pointer' }}
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
-                className="primary-btn" 
-                disabled={timingsLoading} 
-                style={{ padding: '8px 20px', fontSize: '13px' }}
+              <button
+                type="submit"
+                className="primary-btn"
+                disabled={timingsLoading}
+                style={{ padding: '10px 24px', borderRadius: '8px' }}
               >
-                {timingsLoading ? 'Saving...' : 'Save Timings'}
+                {timingsLoading ? 'Saving…' : 'Save'}
               </button>
             </div>
-
           </form>
         </div>,
         document.body
