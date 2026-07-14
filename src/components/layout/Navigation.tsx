@@ -63,17 +63,9 @@ export default function Navigation() {
             <span className="material-symbols-outlined">favorite</span>
             <span className="text-body-md">Dua List</span>
           </Link>
-          <Link href="/books" className={`nav-item ${pathname === '/books' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">menu_book</span>
-            <span className="text-body-md">Books</span>
-          </Link>
-          <Link href="/documents" className={`nav-item ${pathname === '/documents' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">description</span>
-            <span className="text-body-md">Documents</span>
-          </Link>
-          <Link href="/relapse" className={`nav-item ${pathname === '/relapse' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">health_and_safety</span>
-            <span className="text-body-md">Habit Tracker</span>
+          <Link href="/timetable" className={`nav-item ${pathname === '/timetable' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">calendar_today</span>
+            <span className="text-body-md">Time Table</span>
           </Link>
           <Link href="/goals" className={`nav-item ${pathname === '/goals' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">target</span>
@@ -83,21 +75,21 @@ export default function Navigation() {
             <span className="material-symbols-outlined">checklist</span>
             <span className="text-body-md">Tasks</span>
           </Link>
-          <Link href="/timetable" className={`nav-item ${pathname === '/timetable' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">calendar_today</span>
-            <span className="text-body-md">Time Table</span>
-          </Link>
           <Link href="/journal/learning" className={`nav-item ${pathname.startsWith('/journal/learning') ? 'active' : ''}`}>
             <span className="material-symbols-outlined">school</span>
             <span className="text-body-md">Career Learnings</span>
           </Link>
-          <Link href="/fitness" className={`nav-item ${pathname === '/fitness' ? 'active' : ''}`}>
-            <span className="material-symbols-outlined">fitness_center</span>
-            <span className="text-body-md">Fitness</span>
-          </Link>
           <Link href="/journal/office" className={`nav-item ${pathname.startsWith('/journal/office') ? 'active' : ''}`}>
             <span className="material-symbols-outlined">work</span>
             <span className="text-body-md">Office Work</span>
+          </Link>
+          <Link href="/relapse" className={`nav-item ${pathname === '/relapse' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">health_and_safety</span>
+            <span className="text-body-md">Habit Tracker</span>
+          </Link>
+          <Link href="/fitness" className={`nav-item ${pathname === '/fitness' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">fitness_center</span>
+            <span className="text-body-md">Fitness</span>
           </Link>
           <Link href="/transactions" className={`nav-item ${pathname === '/transactions' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">payments</span>
@@ -106,6 +98,14 @@ export default function Navigation() {
           <Link href="/debts" className={`nav-item ${pathname === '/debts' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">account_balance</span>
             <span className="text-body-md">Ledger</span>
+          </Link>
+          <Link href="/books" className={`nav-item ${pathname === '/books' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">menu_book</span>
+            <span className="text-body-md">Books</span>
+          </Link>
+          <Link href="/documents" className={`nav-item ${pathname === '/documents' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">description</span>
+            <span className="text-body-md">Documents</span>
           </Link>
           <Link href="/notes" className={`nav-item ${pathname === '/notes' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">sticky_note_2</span>
