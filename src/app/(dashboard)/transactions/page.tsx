@@ -138,23 +138,36 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
 
       {/* Dynamic Summaries */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '16px' }}>
-          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Total Income</p>
-          <p className="text-title-md" style={{ color: 'var(--c-secondary)', fontWeight: 'bold' }}>
-            +${totalIncome.toFixed(2)}
-          </p>
+        <div style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '20px', borderRadius: '16px', border: '1.5px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: 'rgba(34,197,94,0.1)', flexShrink: 0 }}>
+            <ArrowUpCircle size={24} color="#22c55e" />
+          </div>
+          <div>
+            <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Income</p>
+            <p className="text-title-md" style={{ margin: 0, color: '#22c55e', fontWeight: 800, fontSize: '1.25rem' }}>+${totalIncome.toFixed(2)}</p>
+          </div>
         </div>
-        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '16px' }}>
-          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Total Expense</p>
-          <p className="text-title-md" style={{ color: 'var(--c-error)', fontWeight: 'bold' }}>
-            -${totalExpense.toFixed(2)}
-          </p>
+
+        <div style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '20px', borderRadius: '16px', border: '1.5px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: 'rgba(239,68,68,0.1)', flexShrink: 0 }}>
+            <ArrowDownCircle size={24} color="#ef4444" />
+          </div>
+          <div>
+            <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Expense</p>
+            <p className="text-title-md" style={{ margin: 0, color: '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>-${totalExpense.toFixed(2)}</p>
+          </div>
         </div>
-        <div style={{ backgroundColor: 'var(--c-surface-container-high)', padding: '16px', borderRadius: '16px', border: `1px solid ${netFlow >= 0 ? 'var(--c-secondary)' : 'var(--c-error)'}` }}>
-          <p className="text-label-sm text-on-surface-variant" style={{ marginBottom: '8px' }}>Net Flow</p>
-          <p className="text-title-md" style={{ color: netFlow >= 0 ? 'var(--c-secondary)' : 'var(--c-error)', fontWeight: 'bold' }}>
-            {netFlow >= 0 ? '+' : '-'}${Math.abs(netFlow).toFixed(2)}
-          </p>
+
+        <div style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '20px', borderRadius: '16px', border: `1.5px solid ${netFlow >= 0 ? 'rgba(191,145,41,0.4)' : 'rgba(239,68,68,0.3)'}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: netFlow >= 0 ? 'rgba(191,145,41,0.1)' : 'rgba(239,68,68,0.1)', flexShrink: 0 }}>
+            <Receipt size={24} color={netFlow >= 0 ? 'var(--c-primary)' : '#ef4444'} />
+          </div>
+          <div>
+            <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Flow</p>
+            <p className="text-title-md" style={{ margin: 0, color: netFlow >= 0 ? 'var(--c-primary)' : '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>
+              {netFlow >= 0 ? '+' : '-'}${Math.abs(netFlow).toFixed(2)}
+            </p>
+          </div>
         </div>
       </div>
 
