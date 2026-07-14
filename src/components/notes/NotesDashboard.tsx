@@ -15,6 +15,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
@@ -39,6 +40,10 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
+  };
+
+  const closeViewModal = () => {
+    setViewingNote(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,7 +113,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
         <div className="flex-row gap-16" style={{ width: 'auto', flexWrap: 'wrap' }}>
           <select 
             value={sortBy} 
-            onChange={(e) => { setSortBy(e.target.value as any); setCurrentPage(1); }}
+            onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setCurrentPage(1); }}
             className="search-input"
             style={{ borderRadius: '8px', padding: '8px 16px', width: 'auto' }}
           >
@@ -131,7 +136,12 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
           const timeString = createdDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
           return (
-            <div key={note.id} className="card" style={{ display: 'flex', flexDirection: 'column', height: '240px', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--c-outline-variant)' }}>
+            <div
+              key={note.id}
+              className="card"
+              onClick={() => setViewingNote(note)}
+              style={{ display: 'flex', flexDirection: 'column', height: '240px', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--c-outline-variant)', cursor: 'pointer' }}
+            >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
                   <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', color: 'var(--c-on-surface)' }}>
@@ -140,22 +150,24 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
                   
                   <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                     <button 
-                      onClick={() => openEditModal(note)} 
+                      onClick={(event) => { event.stopPropagation(); openEditModal(note); }}
                       style={{ color: 'var(--c-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'background-color 0.2s' }}
                       className="icon-btn-hover"
                       title="Edit Note"
                     >
                       <Edit2 size={16} />
                     </button>
-                    <DeleteConfirmButton 
-                      action={async () => {
-                        await deleteNote(note.id);
-                        setCurrentPage(1);
-                      }}
-                      iconSize={16}
-                      title="Delete Note"
-                      message="Are you sure you want to permanently delete this note?"
-                    />
+                    <div onClick={(event) => event.stopPropagation()}>
+                      <DeleteConfirmButton
+                        action={async () => {
+                          await deleteNote(note.id);
+                          setCurrentPage(1);
+                        }}
+                        iconSize={16}
+                        title="Delete Note"
+                        message="Are you sure you want to permanently delete this note?"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -209,6 +221,47 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* NOTE VIEWER */}
+      {viewingNote && (
+        <div
+          role="presentation"
+          onClick={closeViewModal}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px', backdropFilter: 'blur(4px)' }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="note-viewer-title"
+            onClick={(event) => event.stopPropagation()}
+            className="card"
+            style={{ width: '100%', maxWidth: '680px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px', position: 'relative', boxShadow: 'var(--shadow-lg)' }}
+          >
+            <button
+              type="button"
+              onClick={closeViewModal}
+              aria-label="Close note viewer"
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ paddingRight: '32px' }}>
+              <h3 id="note-viewer-title" className="text-headline-sm" style={{ margin: 0, fontWeight: 700, wordBreak: 'break-word' }}>
+                {viewingNote.title}
+              </h3>
+              <div className="text-label-sm text-on-surface-variant" style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                <span>{new Date(viewingNote.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span>{new Date(viewingNote.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            </div>
+
+            <p className="text-body-md text-on-surface-variant" style={{ margin: 0, paddingTop: '16px', borderTop: '1px solid var(--c-outline-variant)', whiteSpace: 'pre-wrap', overflowY: 'auto', lineHeight: 1.65, wordBreak: 'break-word' }}>
+              {viewingNote.content}
+            </p>
+          </div>
         </div>
       )}
 
