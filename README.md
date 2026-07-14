@@ -1,119 +1,216 @@
 # Muhasabah
 
-A comprehensive, beautifully designed personal dashboard and self-accountability application to help you track your goals, finances, religious duties, journal entries, fitness activities, and daily/weekend tasks.
+A comprehensive personal dashboard and self-accountability app to help you track your goals, finances, religious duties, journal entries, fitness activities, tasks, books, documents, and daily timetable.
+
+---
 
 ## Features
 
-- **Financial Tracker:** Track your daily, weekly, and monthly income and expenses with elegant charts and visual filtering.
-- **Credit & Debit Manager:** Easily manage money you owe and money owed to you on a per-person basis with a built-in address book.
-- **Goals Dashboard:** Set Daily, Weekly, Monthly, Quarterly, Yearly, and Lifetime goals, and visually track your progress.
-- **Dynamic Prayer Timings & Timetable:** 
-  - Save your location coordinates via browser Geolocation.
-  - Fetch actual prayer times via **Aladhan API** using **Shafi Fiqh** (Standard Asr timing calculation).
-  - Dynamically generate your daily routine timeline. If Fajr is before your wake-up time, it is automatically sorted first; otherwise, the wake-up routine comes first.
-  - Shows your current location name directly in the timetable section.
-- **Spiritual Habit Tracker:** Maintain a daily streak for your prayers (Fajr, Dhuhr, Asr, Maghrib, Isha), Quran reading, Adhkar, and log specific Quran memorization verses with history.
-- **Structured Journaling System:**
-  - **Office Work Logs:** Track dev work with fields for Project Name, Ticket ID, Work Type (Feature, Bug Fix, Refactor, Meeting, Deployment, Support, Other), and Duration. Cards feature dynamic, color-coded work badges.
-  - **Career Learnings:** Document learnings under predefined subjects (Android Development, Backend, Frontend, Java, C++, DSA, Machine Learning, AI & ML, AI Engineering) or custom topics. Generates hashed, unique color pill badges for topics.
-  - **Miscellaneous Logs:** Log personal trips, travel events, and restaurant visits with fields for Location / Place, Activity Type (Travel, Food, Social, Shopping, Health, Thoughts, Entertainment, Other), and descriptions.
-- **Fitness Tracker:** 
-  - Visual summary cards showing Active Minutes, Workouts Completed, and Distance Covered with scaling hover animations and custom colored glows.
-  - Responsive grid of activity cards with customized color profiles based on activity type (Gym, Running, Walking, Cycling, Yoga, Swimming, etc.).
-  - Stylized speech-bubble boxes with left-border accents for workout notes.
-- **Scrollable Navigation:** A scrollable left-side sidebar designed to handle all dashboard menu options cleanly on any screen resolution.
-- **Task History:** Pick any past date from a built-in calendar to review exactly what tasks you were supposed to do and what you actually accomplished.
+### 🕌 Spiritual Tracker
+- Daily habit tracking for all 5 prayers (Fajr, Dhuhr, Asr, Maghrib, Isha), Adhkar, Quran Memorisation, Tahajjud, and Duha
+- Log whether each prayer was prayed in congregation (Jamaat)
+- Quran verse memorisation logging per day with Surah and verse range
+- 180-day rolling history view
+
+### ⏰ Dynamic Timetable
+- Save your GPS coordinates via browser Geolocation API
+- Fetch accurate prayer times via **Aladhan API** using configurable calculation method (Karachi, ISNA, MWL, Umm Al-Qura, and more)
+- Horizontally scrollable daily routine timeline with live "Now" indicator
+- Dedicated prayer time cards for all 5 prayers (Fajr, Dhuhr, Asr, Maghrib, Isha) in the timeline
+- Active card highlights and pulsing dot for the current time block
+- Per-field edit popup — click the pencil on any timing card to edit just that one value
+- Gym preference selector (After Fajr, Before Office, Maghrib–Isha, After Isha, None) dynamically inserts gym slot into the timeline
+
+### 💰 Financial Tracker
+- Track income and expenses with category tagging
+- Filter by Day, Week, Month, Quarter, Year, or custom date range
+- Summary cards: Total Income (green), Total Expense (red), Net Flow (gold/red) — each with icon and color-coded border
+- CSV export for any filtered period
+- Pagination with 25 items per page
+
+### 💳 Ledger (Debt Manager)
+- Per-person credit/debit tracking
+- Mark individual records as Paid or revert to Pending
+- Responsive card grid (3–5 per row) with color-coded borders per type
+- Net balance summary per person
+
+### 🎯 Goals Dashboard
+- Create goals across Religious, Career, Finances, Health, Personal categories
+- Set priority (Low / Medium / High), progress %, target date, and completion status
+
+### 📓 Structured Journal
+- **Office Logs:** Project, Ticket ID, Work Type (Feature, Bug Fix, Refactor, Meeting, Deployment, Support), Duration
+- **Career Learning:** 35+ predefined topics across Mobile, Web, Languages, CS Fundamentals, AI/ML, DevOps, Cloud — or free-text custom topic
+- **Miscellaneous:** Location, Activity type, Tag, free-form description
+
+### 📚 Books Library (with Folders)
+- Folder-based organisation — create folders like "Self Development", "Islamic Books", "Tech"
+- Click any card to view full notes in a popup
+- Link, Edit, Delete buttons on each card
+- Add books to a folder or leave unfiled
+
+### 📄 Documents (with Folders)
+- Same folder structure as Books
+- Store document title, URL link, and notes
+- Filter tabs: All, Today, This Week, This Month, This Year, Custom Range
+- Popup viewer with direct "Open Document" link
+
+### 📝 Notes
+- Clean card grid with title + content preview (5-line clamp)
+- Click any note to view full content in a popup
+- Inline Edit and Delete per card
+
+### 🏋️ Fitness Tracker
+- Log workouts: Gym, Running, Walking, Cycling, Yoga, Swimming, and more
+- Track duration, distance, muscle group, and notes
+- Summary cards: Active Minutes, Workouts Completed, Distance Covered
+
+### ✅ Tasks
+- **Today's Tasks:** Add, complete, and delete daily tasks for any target date
+- **Task History:** Pick any past date from a calendar to review what was planned vs completed
+- **Weekend Tasks:** Recurring checklist tracked per week in a scrollable 2D history table; manage tasks via popup
+
+### 🔁 Recurring Trackers
+- Dashboard widget for tracking periodic chores (e.g., "Change bed sheets", "Oil hair")
+- Mark as done to reset the timer
+
+### 🤲 Dua Collection
+- Personal dua library with Arabic text, translation, and category (Personal, Family, Career, General)
+
+### 📊 Dashboard
+- Today's prayer times at a glance
+- Today's tasks overview
+- Recurring tracker status
+- Live timetable card
+
+### 🔐 Auth
+- Email/password registration with email verification
+- Forgot password / reset password flow
+
+---
 
 ## Tech Stack
 
-- **Framework:** Next.js 16+ (App Router)
-- **Styling:** Vanilla CSS + Global Custom Properties (Glassmorphism, Dynamic Color Hashing & Premium Animations)
-- **Database:** PostgreSQL (managed via Prisma ORM)
-- **Deployment:** Vercel (or any standard Node environment)
-- **Icons:** Lucide React & Google Material Symbols
-- **APIs:** Aladhan Geolocation API
+| Layer | Technology |
+|---|---|
+| Framework | Next.js (App Router, Server Components) |
+| Styling | Vanilla CSS + CSS Custom Properties |
+| Database | PostgreSQL via Prisma ORM |
+| Auth | Custom session-based auth with bcrypt |
+| Icons | Lucide React + Google Material Symbols |
+| Prayer Times | Aladhan API |
+| Deployment | Vercel / any Node environment |
 
-## Project Architecture (Post-Refactoring)
+---
 
-The application has been heavily refactored for maximum scalability, modularity, and strict typing:
+## Project Structure
 
-```text
-src/
-├── actions/             # Strictly typed modular server actions
-│   ├── auth.ts          # Authentication & session controls
-│   ├── debts.ts         # Credit & Debit tracking
-│   ├── fitness.ts       # Workouts & health logs
-│   ├── goals.ts         # Goal management
-│   ├── journal.ts       # Categorized journal entries
-│   ├── religious.ts     # Spiritual tracking
-│   ├── tasks.ts         # Daily/Weekend task management
-│   ├── transactions.ts  # Finance tracking
-│   └── index.ts         # Global exporter
-├── app/
-│   ├── (dashboard)/     # Main protected application UI (Pages)
-│   ├── login/           # Authentication pages
-│   ├── globals.css      # Core Design System (Tokens, Reset, Global Utilities)
-│   └── layout.tsx       # Root layout
-├── components/          # Reusable UI components grouped by feature
-│   ├── dashboard/       # Dashboard components (e.g., TasksOfTheDay)
-│   ├── debts/           # Debt management components
-│   ├── fitness/         # Beautified fitness tracker widgets
-│   ├── goals/           # Goal tracking components
-│   ├── history/         # History viewer components
-│   ├── journal/         # Structured Office, Learning, and Misc logs
-│   ├── layout/          # Global layout components (Navigation, delete confirmations)
-│   ├── religious/       # Spiritual tracking components
-│   ├── transactions/    # Financial tracker components
-│   └── weekend/         # Weekend task components
-├── lib/                 # Core utilities
-│   └── prisma.ts        # Database connection singleton
-└── types/               # (Removed in favor of native `@prisma/client` generated types)
 ```
+src/
+├── actions/             # Server actions (one file per domain)
+│   ├── auth.ts
+│   ├── books.ts         # Book + BookFolder CRUD
+│   ├── debts.ts
+│   ├── documents.ts     # Document + DocumentFolder CRUD
+│   ├── dua.ts
+│   ├── fitness.ts
+│   ├── goals.ts
+│   ├── journal.ts
+│   ├── notes.ts
+│   ├── relapse.ts
+│   ├── religious.ts
+│   ├── tasks.ts
+│   ├── timetable.ts
+│   ├── transactions.ts
+│   └── index.ts
+├── app/
+│   ├── (dashboard)/     # Protected routes
+│   └── ...              # Auth pages (login, register, etc.)
+├── components/          # Feature-grouped UI components
+│   ├── books/
+│   ├── dashboard/
+│   ├── debts/
+│   ├── documents/
+│   ├── fitness/
+│   ├── goals/
+│   ├── journal/
+│   ├── layout/          # Navigation, shared dialogs
+│   ├── notes/
+│   ├── religious/
+│   ├── timetable/
+│   ├── transactions/
+│   └── weekend/
+└── lib/
+    └── prisma.ts
+```
+
+---
+
+## Database Schema (Key Models)
+
+| Model | Key Fields |
+|---|---|
+| `User` | name, email, passwordHash, latitude, longitude, calculationMethod |
+| `BookFolder` | name, userId |
+| `Book` | title, author, driveLink, notes, folderId? |
+| `DocumentFolder` | name, userId |
+| `Document` | title, link, notes, folderId? |
+| `Note` | title, content |
+| `Transaction` | amount, description, category, type (INCOME/EXPENSE) |
+| `Goal` | title, category, priority, progress, targetDate |
+| `SpiritualHabit` | name, isPrayer |
+| `SpiritualHabitLog` | habitId, date, isCompleted, prayedWithJamaat |
+| `JournalEntry` | content, category (OFFICE/LEARNING/MISC), subject/project/etc. |
+| `DailyTask` | title, isCompleted, targetDate |
+| `WeekendTask` + `WeekendTaskLog` | recurring weekly checklists |
+| `FitnessLog` | activity, duration, distance, muscleGroup |
+| `RecurringTracker` | title, lastDone |
+| `Person` + `DebtRecord` | per-person credit/debit ledger |
+| `Dua` | title, content, translation, category |
+| `TimeTable` | wakeUpTime, officeDeparture, officeReturn, gymPreference, etc. |
+| `RelapseLog` | date, notes |
+
+---
 
 ## Setup & Local Development
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+# 1. Install dependencies
+npm install
 
-2. **Database Setup**
-   Configure your PostgreSQL connection in a `.env` file:
-   ```env
-   DATABASE_URL="postgres://..."
-   ```
-   Push the schema to your database:
-   ```bash
-   npx prisma db push
-   ```
+# 2. Configure environment
+cp .env.example .env
+# Set DATABASE_URL in .env
 
-3. **Seed the Database (Optional but Recommended)**
-   Populate your dashboard with a massive amount of varied, highly realistic dummy data (structured dev tasks, color-coded subjects, travel logs, and fitness entries) to test out all the features visually:
-   ```bash
-   npx prisma db seed
-   ```
+# 3. Push schema to database
+npx prisma db push
 
-4. **Run the Development Server**
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:3000` to view the application.
+# 4. Seed with realistic fake data (optional but recommended)
+npx prisma db seed
 
-## Best Practices Enforced
+# 5. Run dev server
+npm run dev
+```
 
-- **Protected Layout Routing:** All routes in the `(dashboard)` group are guarded by async server layout checks. Non-authenticated users are immediately redirected to `/login` before child component queries load, preventing unauthorized action exceptions.
-- **0 TypeScript Errors:** The codebase strictly relies on `@prisma/client` types and custom interfaces. There are absolutely no `any` types rendering data.
-- **Pure CSS:** We have removed bloated CSS frameworks and replaced them with highly reusable global CSS utility classes (`flex-row`, `justify-between`, `gap-16`) to keep JSX components incredibly clean and performant.
-- **Modular Actions:** All server logic is split by domain, preventing monolithic file bottlenecks and ensuring easy maintainability as the app grows.
+Open `http://localhost:3000`
+
+---
 
 ## Test Accounts
 
-If you seeded the database using `npx prisma db seed`, the following test accounts are available to log in and test the application data:
+After running `npx prisma db seed`:
 
-1. **Email:** `test1@example.com`
-   **Password:** `password123`
-   *(This account contains all the seeded dummy data)*
+| Email | Password | Data |
+|---|---|---|
+| `test1@example.com` | `password123` | Full realistic dataset |
+| `test2@example.com` | `password123` | Empty account |
 
-2. **Email:** `test2@example.com`
-   **Password:** `password123`
-   *(This account is fresh and empty)*
+---
+
+## Key Design Principles
+
+- **Server Components by default** — data fetching happens on the server; only interactive islands use `'use client'`
+- **Portal-based modals** — all popups use `createPortal` to render at `document.body`, preventing z-index and overflow issues
+- **No CSS framework** — pure CSS custom properties with design tokens for theming, spacing, and shadows
+- **Strict typing** — Prisma-generated types used throughout; no `any` in data-rendering paths
+- **Folder-first organisation** — Books and Documents support optional folder grouping with unfiled fallback
