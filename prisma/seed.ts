@@ -32,6 +32,7 @@ async function main() {
   await prisma.dua.deleteMany();
   await prisma.book.deleteMany();
   await prisma.relapseLog.deleteMany();
+  await prisma.document.deleteMany();
   await prisma.timeTable.deleteMany();
   // Finally delete users
   await prisma.user.deleteMany();
@@ -401,6 +402,55 @@ async function main() {
   await prisma.relapseLog.createMany({
     data: [
       { userId: uId, date: getPastDate(30), notes: 'Stressful day.' },
+    ]
+  });
+
+  // --- DOCUMENTS ---
+  console.log('Seeding Documents...');
+  await prisma.document.createMany({
+    data: [
+      {
+        userId: uId,
+        title: 'Gym Workout Plan (PPL Split)',
+        link: 'https://drive.google.com/file/d/example-gym-plan',
+        notes: 'Push-Pull-Legs split with progressive overload schedule.',
+        date: getPastDate(5),
+      },
+      {
+        userId: uId,
+        title: 'Quran Memorisation Tracker',
+        link: 'https://docs.google.com/spreadsheets/d/example-quran-tracker',
+        notes: 'Month-wise Juz progress sheet for Hifz program.',
+        date: getPastDate(10),
+      },
+      {
+        userId: uId,
+        title: 'Monthly Budget Spreadsheet',
+        link: 'https://docs.google.com/spreadsheets/d/example-budget',
+        notes: 'Income vs expense tracker for each month.',
+        date: getPastDate(15),
+      },
+      {
+        userId: uId,
+        title: 'Android Dev Roadmap',
+        link: 'https://roadmap.sh/android',
+        notes: 'Complete path from beginner to intermediate Android developer.',
+        date: getPastDate(20),
+      },
+      {
+        userId: uId,
+        title: 'Salary Slip - June 2026',
+        link: 'https://drive.google.com/file/d/example-salary-slip',
+        notes: 'Official salary slip from employer for June 2026.',
+        date: getPastDate(3),
+      },
+      {
+        userId: uId,
+        title: 'Resume - July 2026',
+        link: 'https://drive.google.com/file/d/example-resume',
+        notes: 'Latest resume with updated experience and skills.',
+        date: getPastDate(7),
+      },
     ]
   });
 

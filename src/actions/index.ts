@@ -11,3 +11,4 @@ export * from './dua';
 export * from './books';
 export * from './relapse';
 export * from './timetable';
+export * from './documents';

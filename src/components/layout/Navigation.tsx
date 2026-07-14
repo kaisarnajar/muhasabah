@@ -67,6 +67,10 @@ export default function Navigation() {
             <span className="material-symbols-outlined">menu_book</span>
             <span className="text-body-md">Books</span>
           </Link>
+          <Link href="/documents" className={`nav-item ${pathname === '/documents' ? 'active' : ''}`}>
+            <span className="material-symbols-outlined">description</span>
+            <span className="text-body-md">Documents</span>
+          </Link>
           <Link href="/relapse" className={`nav-item ${pathname === '/relapse' ? 'active' : ''}`}>
             <span className="material-symbols-outlined">health_and_safety</span>
             <span className="text-body-md">Habit Tracker</span>

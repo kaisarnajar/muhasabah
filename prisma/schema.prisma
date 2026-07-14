@@ -33,6 +33,7 @@ model User {
   duas              Dua[]
   books             Book[]
   relapseLogs       RelapseLog[]
+  documents         Document[]
   timeTable         TimeTable?
 }
 
@@ -281,6 +282,17 @@ model Book {
   title     String
   author    String?
   driveLink String?  @db.Text
+  notes     String?  @db.Text
+  date      DateTime @default(now()) @db.Date
+  createdAt DateTime @default(now()) @db.Timestamptz()
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  link      String   @db.Text
   notes     String?  @db.Text
   date      DateTime @default(now()) @db.Date
   createdAt DateTime @default(now()) @db.Timestamptz()
