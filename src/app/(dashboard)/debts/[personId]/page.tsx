@@ -81,7 +81,7 @@ export default async function PersonDebtPage(props: {
         {person.debts.length === 0 ? (
           <p className="text-on-surface-variant">No records found with {person.name}.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
             {paginatedDebts.map(debt => {
               const amt = Number(debt.amount);
               const isCredit = debt.type === 'CREDIT';
@@ -90,36 +90,44 @@ export default async function PersonDebtPage(props: {
               const delAction = deleteDebtRecord.bind(null, debt.id, person.id);
 
               return (
-                <div key={debt.id} className="card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', opacity: isPaid ? 0.6 : 1 }}>
-                  <form action={toggleAction}>
-                    <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', color: isPaid ? 'var(--c-primary)' : 'var(--c-on-surface-variant)' }}>
-                      {isPaid ? <CheckCircle2 size={24} /> : <Circle size={24} />}
-                    </button>
-                  </form>
-                  
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span className="text-title-md" style={{ fontWeight: 600, color: isCredit ? 'var(--c-primary)' : 'var(--c-error)', textDecoration: isPaid ? 'line-through' : 'none' }}>
-                        {isCredit ? '+' : '-'}${amt.toFixed(2)}
-                      </span>
-                      <span className="text-label-sm text-on-surface-variant">
-                        {new Date(debt.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    {debt.notes && (
-                      <p className="text-body-md text-on-surface-variant" style={{ margin: 0, textDecoration: isPaid ? 'line-through' : 'none' }}>
-                        {debt.notes}
-                      </p>
-                    )}
+                <div key={debt.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: isPaid ? 0.6 : 1, borderRadius: '16px', border: `1.5px solid ${isCredit ? 'rgba(191,145,41,0.25)' : 'rgba(239,68,68,0.2)'}`, backgroundColor: 'var(--c-surface-container-low)', boxShadow: 'var(--shadow-sm)' }}>
+                  {/* Top row: badge + amount */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.05em', backgroundColor: isCredit ? 'rgba(191,145,41,0.12)' : 'rgba(239,68,68,0.1)', color: isCredit ? 'var(--c-primary)' : '#ef4444' }}>
+                      {isCredit ? 'They Owe' : 'You Owe'}
+                    </span>
+                    <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
+                      {new Date(debt.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                   </div>
 
-                  <DeleteConfirmButton 
-                    action={delAction} 
-                    iconSize={18} 
-                    title="Delete Record"
-                    message="Are you sure you want to delete this debt record?"
-                    style={{ padding: '8px' }}
-                  />
+                  {/* Amount */}
+                  <p className="text-headline-sm" style={{ margin: 0, fontWeight: 800, color: isCredit ? 'var(--c-primary)' : '#ef4444', textDecoration: isPaid ? 'line-through' : 'none', lineHeight: 1 }}>
+                    {isCredit ? '+' : '-'}${amt.toFixed(2)}
+                  </p>
+
+                  {/* Notes */}
+                  {debt.notes && (
+                    <p className="text-body-sm text-on-surface-variant" style={{ margin: 0, lineHeight: 1.5, textDecoration: isPaid ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {debt.notes}
+                    </p>
+                  )}
+
+                  {/* Footer: status toggle + delete */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: 'auto' }}>
+                    <form action={toggleAction}>
+                      <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: isPaid ? 'var(--c-primary)' : 'var(--c-on-surface-variant)', fontSize: '12px', fontWeight: 600, padding: 0 }}>
+                        {isPaid ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                        {isPaid ? 'Paid' : 'Mark Paid'}
+                      </button>
+                    </form>
+                    <DeleteConfirmButton
+                      action={delAction}
+                      iconSize={16}
+                      title="Delete Record"
+                      message="Are you sure you want to delete this debt record?"
+                    />
+                  </div>
                 </div>
               );
             })}
