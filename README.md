@@ -14,7 +14,8 @@ A comprehensive personal dashboard and self-accountability app to help you track
 
 ### ⏰ Dynamic Timetable
 - Save your GPS coordinates via browser Geolocation API
-- Fetch accurate prayer times via **Aladhan API** using configurable calculation method (Karachi, ISNA, MWL, Umm Al-Qura, and more)
+- Fetch accurate prayer times via **Aladhan API** with configurable calculation method (Karachi, ISNA, MWL, Umm Al-Qura, and more)
+- **Asr timing preference** — choose between Earlier Asr (shadow factor 1×) or Later Asr (shadow factor 2×); updates the prayer time fetched from the API immediately
 - Horizontally scrollable daily routine timeline with live "Now" indicator
 - Dedicated prayer time cards for all 5 prayers (Fajr, Dhuhr, Asr, Maghrib, Isha) in the timeline
 - Active card highlights and pulsing dot for the current time block
@@ -150,7 +151,7 @@ src/
 
 | Model | Key Fields |
 |---|---|
-| `User` | name, email, passwordHash, latitude, longitude, calculationMethod |
+| `User` | name, email, passwordHash, latitude, longitude, calculationMethod, asrTiming |
 | `BookFolder` | name, userId |
 | `Book` | title, author, driveLink, notes, folderId? |
 | `DocumentFolder` | name, userId |
