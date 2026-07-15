@@ -94,3 +94,18 @@ export async function updateCalculationMethod(methodId: number) {
 
   return { success: 'Calculation method updated successfully. Prayer times will adjust immediately.' };
 }
+
+export async function updateAsrTiming(school: number) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { asrTiming: school }
+  });
+
+  revalidatePath('/');
+  revalidatePath('/timetable');
+
+  return { success: 'Asr timing preference updated successfully.' };
+}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { updateTimeTable, updateUserLocation, updateCalculationMethod } from '@/actions/timetable';
+import { updateTimeTable, updateUserLocation, updateCalculationMethod, updateAsrTiming } from '@/actions/timetable';
 import { useToast } from '@/context/ToastContext';
 import { Sun, Briefcase, Home, Dumbbell, BookOpen, Moon, Clock, Sunrise, MapPin, Edit3, X } from 'lucide-react';
 
@@ -23,6 +23,7 @@ interface TimetableFormProps {
     longitude?: number | null;
     locationName?: string | null;
     calculationMethod?: number;
+    asrTiming?: number;
   };
 }
 
@@ -322,6 +323,67 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>
+          </div>
+
+          {/* Asr Timing Preference */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-on-surface-variant)', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <Sun size={13} /> Asr Prayer Timing
+            </label>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-on-surface-variant)', lineHeight: 1.5 }}>
+              Choose when Asr begins — earlier uses a shadow length of 1× the object, later uses 2×.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {[
+                { value: 0, label: 'Earlier Asr', desc: 'Shadow factor 1× — earlier in the afternoon', icon: '🌤️' },
+                { value: 1, label: 'Later Asr',   desc: 'Shadow factor 2× — later in the afternoon', icon: '🌥️' },
+              ].map(opt => {
+                const isSelected = (initialData.asrTiming ?? 0) === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await updateAsrTiming(opt.value);
+                        if (res.success) {
+                          showToast(res.success, 'success');
+                          router.refresh();
+                        }
+                      } catch (err: any) {
+                        showToast(err.message || 'Failed to update Asr timing', 'error');
+                      }
+                    }}
+                    style={{
+                      flex: '1 1 160px',
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      border: `2px solid ${isSelected ? 'var(--c-primary)' : 'var(--c-outline-variant)'}`,
+                      backgroundColor: isSelected ? 'var(--c-primary-container)' : 'var(--c-surface-container-low)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.2s ease',
+                      transform: isSelected ? 'translateY(-2px)' : 'none',
+                      boxShadow: isSelected ? '0 4px 16px rgba(191,145,41,0.22)' : 'none',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>{opt.icon}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? 'var(--c-primary)' : 'var(--c-on-surface)', marginBottom: '3px' }}>
+                      {opt.label}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', lineHeight: 1.4 }}>
+                      {opt.desc}
+                    </div>
+                    {isSelected && (
+                      <div style={{ position: 'absolute', top: '10px', right: '10px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
