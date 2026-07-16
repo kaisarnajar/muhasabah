@@ -196,7 +196,7 @@ export default function DocumentsDashboard({ initialDocuments, initialFolders }:
 
       {/* ── Folders grid (root only) ── */}
       {activeFolderId === null && initialFolders.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
           {initialFolders.map(folder => (
             <div key={folder.id}
               onClick={() => { setActiveFolderId(folder.id); setSearch(''); setCurrentPage(1); }}
@@ -207,7 +207,7 @@ export default function DocumentsDashboard({ initialDocuments, initialFolders }:
             >
               <Folder size={28} color="var(--c-primary)" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: '14px', color: 'var(--c-on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{folder.name}</p>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '14px', color: 'var(--c-on-surface)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word', lineHeight: 1.3 }}>{folder.name}</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>{countInFolder(folder.id)} item{countInFolder(folder.id) !== 1 ? 's' : ''}</p>
               </div>
               <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
