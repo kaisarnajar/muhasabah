@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { CalendarRange, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { useState, useTransition, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { CalendarRange, ChevronLeft, ChevronRight, RotateCcw, Edit3, X } from 'lucide-react';
 import { updateHijriOffset } from '@/features/timetable/actions';
 import { getHijriDateString } from '@/lib/hijri';
 import { useRouter } from 'next/navigation';
@@ -14,9 +15,16 @@ interface Props {
 
 export default function HijriDateDisplay({ initialOffset, showControls = false }: Props) {
   const [offset, setOffset] = useState(initialOffset);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   const today = new Date();
   const hijriStr = getHijriDateString(today, offset);
@@ -113,101 +121,239 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
       </div>
 
       {showControls && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {offset !== 0 && (
             <span 
               className="text-label-sm" 
               style={{ 
                 fontWeight: 700, 
                 fontSize: '11px', 
-                color: 'var(--c-on-surface-variant)',
-                backgroundColor: 'var(--c-surface-container-high)',
+                color: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 padding: '4px 10px',
                 borderRadius: '20px',
-                border: '1px solid var(--c-outline-variant)'
+                border: '1px solid rgba(239, 68, 68, 0.2)'
               }}
             >
-              Offset: {offset > 0 ? `+${offset}` : offset} {Math.abs(offset) === 1 ? 'Day' : 'Days'}
+              Offset: {offset > 0 ? `+${offset}` : offset} Day{Math.abs(offset) !== 1 && 's'}
             </span>
-          </div>
+          )}
 
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="primary-btn"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              backgroundColor: 'var(--c-surface-container-high)',
+              color: 'var(--c-on-surface)',
+              border: '1px solid var(--c-outline-variant)',
+              boxShadow: 'none',
+              fontSize: '13px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <Edit3 size={15} /> Adjust Offset
+          </button>
+        </div>
+      )}
+
+      {/* Edit Offset Modal */}
+      {showControls && isModalOpen && mounted && createPortal(
+        <div 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            zIndex: 1100, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: '20px', 
+            backdropFilter: 'blur(6px)', 
+            backgroundColor: 'rgba(0,0,0,0.6)' 
+          }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="card"
+            style={{ 
+              position: 'relative', 
+              width: '100%', 
+              maxWidth: '420px', 
+              padding: '28px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '24px', 
+              boxShadow: 'var(--shadow-lg)', 
+              border: '1px solid var(--c-outline-variant)' 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
             <button
-              onClick={() => handleAdjust(-1)}
-              disabled={isPending}
-              className="primary-btn"
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--c-surface-container-high)',
-                color: 'var(--c-on-surface)',
-                border: '1px solid var(--c-outline-variant)',
-                boxShadow: 'none',
-                fontWeight: 700,
-                fontSize: '13px',
-                cursor: isPending ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                opacity: isPending ? 0.6 : 1
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              style={{ 
+                position: 'absolute', 
+                top: '16px', 
+                right: '16px', 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer', 
+                color: 'var(--c-on-surface-variant)', 
+                display: 'flex' 
               }}
-              title="Subtract 1 Day"
             >
-              <ChevronLeft size={14} /> -1 Day
+              <X size={20} />
             </button>
 
-            {offset !== 0 && (
+            {/* Header */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
+                Adjust Hijri Offset
+              </h3>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-on-surface-variant)', lineHeight: 1.5 }}>
+                Manually adjust the Hijri calendar offset in days to match your local announcement.
+              </p>
+            </div>
+
+            {/* Adjuster controls */}
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '24px',
+                padding: '20px 0',
+                borderTop: '1px solid var(--c-outline-variant)',
+                borderBottom: '1px solid var(--c-outline-variant)'
+              }}
+            >
               <button
-                onClick={handleReset}
+                type="button"
+                onClick={() => handleAdjust(-1)}
                 disabled={isPending}
                 className="primary-btn"
                 style={{
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  color: '#ef4444',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--c-surface-container-high)',
+                  color: 'var(--c-on-surface)',
+                  border: '1px solid var(--c-outline-variant)',
                   boxShadow: 'none',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  cursor: isPending ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  opacity: isPending ? 0.6 : 1
+                  justifyContent: 'center',
+                  cursor: isPending ? 'not-allowed' : 'pointer',
+                  opacity: isPending ? 0.6 : 1,
+                  padding: 0
                 }}
-                title="Reset to Default"
+                title="Subtract 1 Day"
               >
-                <RotateCcw size={13} /> Reset
+                <ChevronLeft size={20} />
               </button>
-            )}
 
-            <button
-              onClick={() => handleAdjust(1)}
-              disabled={isPending}
-              className="primary-btn"
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--c-surface-container-high)',
-                color: 'var(--c-on-surface)',
-                border: '1px solid var(--c-outline-variant)',
-                boxShadow: 'none',
-                fontWeight: 700,
-                fontSize: '13px',
-                cursor: isPending ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                opacity: isPending ? 0.6 : 1
-              }}
-              title="Add 1 Day"
-            >
-              +1 Day <ChevronRight size={14} />
-            </button>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
+                <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--c-primary)' }}>
+                  {offset > 0 ? `+${offset}` : offset}
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {Math.abs(offset) === 1 ? 'Day' : 'Days'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleAdjust(1)}
+                disabled={isPending}
+                className="primary-btn"
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--c-surface-container-high)',
+                  color: 'var(--c-on-surface)',
+                  border: '1px solid var(--c-outline-variant)',
+                  boxShadow: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: isPending ? 'not-allowed' : 'pointer',
+                  opacity: isPending ? 0.6 : 1,
+                  padding: 0
+                }}
+                title="Add 1 Day"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+
+            {/* Helper display */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--c-on-surface-variant)' }}>
+                <span>Calculated date:</span>
+                <span style={{ fontWeight: 600 }}>{getHijriDateString(today, 0)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--c-on-surface)' }}>
+                <span>Adjusted date:</span>
+                <span style={{ fontWeight: 800, color: 'var(--c-primary)' }}>{hijriStr}</span>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '4px' }}>
+              <div>
+                {offset !== 0 && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={isPending}
+                    className="primary-btn"
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                      color: '#ef4444',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      boxShadow: 'none',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: isPending ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      opacity: isPending ? 0.6 : 1
+                    }}
+                  >
+                    <RotateCcw size={14} /> Reset
+                  </button>
+                )}
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="primary-btn"
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700
+                }}
+              >
+                Close
+              </button>
+            </div>
+
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
     </div>
   );
 }
