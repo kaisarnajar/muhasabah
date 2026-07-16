@@ -43,7 +43,29 @@ export default function Navigation() {
 
       <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div style={{ marginBottom: '40px', padding: '0 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 className="text-headline-md text-primary" style={{ fontWeight: 800 }}>Muhasabah</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style={{ width: '28px', height: '28px', flexShrink: 0 }}>
+              <path 
+                d="M 50 10 A 40 40 0 1 0 90 50 A 32 32 0 1 1 50 10 Z" 
+                fill="url(#navGoldGradient)"
+              />
+              <path 
+                d="M 62 28 Q 62 38 72 38 Q 62 38 62 48 Q 62 38 52 38 Q 62 38 62 28 Z" 
+                fill="url(#navGoldGradientLight)"
+              />
+              <defs>
+                <linearGradient id="navGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="var(--c-primary)" />
+                  <stop offset="100%" stop-color="#d4af37" />
+                </linearGradient>
+                <linearGradient id="navGoldGradientLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d4af37" />
+                  <stop offset="100%" stop-color="#f3e5ab" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <h1 className="text-headline-md text-primary" style={{ fontWeight: 800, margin: 0, lineHeight: 1 }}>Muhasabah</h1>
+          </div>
           {/* Close button for mobile inside sidebar (optional but good practice) */}
           <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(false)}>
             <span className="material-symbols-outlined">close</span>
