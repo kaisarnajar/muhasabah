@@ -313,24 +313,23 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
         </div>
       </div>
 
-      {/* Horizontal timeline cards */}
-      <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '10px 4px 20px 4px', margin: '-10px -4px -10px -4px' }}>
+      {/* Timeline cards grid wrapper */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', padding: '8px 0' }}>
         {slots.map((slot, i) => {
           const active = isActive(slot);
           return (
             <div
               key={`${slot.key}-${i}`}
               style={{
-                flexShrink: 0,
-                minWidth: '128px',
-                maxWidth: '155px',
+                flex: '1 1 calc(12.5% - 12px)',
+                minWidth: '135px',
                 padding: '12px 14px',
                 borderRadius: '14px',
                 border: `1.5px solid ${active ? slot.color : 'var(--c-outline-variant)'}`,
                 backgroundColor: active ? `${slot.color}14` : 'var(--c-surface-container-low)',
                 transition: 'all 0.3s ease',
-                transform: active ? 'translateY(-4px)' : 'none',
-                boxShadow: active ? `0 6px 20px ${slot.color}30` : 'none',
+                transform: active ? 'translateY(-2px)' : 'none',
+                boxShadow: active ? `0 4px 12px ${slot.color}25` : 'none',
                 position: 'relative',
               }}
             >
