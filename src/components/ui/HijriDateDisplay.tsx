@@ -145,10 +145,6 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
             style={{
               padding: '8px 16px',
               borderRadius: '8px',
-              backgroundColor: 'var(--c-surface-container-high)',
-              color: 'var(--c-on-surface)',
-              border: '1px solid var(--c-outline-variant)',
-              boxShadow: 'none',
               fontSize: '13px',
               fontWeight: 700,
               display: 'flex',
@@ -236,7 +232,6 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                 type="button"
                 onClick={() => handleAdjust(-1)}
                 disabled={isPending}
-                className="primary-btn"
                 style={{
                   width: '44px',
                   height: '44px',
@@ -244,7 +239,6 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                   backgroundColor: 'var(--c-surface-container-high)',
                   color: 'var(--c-on-surface)',
                   border: '1px solid var(--c-outline-variant)',
-                  boxShadow: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -270,7 +264,6 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                 type="button"
                 onClick={() => handleAdjust(1)}
                 disabled={isPending}
-                className="primary-btn"
                 style={{
                   width: '44px',
                   height: '44px',
@@ -278,7 +271,6 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                   backgroundColor: 'var(--c-surface-container-high)',
                   color: 'var(--c-on-surface)',
                   border: '1px solid var(--c-outline-variant)',
-                  boxShadow: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -312,14 +304,12 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                     type="button"
                     onClick={handleReset}
                     disabled={isPending}
-                    className="primary-btn"
                     style={{
                       padding: '10px 16px',
                       borderRadius: '8px',
                       backgroundColor: 'rgba(239, 68, 68, 0.1)',
                       color: '#ef4444',
                       border: '1px solid rgba(239, 68, 68, 0.2)',
-                      boxShadow: 'none',
                       fontWeight: 700,
                       fontSize: '13px',
                       cursor: isPending ? 'not-allowed' : 'pointer',
