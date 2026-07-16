@@ -148,6 +148,13 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
   const [gymSaving, setGymSaving] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [tempGymVal, setTempGymVal] = useState<string>('NONE');
+
+  const getGymLabel = (val: string) => {
+    const opt = gymOptions.find(o => o.value === val);
+    return opt ? opt.label : 'No Gym';
+  };
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
@@ -156,6 +163,8 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
   useEffect(() => {
     if (editingTiming?.key === 'asrTiming') {
       setTempAsrVal(typeof editingTiming.value === 'number' ? editingTiming.value : Number(editingTiming.value) || 0);
+    } else if (editingTiming?.key === 'gymPreference') {
+      setTempGymVal(String(editingTiming.value) || 'NONE');
     }
   }, [editingTiming]);
 
@@ -238,24 +247,23 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
     }
   };
 
-  const handleGymClick = (val: string) => {
-    setSelectedGym(val);
-  };
-
-  const handleGymSave = async () => {
-    setGymSaving(true);
+  const handleGymSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setTimingsLoading(true);
     const fd = new FormData();
-    fd.append('gymPreference', selectedGym);
+    fd.append('gymPreference', tempGymVal);
     try {
       const res = await updateTimeTable(fd);
       if (res.success) {
         showToast('Gym preference updated successfully.', 'success');
+        setSelectedGym(tempGymVal);
+        setEditingTiming(null);
         router.refresh();
       }
     } catch (err: any) {
       showToast(err.message || 'Failed to update gym preference', 'error');
     } finally {
-      setGymSaving(false);
+      setTimingsLoading(false);
     }
   };
 
@@ -364,12 +372,18 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
             { key: 'officeDeparture',  label: 'Leave for Office',     val: initialData.officeDeparture,  icon: <Briefcase size={15} color="#6366f1" /> },
             { key: 'officeReturn',     label: 'Return from Office',   val: initialData.officeReturn,     icon: <Home size={15} color="#0ea5e9" /> },
             { key: 'asrTiming',        label: 'Asr Prayer Timing',    val: initialData.asrTiming === 1 ? 'Later Asr' : 'Earlier Asr', icon: <Sun size={15} color="#f97316" />, rawVal: initialData.asrTiming ?? 0 },
+            { key: 'gymPreference',    label: 'Gym Preference',       val: getGymLabel(selectedGym),     icon: <Dumbbell size={15} color="#e11d48" />, rawVal: selectedGym },
             { key: 'hifzClassTime',    label: 'Hifz Class Time',      val: initialData.hifzClassTime,    icon: <BookOpen size={15} color="#a855f7" /> },
             { key: 'sleepTime',        label: 'Sleep Time',           val: initialData.sleepTime,        icon: <Moon size={15} color="#10b981" /> }
           ].map((item, idx) => (
             <div
               key={idx}
-              onClick={() => setEditingTiming({ key: item.key, label: item.label, icon: item.icon, value: item.key === 'asrTiming' ? (item as any).rawVal : item.val })}
+              onClick={() => setEditingTiming({ 
+                key: item.key, 
+                label: item.label, 
+                icon: item.icon, 
+                value: (item.key === 'asrTiming' || item.key === 'gymPreference') ? (item as any).rawVal : item.val 
+              })}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -450,83 +464,6 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
         </div>
       </form>
 
-      {/* Gym Preference — single choice from all 4 slots */}
-      <div className="card" style={{ padding: '24px' }}>
-        {sectionHeader(<Dumbbell size={18} />, 'Gym Preference', 'Choose one time slot for your gym session')}
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-            {gymOptions.map((opt) => {
-              const isSelected = selectedGym === opt.value;
-              const badgeColor = opt.badge === 'Morning' ? '#f97316' : opt.badge === 'Evening' ? '#8b5cf6' : 'transparent';
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleGymClick(opt.value)}
-                  style={{
-                    padding: '16px',
-                    borderRadius: '14px',
-                    border: `2px solid ${isSelected ? 'var(--c-primary)' : 'var(--c-outline-variant)'}`,
-                    backgroundColor: isSelected ? 'var(--c-primary-container)' : 'var(--c-surface-container-low)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s ease',
-                    transform: isSelected ? 'translateY(-3px)' : 'none',
-                    boxShadow: isSelected ? '0 6px 20px rgba(191,145,41,0.28)' : 'none',
-                    position: 'relative',
-                  }}
-                >
-                  {opt.badge && (
-                    <span style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: badgeColor,
-                      backgroundColor: `${badgeColor}18`,
-                      border: `1px solid ${badgeColor}40`,
-                      padding: '2px 7px',
-                      borderRadius: '20px',
-                    }}>
-                      {opt.badge}
-                    </span>
-                  )}
-
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>{opt.icon}</div>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? 'var(--c-primary)' : 'var(--c-on-surface)', marginBottom: '4px' }}>
-                    {opt.label}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', lineHeight: 1.4 }}>
-                    {opt.desc}
-                  </div>
-
-                  {isSelected && (
-                    <div style={{ position: 'absolute', bottom: '10px', right: '10px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: '#fff', fontSize: '11px', fontWeight: 700 }}>✓</span>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button 
-              type="button" 
-              onClick={handleGymSave} 
-              className="primary-btn" 
-              disabled={gymSaving} 
-              style={{ padding: '10px 24px', fontSize: '13px' }}
-            >
-              {gymSaving ? 'Saving...' : 'Save Gym Preference'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Single Timing Edit Modal */}
       {editingTiming && mounted && createPortal(
         <div
@@ -534,7 +471,13 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
           onClick={() => setEditingTiming(null)}
         >
           <form
-            onSubmit={editingTiming.key === 'asrTiming' ? handleAsrSubmit : handleTimingsSubmit}
+            onSubmit={
+              editingTiming.key === 'asrTiming'
+                ? handleAsrSubmit
+                : editingTiming.key === 'gymPreference'
+                ? handleGymSubmit
+                : handleTimingsSubmit
+            }
             className="card"
             style={{ position: 'relative', width: '100%', maxWidth: '380px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--c-outline-variant)' }}
             onClick={(e) => e.stopPropagation()}
@@ -586,6 +529,57 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                           <span style={{ fontSize: '13px', fontWeight: 700, color: isSel ? 'var(--c-primary)' : 'var(--c-on-surface)' }}>
                             {opt.label}
                           </span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', paddingLeft: '26px' }}>
+                          {opt.desc}
+                        </span>
+                        {isSel && (
+                          <div style={{ position: 'absolute', top: '12px', right: '12px', width: '16px', height: '16px', borderRadius: '50%', backgroundColor: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>✓</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : editingTiming.key === 'gymPreference' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-on-surface-variant)', lineHeight: 1.5 }}>
+                  Choose one time slot for your gym session.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {gymOptions.map(opt => {
+                    const isSel = tempGymVal === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setTempGymVal(opt.value)}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          border: `2px solid ${isSel ? 'var(--c-primary)' : 'var(--c-outline-variant)'}`,
+                          backgroundColor: isSel ? 'var(--c-primary-container)' : 'var(--c-surface-container-low)',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px',
+                          position: 'relative'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '18px' }}>{opt.icon}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: isSel ? 'var(--c-primary)' : 'var(--c-on-surface)' }}>
+                            {opt.label}
+                          </span>
+                          {opt.badge && (
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#fff', backgroundColor: opt.badge === 'Morning' ? '#f59e0b' : '#3b82f6', padding: '2px 8px', borderRadius: '10px', marginLeft: 'auto', marginRight: isSel ? '16px' : '0' }}>
+                              {opt.badge}
+                            </span>
+                          )}
                         </div>
                         <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', paddingLeft: '26px' }}>
                           {opt.desc}
