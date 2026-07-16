@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { hashPassword, comparePasswords, createSession, destroySession, getSession } from '@/lib/auth';
-import { sendVerificationEmail, sendPasswordResetEmail } from '@/lib/mailer';
+import { sendPasswordResetEmail } from '@/lib/mailer';
 import { redirect } from 'next/navigation';
 import crypto from 'crypto';
 
@@ -45,22 +45,11 @@ export async function register(formData: FormData) {
       name,
       email,
       passwordHash,
+      emailVerified: true,
     }
   });
 
-  const token = generateToken();
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      type: 'EMAIL_VERIFICATION'
-    }
-  });
-
-  await sendVerificationEmail(email, token);
-
-  return { success: 'Registration successful! Please check your email to verify your account.' };
+  return { success: 'Registration successful! You can now log in.' };
 }
 
 export async function login(formData: FormData) {
@@ -81,9 +70,7 @@ export async function login(formData: FormData) {
     return { error: 'Invalid email or password.' };
   }
 
-  if (!user.emailVerified) {
-    return { error: 'Please verify your email before logging in.' };
-  }
+  // Email verification is disabled
 
   await createSession({
     userId: user.id,
@@ -259,7 +246,6 @@ export async function updateProfile(formData: FormData) {
     data: {
       name: name.trim(),
       email: email.trim(),
-      ...(email !== user.email ? { emailVerified: false } : {}),
     }
   });
 
@@ -269,59 +255,6 @@ export async function updateProfile(formData: FormData) {
     name: updatedUser.name,
   });
 
-  if (email !== user.email) {
-    const crypto = await import('crypto');
-    const token = crypto.randomBytes(32).toString('hex');
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-        type: 'EMAIL_VERIFICATION'
-      }
-    });
-    const { sendVerificationEmail } = await import('@/lib/mailer');
-    await sendVerificationEmail(email, token);
-    
-    return { 
-      success: 'Profile updated. A verification link has been sent to your new email address. Please verify it before logging in next time.',
-      emailChanged: true 
-    };
-  }
-
   return { success: 'Profile updated successfully.' };
 }
 
-export async function resendVerificationEmailAction() {
-  const user = await getAuthenticatedUser();
-  if (!user) {
-    return { error: 'Unauthorized' };
-  }
-
-  if (user.emailVerified) {
-    return { error: 'Email is already verified.' };
-  }
-
-  await prisma.verificationToken.deleteMany({
-    where: {
-      identifier: user.email,
-      type: 'EMAIL_VERIFICATION'
-    }
-  });
-
-  const crypto = await import('crypto');
-  const token = crypto.randomBytes(32).toString('hex');
-  await prisma.verificationToken.create({
-    data: {
-      identifier: user.email,
-      token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      type: 'EMAIL_VERIFICATION'
-    }
-  });
-
-  const { sendVerificationEmail } = await import('@/lib/mailer');
-  await sendVerificationEmail(user.email, token);
-
-  return { success: 'Verification link has been sent! Check your server console/logs.' };
-}

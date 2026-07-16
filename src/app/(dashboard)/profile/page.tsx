@@ -1,8 +1,7 @@
 import { getAuthenticatedUser } from '@/features/auth/actions';
-import { User, Mail, ShieldCheck, LogOut } from 'lucide-react';
+import { User, Mail, LogOut } from 'lucide-react';
 import ChangePasswordForm from "@/features/profile/components/ChangePasswordForm";
 import UpdateProfileForm from "@/features/profile/components/UpdateProfileForm";
-import ResendVerificationButton from "@/features/profile/components/ResendVerificationButton";
 
 export default async function Profile() {
   const user = await getAuthenticatedUser();
@@ -23,24 +22,8 @@ export default async function Profile() {
           </h2>
           
           <UpdateProfileForm initialName={user.name} initialEmail={user.email} />
-          
-          <div style={{ marginTop: '24px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
-            <span className="text-label-sm text-on-surface-variant">EMAIL STATUS</span>
-            <div className="text-body-lg" style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {user.emailVerified ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-primary)', fontWeight: 600 }}>
-                    <ShieldCheck size={18} /> Verified
-                  </span>
-                ) : (
-                  <span style={{ color: 'var(--c-error)', fontWeight: 600 }}>Unverified</span>
-                )}
-              </div>
-              {!user.emailVerified && <ResendVerificationButton />}
-            </div>
-          </div>
 
-          <div style={{ marginTop: '16px' }}>
+          <div style={{ marginTop: '24px' }}>
             <span className="text-label-sm text-on-surface-variant">MEMBER SINCE</span>
             <div className="text-body-lg" style={{ marginTop: '4px' }}>
               {new Date(user.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}

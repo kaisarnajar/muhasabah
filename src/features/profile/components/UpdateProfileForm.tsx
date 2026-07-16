@@ -39,10 +39,7 @@ export default function UpdateProfileForm({ initialName, initialEmail }: UpdateP
     } else if (result.success) {
       setSuccess(result.success);
       setIsEditing(false);
-      
-      if (!result.emailChanged) {
-        router.refresh();
-      }
+      router.refresh();
     }
     setLoading(false);
   };
