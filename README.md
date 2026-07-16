@@ -12,7 +12,10 @@ A comprehensive personal dashboard and self-accountability app to help you track
 - Quran verse memorisation logging per day with Surah and verse range
 - 180-day rolling history view
 
-### ⏰ Dynamic Timetable
+### ⏰ Dynamic Timetable & Hijri Calendar
+- **Adjustable Hijri Date Display**: Displays today's adjusted Hijri date prominently on the Dashboard and Time Table pages.
+  - Allows manual adjustment of ±1 day (or more) via a clean portal dialog popup modal on the Time Table page to align with local moon sighting announcements.
+  - Selected offset persists across refreshes and sessions (saved in the database per user).
 - Save your GPS coordinates via browser Geolocation API
 - Fetch accurate prayer times via **Aladhan API** with configurable calculation method (Karachi, ISNA, MWL, Umm Al-Qura, and more)
 - **Asr timing preference** — choose between Earlier Asr (shadow factor 1×) or Later Asr (shadow factor 2×); updates the prayer time fetched from the API immediately
@@ -79,6 +82,7 @@ A comprehensive personal dashboard and self-accountability app to help you track
 - Personal dua library with Arabic text, translation, and category (Personal, Family, Career, General)
 
 ### 📊 Dashboard
+- Today's adjusted Hijri date & Gregorian date
 - Today's prayer times at a glance
 - Today's tasks overview
 - Recurring tracker status
@@ -86,6 +90,7 @@ A comprehensive personal dashboard and self-accountability app to help you track
 
 ### 🔐 Auth
 - Email/password registration with email verification
+- **Registration restrictions**: Option to whitelist specific email addresses for registration via environment variable configuration (`ALLOWED_REGISTRATION_EMAILS`) to restrict unauthorized access.
 - Forgot password / reset password flow
 
 ---
@@ -108,41 +113,35 @@ A comprehensive personal dashboard and self-accountability app to help you track
 
 ```
 src/
-├── actions/             # Server actions (one file per domain)
-│   ├── auth.ts
-│   ├── books.ts         # Book + BookFolder CRUD
-│   ├── debts.ts
-│   ├── documents.ts     # Document + DocumentFolder CRUD
-│   ├── dua.ts
-│   ├── fitness.ts
-│   ├── goals.ts
-│   ├── journal.ts
-│   ├── notes.ts
-│   ├── relapse.ts
-│   ├── religious.ts
-│   ├── tasks.ts
-│   ├── timetable.ts
-│   ├── transactions.ts
+├── actions/             # Barrel exports of server actions
 │   └── index.ts
-├── app/
-│   ├── (dashboard)/     # Protected routes
-│   └── ...              # Auth pages (login, register, etc.)
-├── components/          # Feature-grouped UI components
-│   ├── books/
-│   ├── dashboard/
-│   ├── debts/
-│   ├── documents/
-│   ├── fitness/
-│   ├── goals/
-│   ├── journal/
-│   ├── layout/          # Navigation, shared dialogs
-│   ├── notes/
-│   ├── religious/
-│   ├── timetable/
-│   ├── transactions/
-│   └── weekend/
-└── lib/
-    └── prisma.ts
+├── app/                 # App Router routing layer
+│   ├── (dashboard)/     # Authenticated pages (Timetable, religious, etc.)
+│   └── ...              # Auth pages (login, register, reset-password)
+├── components/          # Shared/Global layout and UI components
+│   ├── dashboard/       # Dashboard card widgets
+│   ├── layout/          # Global navigation layout
+│   └── ui/              # Common UI components (Dialogs, Buttons)
+├── features/            # Feature domains (Encapsulated actions, modals, cards, grids)
+│   ├── auth/            # Auth action flow & settings
+│   ├── books/           # Books cards, folders, forms, viewer modal
+│   ├── debts/           # Credit/Debit forms, ledger logs
+│   ├── documents/       # Documents grid, cards, folders, form modals
+│   ├── dua/             # Duas list
+│   ├── fitness/         # Fitness logs, summaries
+│   ├── goals/           # Goals forms, checklist
+│   ├── journal/         # Journal categories forms, filters
+│   ├── notes/           # Note card grid
+│   ├── profile/         # Profile update forms
+│   ├── relapse/         # Heatmap calendar grid, clean recovery logs
+│   ├── religious/       # Spiritual habits stats, tracker modals
+│   ├── tasks/           # Daily & weekend task grids
+│   ├── timetable/       # Time table timeline routine, forms
+│   └── transactions/    # Transactions filter, CSV export
+└── lib/                 # Core utilities
+    ├── auth.ts          # Authentication session manager
+    ├── hijri.ts         # Hijri date calculations utility
+    └── prisma.ts        # Prisma Client instance config
 ```
 
 ---
@@ -151,7 +150,7 @@ src/
 
 | Model | Key Fields |
 |---|---|
-| `User` | name, email, passwordHash, latitude, longitude, calculationMethod, asrTiming |
+| `User` | name, email, passwordHash, latitude, longitude, calculationMethod, asrTiming, hijriOffset |
 | `BookFolder` | name, userId |
 | `Book` | title, author, driveLink, notes, folderId? |
 | `DocumentFolder` | name, userId |
@@ -161,6 +160,7 @@ src/
 | `Goal` | title, category, priority, progress, targetDate |
 | `SpiritualHabit` | name, isPrayer |
 | `SpiritualHabitLog` | habitId, date, isCompleted, prayedWithJamaat |
+| `SpiritualDayLog` | date, quranMemorization, otherActivities |
 | `JournalEntry` | content, category (OFFICE/LEARNING/MISC), subject/project/etc. |
 | `DailyTask` | title, isCompleted, targetDate |
 | `WeekendTask` + `WeekendTaskLog` | recurring weekly checklists |
@@ -181,15 +181,18 @@ npm install
 
 # 2. Configure environment
 cp .env.example .env
-# Set DATABASE_URL in .env
+# Set DATABASE_URL and ALLOWED_REGISTRATION_EMAILS in .env
 
 # 3. Push schema to database
 npx prisma db push
 
-# 4. Seed with realistic fake data (optional but recommended)
+# 4. Generate Prisma Client
+npx prisma generate
+
+# 5. Seed with realistic fake data (optional but recommended)
 npx prisma db seed
 
-# 5. Run dev server
+# 6. Run dev server
 npm run dev
 ```
 
@@ -210,6 +213,7 @@ After running `npx prisma db seed`:
 
 ## Key Design Principles
 
+- **Feature-Based Domain encapsulations** — related components, subcomponents, modals, cards, and server actions are placed inside their respective domain directory under `/src/features/`.
 - **Server Components by default** — data fetching happens on the server; only interactive islands use `'use client'`
 - **Portal-based modals** — all popups use `createPortal` to render at `document.body`, preventing z-index and overflow issues
 - **No CSS framework** — pure CSS custom properties with design tokens for theming, spacing, and shadows
