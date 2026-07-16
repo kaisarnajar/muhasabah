@@ -17,6 +17,7 @@ model User {
   locationName      String?
   calculationMethod Int       @default(1)
   asrTiming         Int       @default(0) // 0 = Earlier Asr, 1 = Later Asr
+  hijriOffset       Int       @default(0)
   createdAt         DateTime  @default(now()) @db.Timestamptz()
   updatedAt     DateTime  @updatedAt @db.Timestamptz()
 

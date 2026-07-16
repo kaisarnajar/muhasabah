@@ -2,6 +2,7 @@ import { getTransactions, getTimeTable } from '@/actions/index';
 import { getAuthenticatedUser } from '@/features/auth/actions';
 import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCard';
+import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
@@ -175,6 +176,11 @@ export default async function Dashboard() {
 
   return (
     <>
+      {/* HIJRI DATE DISPLAY */}
+      <div style={{ marginBottom: '24px' }}>
+        <HijriDateDisplay initialOffset={user?.hijriOffset ?? 0} />
+      </div>
+
       {/* UMAR RA QUOTE */}
       <div className="quote-card">
         {/* Decorative Quote Icon Background */}

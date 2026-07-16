@@ -109,3 +109,19 @@ export async function updateAsrTiming(school: number) {
 
   return { success: 'Asr timing preference updated successfully.' };
 }
+
+export async function updateHijriOffset(offset: number) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { hijriOffset: offset }
+  });
+
+  revalidatePath('/');
+  revalidatePath('/timetable');
+
+  return { success: 'Hijri offset updated successfully.' };
+}
+
