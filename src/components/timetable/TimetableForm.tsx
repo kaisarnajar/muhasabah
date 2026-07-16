@@ -416,7 +416,7 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                   {item.label}
                 </span>
                 <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
-                  {item.key === 'asrTiming' ? item.val : formatTime(item.val)}
+                  {(item.key === 'asrTiming' || item.key === 'gymPreference') ? item.val : formatTime(item.val)}
                 </span>
               </div>
             </div>
