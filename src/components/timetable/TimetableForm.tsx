@@ -345,11 +345,9 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                     type="button"
                     onClick={async () => {
                       try {
-                        const res = await updateAsrTiming(opt.value);
-                        if (res.success) {
-                          showToast(res.success, 'success');
-                          router.refresh();
-                        }
+                        await updateAsrTiming(opt.value);
+                        showToast('Asr timing preference updated successfully.', 'success');
+                        router.refresh();
                       } catch (err: any) {
                         showToast(err.message || 'Failed to update Asr timing', 'error');
                       }
@@ -406,7 +404,30 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
           ].map((item, idx) => (
             <div
               key={idx}
-              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container-low)', position: 'relative' }}
+              onClick={() => setEditingTiming({ key: item.key, label: item.label, icon: item.icon, value: item.val })}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                border: '1.5px solid var(--c-outline-variant)',
+                backgroundColor: 'var(--c-surface-container-low)',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--c-primary)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(191,145,41,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              title={`Edit ${item.label}`}
             >
               <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'var(--c-surface-container-highest)', display: 'flex' }}>
                 {item.icon}
@@ -419,16 +440,6 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
                   {formatTime(item.val)}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setEditingTiming({ key: item.key, label: item.label, icon: item.icon, value: item.val })}
-                style={{ padding: '5px', background: 'none', border: 'none', borderRadius: '6px', cursor: 'pointer', color: 'var(--c-on-surface-variant)', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--c-primary)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--c-on-surface-variant)'; }}
-                title={`Edit ${item.label}`}
-              >
-                <Edit3 size={14} />
-              </button>
             </div>
           ))}
         </div>
