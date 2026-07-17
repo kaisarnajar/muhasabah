@@ -64,3 +64,78 @@ export async function deleteDua(id: number) {
   });
   revalidatePath('/dua');
 }
+
+import hisnMuslimData from './data/hisn_muslim.json';
+
+export interface AuthenticDua {
+  title: string;
+  content: string;
+  translation: string | null;
+  reference: string;
+}
+
+export async function searchAuthenticDuas(query: string): Promise<AuthenticDua[]> {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const trimmedQuery = query.trim().toLowerCase();
+  if (trimmedQuery.length < 2) return [];
+
+  const results: { item: AuthenticDua; score: number }[] = [];
+
+  for (const chapter of hisnMuslimData.English) {
+    const chapterTitleLower = chapter.TITLE.toLowerCase();
+    const isChapterMatch = chapterTitleLower.includes(trimmedQuery);
+
+    for (const supplication of chapter.TEXT) {
+      const supp = supplication as any;
+      let score = 0;
+
+      if (isChapterMatch) {
+        score += 10;
+      } else if (chapterTitleLower.split(/\s+/).some(word => word.length > 2 && trimmedQuery.includes(word))) {
+        score += 3;
+      }
+
+      const translationLower = (supp.TRANSLATED_TEXT || '').toLowerCase();
+      if (translationLower.includes(trimmedQuery)) {
+        score += 5;
+      }
+
+      const arabicText = supp.ARABIC_TEXT || supp.Text || '';
+      const arabicLower = arabicText.toLowerCase();
+      if (arabicLower.includes(trimmedQuery)) {
+        score += 2;
+      }
+
+      if (score > 0) {
+        results.push({
+          item: {
+            title: chapter.TITLE,
+            content: arabicText,
+            translation: supp.TRANSLATED_TEXT || null,
+            reference: `Hisn al-Muslim (Hadith/Source)`
+          },
+          score
+        });
+      }
+    }
+  }
+
+  // Remove duplicates based on content
+  const uniqueContents = new Set<string>();
+  const uniqueResults: typeof results = [];
+
+  for (const res of results) {
+    if (!uniqueContents.has(res.item.content)) {
+      uniqueContents.add(res.item.content);
+      uniqueResults.push(res);
+    }
+  }
+
+  // Sort by score descending and take top 5
+  return uniqueResults
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map(r => r.item);
+}
