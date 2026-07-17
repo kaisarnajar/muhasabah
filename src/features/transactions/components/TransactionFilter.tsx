@@ -111,6 +111,44 @@ export default function TransactionFilter() {
         ))}
       </div>
 
+      {/* Year Selector */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-on-surface-variant)', letterSpacing: '0.05em' }}>YEAR WISE</span>
+        <select
+          value={filterType === 'year' ? dateValue : 'all'}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === 'all') {
+              setFilterType('all');
+              setDateValue('');
+              applyFilter('all', '', startDate, endDate);
+            } else {
+              setFilterType('year');
+              setDateValue(val);
+              applyFilter('year', val, startDate, endDate);
+            }
+          }}
+          className="search-input"
+          style={{
+            padding: '6px 12px',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            border: '1px solid var(--c-outline-variant)',
+            backgroundColor: 'var(--c-surface)',
+            color: 'var(--c-on-surface)',
+            outline: 'none',
+            minWidth: '120px',
+            width: 'fit-content'
+          }}
+        >
+          <option value="all">All Years</option>
+          {[2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018].map(yr => (
+            <option key={yr} value={yr.toString()}>{yr}</option>
+          ))}
+        </select>
+      </div>
+
       {isCustomRangeOpen && (
         <CustomDateRangeDialog
           initialStartDate={startDate}

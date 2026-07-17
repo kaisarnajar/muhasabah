@@ -26,6 +26,7 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
   const [isRegisterCustomRangeOpen, setIsRegisterCustomRangeOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>('all');
 
   const formatQuranMemorization = (val: string | null): string => {
     if (!val) return '';
@@ -41,10 +42,26 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
     return val;
   };
 
+  const availableYears = Array.from(
+    new Set([
+      new Date().getFullYear(),
+      ...initialHistory
+        .map(r => r.date ? new Date(r.date).getFullYear() : null)
+        .filter((y): y is number => y !== null)
+    ])
+  ).sort((a, b) => b - a);
+
   const filteredHistory = initialHistory.filter(record => {
     const recDate = new Date(record.date);
     const today = new Date();
     
+    // Apply Year Dropdown if selected
+    if (selectedYear !== 'all') {
+      if (recDate.getFullYear().toString() !== selectedYear) {
+        return false;
+      }
+    }
+
     let startLimit: Date | null = null;
     let endLimit: Date | null = null;
 
@@ -153,6 +170,37 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
                   {tab.label}
                 </button>
               ))}
+            </div>
+
+            {/* Year Selector */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-on-surface-variant)', letterSpacing: '0.05em' }}>YEAR WISE</span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => {
+                    setSelectedYear(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="search-input"
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    border: '1px solid var(--c-outline-variant)',
+                    backgroundColor: 'var(--c-surface)',
+                    color: 'var(--c-on-surface)',
+                    outline: 'none',
+                    minWidth: '120px'
+                  }}
+                >
+                  <option value="all">All Years</option>
+                  {availableYears.map(yr => (
+                    <option key={yr} value={yr}>{yr}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {isRegisterCustomRangeOpen && (

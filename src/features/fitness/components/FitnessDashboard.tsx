@@ -49,6 +49,7 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState('all');
 
   // Form states
   const [activity, setActivity] = useState('Gym');
@@ -115,10 +116,25 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
     setCurrentPage(1);
   };
 
+  const availableYears = Array.from(
+    new Set([
+      new Date().getFullYear(),
+      ...initialLogs
+        .map(l => l.date ? new Date(l.date).getFullYear() : null)
+        .filter((y): y is number => y !== null)
+    ])
+  ).sort((a, b) => b - a);
+
   // Filter logs by period
   const filteredLogs = initialLogs.filter(log => {
     const d = new Date(log.date);
     const now = new Date();
+
+    if (selectedYear !== 'all') {
+      if (d.getFullYear().toString() !== selectedYear) {
+        return false;
+      }
+    }
 
     if (filterPeriod === 'ALL') return true;
     if (filterPeriod === 'TODAY') {
@@ -229,6 +245,37 @@ export default function FitnessDashboard({ initialLogs }: { initialLogs: Fitness
             {tab.label}
           </button>
         ))}
+      </div>
+
+      {/* Year Selector */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-on-surface-variant)', letterSpacing: '0.05em' }}>YEAR WISE</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="search-input"
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 600,
+              border: '1px solid var(--c-outline-variant)',
+              backgroundColor: 'var(--c-surface)',
+              color: 'var(--c-on-surface)',
+              outline: 'none',
+              minWidth: '120px'
+            }}
+          >
+            <option value="all">All Years</option>
+            {availableYears.map(yr => (
+              <option key={yr} value={yr}>{yr}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {isCustomRangeOpen && (
