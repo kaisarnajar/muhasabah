@@ -136,7 +136,7 @@ export default function TaskHistoryTable({ tasks }: TaskHistoryTableProps) {
 
       {activeDays.length === 0 && (
         <div className="card" style={{ padding: '32px', textAlign: 'center', backgroundColor: 'var(--c-surface-container-low)', borderRadius: '12px', border: '1px dashed var(--c-outline)' }}>
-          <p className="text-on-surface-variant" style={{ margin: 0 }}>No daily tasks recorded in the last 30 days.</p>
+        <p className="text-on-surface-variant" style={{ margin: 0 }}>No daily tasks recorded yet.</p>
         </div>
       )}
 

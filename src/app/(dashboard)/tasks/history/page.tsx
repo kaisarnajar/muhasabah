@@ -10,17 +10,10 @@ export default async function HistoryPage() {
     redirect('/login');
   }
 
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-  startDate.setHours(0, 0, 0, 0);
-
   const tasks = await prisma.dailyTask.findMany({
     where: {
       userId: user.id,
-      targetDate: {
-        gte: startDate,
-        lte: new Date(),
-      },
+      targetDate: { not: null },
     },
     orderBy: {
       targetDate: 'desc',
@@ -35,7 +28,7 @@ export default async function HistoryPage() {
       </Link>
       <div style={{ marginBottom: '32px' }}>
         <h2 className="text-headline-md">Task History</h2>
-        <p className="text-body-md text-on-surface-variant">Review your daily plans and accomplishments over the last month.</p>
+        <p className="text-body-md text-on-surface-variant">Review your complete daily plans and accomplishments — from day one to today.</p>
       </div>
 
       <TaskHistoryTable tasks={tasks} />
