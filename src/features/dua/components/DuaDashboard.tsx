@@ -184,18 +184,17 @@ export default function DuaDashboard({ initialDuas }: { initialDuas: Dua[] }) {
             <button
               onClick={handleWebSearch}
               disabled={isSearchingWeb}
-              className="primary-btn"
+              className="secondary-btn"
               style={{
                 padding: '10px 16px',
                 borderRadius: '8px',
                 backgroundColor: 'var(--c-surface-container-high)',
                 color: 'var(--c-primary)',
-                border: '1px solid var(--c-outline-variant)',
-                boxShadow: 'none',
+                border: '1px solid rgba(191, 145, 41, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               {isSearchingWeb ? 'Searching...' : 'Fetch from Web'}
