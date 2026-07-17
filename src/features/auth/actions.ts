@@ -2,7 +2,6 @@
 
 import prisma from '@/lib/prisma';
 import { hashPassword, comparePasswords, createSession, destroySession, getSession } from '@/lib/auth';
-import { sendPasswordResetEmail } from '@/lib/mailer';
 import { redirect } from 'next/navigation';
 import crypto from 'crypto';
 import { isEmailAuthorized } from './authorization';
@@ -36,7 +35,6 @@ export async function register(formData: FormData) {
       name,
       email,
       passwordHash,
-      emailVerified: true,
     }
   });
 
@@ -81,35 +79,7 @@ export async function logoutAction() {
   redirect('/login');
 }
 
-export async function verifyEmail(token: string) {
-  const verificationToken = await prisma.verificationToken.findUnique({
-    where: { token }
-  });
-
-  if (!verificationToken || verificationToken.type !== 'EMAIL_VERIFICATION') {
-    return { error: 'Invalid or missing token.' };
-  }
-
-  if (new Date() > verificationToken.expires) {
-    return { error: 'Token has expired.' };
-  }
-
-  const user = await prisma.user.findUnique({ where: { email: verificationToken.identifier } });
-  if (!user) {
-    return { error: 'User does not exist.' };
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { emailVerified: true }
-  });
-
-  await prisma.verificationToken.delete({
-    where: { id: verificationToken.id }
-  });
-
-  return { success: 'Email verified successfully! You can now log in.' };
-}
+// Email verification is completely removed
 
 export async function requestPasswordReset(formData: FormData) {
   const email = formData.get('email') as string;
@@ -138,7 +108,11 @@ export async function requestPasswordReset(formData: FormData) {
     }
   });
 
-  await sendPasswordResetEmail(email, token);
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+  console.log('----------------------------------------------------');
+  console.log(`[PASSWORD RESET] Token generated for: ${email}`);
+  console.log(`[PASSWORD RESET] Link: ${resetUrl}`);
+  console.log('----------------------------------------------------');
 
   return { success: 'If an account exists, a reset link has been sent.' };
 }
