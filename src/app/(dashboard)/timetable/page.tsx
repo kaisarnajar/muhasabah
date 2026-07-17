@@ -1,15 +1,30 @@
-import { getTimeTable } from '@/features/timetable/actions';
 import { getAuthenticatedUser } from '@/features/auth/actions';
 import prisma from '@/lib/prisma';
 import TimetableForm from "@/features/timetable/components/TimetableForm";
 import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCard';
 import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import { CalendarRange } from 'lucide-react';
+import { redirect } from 'next/navigation';
 
 export default async function TimetablePage() {
-  const timetable = await getTimeTable();
   const sessionUser = await getAuthenticatedUser();
-  const user = sessionUser ? await prisma.user.findUnique({ where: { id: sessionUser.id } }) : null;
+  if (!sessionUser) {
+    redirect('/login');
+  }
+
+  const [timetable, user] = await Promise.all([
+    prisma.timeTable.findUnique({
+      where: { userId: sessionUser.id }
+    }).then(async (t) => {
+      if (!t) {
+        return await prisma.timeTable.create({
+          data: { userId: sessionUser.id }
+        });
+      }
+      return t;
+    }),
+    prisma.user.findUnique({ where: { id: sessionUser.id } })
+  ]);
 
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];

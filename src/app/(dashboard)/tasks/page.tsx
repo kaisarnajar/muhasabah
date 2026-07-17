@@ -20,8 +20,10 @@ export default async function TasksPage(props: { searchParams?: Promise<{ [key: 
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-  const trackers = await getRecurringTrackers();
-  const flexibleTasks = await getFlexibleTasks();
+  const [trackers, flexibleTasks] = await Promise.all([
+    getRecurringTrackers(),
+    getFlexibleTasks()
+  ]);
 
   return (
     <>

@@ -11,9 +11,11 @@ export default async function ReligiousPage() {
   const localToday = new Date(today.getTime() - offset);
   const dateStr = localToday.toISOString().split('T')[0];
 
-  const todayData = await getSpiritualTodayData(dateStr);
-  const history = await getSpiritualHistory();
-  const allHabits = await getSpiritualHabits();
+  const [todayData, history, allHabits] = await Promise.all([
+    getSpiritualTodayData(dateStr),
+    getSpiritualHistory(),
+    getSpiritualHabits()
+  ]);
 
   return (
     <div style={{ padding: '0 24px 60px 24px' }}>

@@ -1,14 +1,22 @@
 import TaskHistoryTable from '@/features/tasks/components/TaskHistoryTable';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import { getAuthenticatedUser } from '@/features/auth/actions';
+import { redirect } from 'next/navigation';
 
 export default async function HistoryPage() {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    redirect('/login');
+  }
+
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 30);
   startDate.setHours(0, 0, 0, 0);
 
   const tasks = await prisma.dailyTask.findMany({
     where: {
+      userId: user.id,
       targetDate: {
         gte: startDate,
         lte: new Date(),
