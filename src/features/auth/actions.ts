@@ -1,9 +1,8 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { hashPassword, comparePasswords, createSession, destroySession, getSession } from '@/lib/auth';
+import { hashPassword, createSession, destroySession, getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import crypto from 'crypto';
 import { isEmailAuthorized } from './authorization';
 
 export async function register(formData: FormData) {

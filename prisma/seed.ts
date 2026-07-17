@@ -22,7 +22,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('🧹 Cleaning up existing data...');
 
-  await prisma.verificationToken.deleteMany();
+
   await prisma.transaction.deleteMany();
   await prisma.goal.deleteMany();
   await prisma.spiritualHabitLog.deleteMany();

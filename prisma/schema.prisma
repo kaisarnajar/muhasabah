@@ -40,20 +40,6 @@ model User {
   timeTable         TimeTable?
 }
 
-enum VerificationTokenType {
-  PASSWORD_RESET
-}
-
-model VerificationToken {
-  id         Int                   @id @default(autoincrement())
-  identifier String
-  token      String                @unique
-  expires    DateTime              @db.Timestamptz()
-  type       VerificationTokenType
-  createdAt  DateTime              @default(now()) @db.Timestamptz()
-
-  @@unique([identifier, token])
-}
 
 enum TransactionType {
   INCOME
