@@ -1,4 +1,4 @@
-import { defineConfig } from '@prisma/config';
+import { defineConfig, env } from 'prisma/config';
 import { config } from 'dotenv';
 import path from 'path';
 
@@ -7,7 +7,7 @@ config({ path: path.resolve(process.cwd(), '.env') });
 
 export default defineConfig({
   datasource: {
-    url: process.env.DIRECT_URL || process.env.DATABASE_URL,
+    url: env("DIRECT_URL") || env("DATABASE_URL"),
   },
   migrations: {
     seed: 'npx tsx prisma/seed.ts',
