@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarRange, ChevronLeft, ChevronRight, RotateCcw, Edit3, X } from 'lucide-react';
 import { updateHijriOffset } from '@/features/timetable/actions';
-import { getHijriDateString } from '@/lib/hijri';
+import { getHijriDateString, getHijriMonthNumber, ISLAMIC_MONTHS } from '@/lib/hijri';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 
@@ -15,6 +15,7 @@ interface Props {
 
 export default function HijriDateDisplay({ initialOffset, showControls = false }: Props) {
   const [offset, setOffset] = useState(initialOffset);
+  const [showMonthsList, setShowMonthsList] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -28,6 +29,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
 
   const today = new Date();
   const hijriStr = getHijriDateString(today, offset);
+  const currentMonthNum = getHijriMonthNumber(today, offset);
   const gregorianStr = today.toLocaleDateString(undefined, {
     weekday: 'long',
     day: 'numeric',
@@ -69,59 +71,59 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
       className="card"
       style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 24px',
+        flexDirection: 'column',
+        padding: '20px 24px',
         borderRadius: '16px',
-        border: '1px solid var(--c-outline-variant)',
+        border: '1.5px solid var(--c-outline-variant)',
         backgroundColor: 'var(--c-surface-container-low)',
         gap: '16px',
-        flexWrap: 'wrap',
         boxShadow: 'var(--shadow-sm)'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div 
-          style={{
-            padding: '10px',
-            backgroundColor: 'rgba(19, 110, 229, 0.1)',
-            color: 'var(--c-primary)',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <CalendarRange size={24} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <h3 
-            className="text-headline-sm" 
-            style={{ 
-              margin: 0, 
-              fontWeight: 800, 
-              fontSize: '18px', 
-              color: 'var(--c-on-surface)',
-              letterSpacing: '-0.01em'
+      {/* Top row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div 
+            style={{
+              padding: '10px',
+              backgroundColor: 'rgba(191, 145, 41, 0.1)',
+              color: 'var(--c-primary)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            {hijriStr}
-          </h3>
-          <span 
-            className="text-label-sm" 
-            style={{ 
-              color: 'var(--c-on-surface-variant)', 
-              fontWeight: 550,
-              fontSize: '12px'
-            }}
-          >
-            {gregorianStr}
-          </span>
+            <CalendarRange size={24} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <h3 
+              className="text-headline-sm" 
+              style={{ 
+                margin: 0, 
+                fontWeight: 800, 
+                fontSize: '18px', 
+                color: 'var(--c-on-surface)',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              {hijriStr}
+            </h3>
+            <span 
+              className="text-label-sm" 
+              style={{ 
+                color: 'var(--c-on-surface-variant)', 
+                fontWeight: 550,
+                fontSize: '12px'
+              }}
+            >
+              {gregorianStr}
+            </span>
+          </div>
         </div>
-      </div>
 
-      {showControls && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Buttons group */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {offset !== 0 && (
             <span 
               className="text-label-sm" 
@@ -140,8 +142,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
           )}
 
           <button
-            onClick={() => setIsModalOpen(true)}
-            className="primary-btn"
+            onClick={() => setShowMonthsList(!showMonthsList)}
             style={{
               padding: '8px 16px',
               borderRadius: '8px',
@@ -149,12 +150,94 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
+              gap: '6px',
+              backgroundColor: showMonthsList ? 'var(--c-primary)' : 'var(--c-surface-container-high)',
+              color: showMonthsList ? 'var(--c-on-primary)' : 'var(--c-on-surface)',
+              border: '1px solid var(--c-outline-variant)',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
             }}
           >
-            <Edit3 size={15} /> Adjust Offset
+            <CalendarRange size={15} /> {showMonthsList ? 'Hide Months' : 'View Calendar'}
           </button>
+
+          {showControls && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="primary-btn"
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Edit3 size={15} /> Adjust Offset
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Islamic Months Grid */}
+      {showMonthsList && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--c-outline-variant)', margin: '0' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', width: '100%' }}>
+            {ISLAMIC_MONTHS.map((monthName, index) => {
+              const monthNum = index + 1;
+              const isCurrent = monthNum === currentMonthNum;
+              return (
+                <div
+                  key={monthName}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '12px 10px',
+                    borderRadius: '12px',
+                    border: isCurrent ? '2px solid var(--c-primary)' : '1.5px solid var(--c-outline-variant)',
+                    backgroundColor: isCurrent ? 'var(--c-primary-container)' : 'var(--c-surface-container-lowest)',
+                    boxShadow: isCurrent ? 'var(--shadow-glow-primary)' : 'none',
+                    textAlign: 'center',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    minHeight: '68px'
+                  }}
+                >
+                  {isCurrent && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        fontSize: '9px',
+                        fontWeight: 800,
+                        backgroundColor: 'var(--c-primary)',
+                        color: 'var(--c-on-primary)',
+                        padding: '1px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        boxShadow: 'var(--shadow-glow-primary)'
+                      }}
+                    >
+                      Current
+                    </span>
+                  )}
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: isCurrent ? 'var(--c-primary)' : 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {monthNum}
+                  </span>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--c-on-surface)', marginTop: '2px', wordBreak: 'break-word' }}>
+                    {monthName}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Edit Offset Modal */}

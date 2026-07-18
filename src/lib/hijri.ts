@@ -1,4 +1,4 @@
-const ISLAMIC_MONTHS = [
+export const ISLAMIC_MONTHS = [
   'Muharram',
   'Safar',
   "Rabi' al-Awwal",
@@ -12,6 +12,27 @@ const ISLAMIC_MONTHS = [
   "Dhu al-Qi'dah",
   'Dhu al-Hijjah'
 ];
+
+export function getHijriMonthNumber(date: Date, offsetDays: number = 0): number {
+  const adjustedTime = date.getTime() + offsetDays * 24 * 60 * 60 * 1000;
+  const adjustedDate = new Date(adjustedTime);
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
+      month: 'numeric'
+    });
+    const parts = formatter.formatToParts(adjustedDate);
+    const monthVal = parts.find(p => p.type === 'month')?.value;
+    if (monthVal) {
+      const monthNum = parseInt(monthVal, 10);
+      if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+        return monthNum;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to get Hijri month number', e);
+  }
+  return 1;
+}
 
 export function getHijriDateString(date: Date, offsetDays: number = 0): string {
   // Apply manual offset (convert offset in days to milliseconds)
