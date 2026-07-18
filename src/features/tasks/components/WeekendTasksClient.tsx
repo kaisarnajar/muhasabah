@@ -40,6 +40,7 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
   const [view, setView] = useState<'table' | 'manage'>('table');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEditWeek, setSelectedEditWeek] = useState<Date | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{ taskId: number; weekDateStr: string } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [customWeeks, setCustomWeeks] = useState<string[]>([]);
   const [isAddWeekOpen, setIsAddWeekOpen] = useState(false);
@@ -79,6 +80,10 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
   ]))
   .map(dateStr => new Date(dateStr))
   .sort((a, b) => b.getTime() - a.getTime());
+
+  const selectedTask = selectedCell
+    ? initialTasks.find(t => t.id === selectedCell.taskId)
+    : null;
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -295,7 +300,7 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                               {status === 'DONE' && (
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedEditWeek(week)}
+                                  onClick={() => setSelectedCell({ taskId: task.id, weekDateStr })}
                                   style={{
                                     width: '24px',
                                     height: '24px',
@@ -315,7 +320,7 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                               {status === 'UNDONE' && (
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedEditWeek(week)}
+                                  onClick={() => setSelectedCell({ taskId: task.id, weekDateStr })}
                                   style={{
                                     width: '24px',
                                     height: '24px',
@@ -335,7 +340,7 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                               {status === 'UNMARKED' && (
                                 <button
                                   type="button"
-                                  onClick={() => setSelectedEditWeek(week)}
+                                  onClick={() => setSelectedCell({ taskId: task.id, weekDateStr })}
                                   style={{
                                     width: '24px',
                                     height: '24px',
@@ -737,6 +742,158 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                 </button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+      {selectedCell && selectedTask && mounted && createPortal(
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, left: 0, right: 0, bottom: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            zIndex: 1100, 
+            backdropFilter: 'blur(2px)' 
+          }}
+          onClick={() => setSelectedCell(null)}
+        >
+          <div 
+            className="card"
+            style={{ 
+              maxWidth: '320px', 
+              width: '100%', 
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              boxShadow: 'var(--shadow-lg)',
+              backgroundColor: 'var(--c-surface)',
+              border: '1px solid var(--c-outline-variant)',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              type="button"
+              onClick={() => setSelectedCell(null)} 
+              style={{ 
+                position: 'absolute', 
+                top: '16px', 
+                right: '16px', 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer', 
+                color: 'var(--c-on-surface-variant)',
+                display: 'flex'
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ textAlign: 'center', padding: '8px 0 0 0' }}>
+              <span className="text-label-sm text-primary" style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 700 }}>
+                {getWeekLabel(new Date(selectedCell.weekDateStr))}
+              </span>
+              <h4 style={{ margin: '4px 0 0 0', fontSize: '15px', fontWeight: 800, color: 'var(--c-on-surface)', wordBreak: 'break-word' }}>
+                {selectedTask.title}
+              </h4>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', margin: '8px 0' }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleStatusUpdate(selectedCell.taskId, 'DONE', selectedCell.weekDateStr);
+                  setSelectedCell(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--c-task-done-bg)',
+                  color: 'var(--c-task-done-icon)',
+                  border: '1.5px solid var(--c-task-done-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '13px'
+                }}
+              >
+                <Check size={18} strokeWidth={3} />
+                Done
+              </button>
+              
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleStatusUpdate(selectedCell.taskId, 'UNDONE', selectedCell.weekDateStr);
+                  setSelectedCell(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--c-task-undone-bg)',
+                  color: 'var(--c-task-undone-icon)',
+                  border: '1.5px solid var(--c-task-undone-border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '13px'
+                }}
+              >
+                <X size={18} strokeWidth={3} />
+                Undone
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleStatusUpdate(selectedCell.taskId, 'UNMARKED', selectedCell.weekDateStr);
+                  setSelectedCell(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--c-surface-container-high)',
+                  color: 'var(--c-on-surface-variant)',
+                  border: '1px solid var(--c-outline-variant)',
+                  cursor: 'pointer',
+                  fontWeight: 650,
+                  fontSize: '12px'
+                }}
+              >
+                Clear / Unmark
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedCell(null)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  backgroundColor: 'transparent',
+                  color: 'var(--c-on-surface)',
+                  border: '1px solid var(--c-outline)',
+                  cursor: 'pointer',
+                  fontWeight: 650,
+                  fontSize: '12px'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>,
         document.body
