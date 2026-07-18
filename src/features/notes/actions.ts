@@ -14,7 +14,7 @@ export async function getNotes() {
   });
 }
 
-export async function addNote(title: string, content: string) {
+export async function addNote(title: string, content: string, category: string = 'General') {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -26,13 +26,14 @@ export async function addNote(title: string, content: string) {
     data: {
       title: title.trim(),
       content: content.trim(),
+      category: category.trim(),
       userId: user.id,
     },
   });
   revalidatePath('/notes');
 }
 
-export async function updateNote(id: number, title: string, content: string) {
+export async function updateNote(id: number, title: string, content: string, category: string = 'General') {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -45,6 +46,7 @@ export async function updateNote(id: number, title: string, content: string) {
     data: {
       title: title.trim(),
       content: content.trim(),
+      category: category.trim(),
     },
   });
   revalidatePath('/notes');

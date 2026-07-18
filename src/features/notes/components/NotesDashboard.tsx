@@ -19,12 +19,23 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
+  const [noteCategory, setNoteCategory] = useState('General');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
   const [submitting, setSubmitting] = useState(false);
+
+  const noteCategories = Array.from(new Set([
+    'All',
+    'General',
+    'Monthly Review',
+    'Yearly Review',
+    ...initialNotes.map(n => n.category).filter(Boolean)
+  ]));
 
   const openAddModal = () => {
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
+    setNoteCategory('General');
     setIsModalOpen(true);
   };
 
@@ -32,6 +43,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setEditingNote(note);
     setNoteTitle(note.title);
     setNoteContent(note.content);
+    setNoteCategory(note.category || 'General');
     setIsModalOpen(true);
   };
 
@@ -40,6 +52,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
+    setNoteCategory('General');
   };
 
   const closeViewModal = () => {
@@ -52,9 +65,9 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setSubmitting(true);
     try {
       if (editingNote) {
-        await updateNote(editingNote.id, noteTitle, noteContent);
+        await updateNote(editingNote.id, noteTitle, noteContent, noteCategory);
       } else {
-        await addNote(noteTitle, noteContent);
+        await addNote(noteTitle, noteContent, noteCategory);
         setCurrentPage(1); // Reset page on add
       }
       closeModal();
@@ -71,7 +84,9 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   // Filter notes
   const filteredNotes = initialNotes.filter(note => {
     const term = search.toLowerCase();
-    return note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
+    const matchesSearch = note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
+    const matchesCategory = selectedCategoryFilter === 'All' || note.category === selectedCategoryFilter;
+    return matchesSearch && matchesCategory;
   });
 
   // Sort notes
@@ -128,6 +143,34 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
         </div>
       </div>
 
+      {/* Category Filter Row */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+        {noteCategories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => { setSelectedCategoryFilter(cat); setCurrentPage(1); }}
+            style={{
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              backgroundColor: selectedCategoryFilter === cat 
+                ? 'var(--c-primary)' 
+                : 'var(--c-surface-container-high)',
+              color: selectedCategoryFilter === cat
+                ? 'var(--c-on-primary)'
+                : 'var(--c-on-surface-variant)',
+              border: selectedCategoryFilter === cat ? 'none' : '1px solid var(--c-outline-variant)',
+              transition: 'background-color 0.2s, color 0.2s'
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       {/* Notes Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         {paginatedNotes.map(note => {
@@ -176,14 +219,27 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: '12px', color: 'var(--c-on-surface-variant)' }}>
-                <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Calendar size={14} />
-                  {dateString}
-                </span>
-                <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Clock size={14} />
-                  {timeString}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: '12px', color: 'var(--c-on-surface-variant)' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={14} />
+                    {dateString}
+                  </span>
+                  <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Clock size={14} />
+                    {timeString}
+                  </span>
+                </div>
+                <span className="text-label-sm" style={{ 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  backgroundColor: 'var(--c-surface-container-high)', 
+                  border: '1px solid var(--c-outline-variant)',
+                  color: 'var(--c-on-surface)',
+                  fontSize: '10px',
+                  fontWeight: 600
+                }}>
+                  {note.category || 'General'}
                 </span>
               </div>
             </div>
@@ -252,9 +308,20 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
               <h3 id="note-viewer-title" className="text-headline-sm" style={{ margin: 0, fontWeight: 700, wordBreak: 'break-word' }}>
                 {viewingNote.title}
               </h3>
-              <div className="text-label-sm text-on-surface-variant" style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+              <div className="text-label-sm text-on-surface-variant" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
                 <span>{new Date(viewingNote.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 <span>{new Date(viewingNote.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                <span style={{ 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  backgroundColor: 'var(--c-surface-container-high)', 
+                  border: '1px solid var(--c-outline-variant)',
+                  color: 'var(--c-on-surface)',
+                  fontSize: '10px',
+                  fontWeight: 600
+                }}>
+                  {viewingNote.category || 'General'}
+                </span>
               </div>
             </div>
 
@@ -292,6 +359,20 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
                   style={{ width: '100%', borderRadius: '8px' }}
                   required
                 />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-md" style={{ fontWeight: 600 }}>Category</label>
+                <select
+                  value={noteCategory}
+                  onChange={(e) => setNoteCategory(e.target.value)}
+                  className="search-input"
+                  style={{ width: '100%', borderRadius: '8px' }}
+                >
+                  <option value="General">General</option>
+                  <option value="Monthly Review">Monthly Review</option>
+                  <option value="Yearly Review">Yearly Review</option>
+                </select>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

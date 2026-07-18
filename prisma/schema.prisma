@@ -218,6 +218,7 @@ model Note {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   content   String   @db.Text
+  category  String   @default("General")
   createdAt DateTime @default(now()) @db.Timestamptz()
   updatedAt DateTime @updatedAt @db.Timestamptz()
 }
