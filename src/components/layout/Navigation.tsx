@@ -4,10 +4,22 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { logoutAction } from '@/features/auth/actions';
 import { useState, useRef, useEffect } from 'react';
+import { Bell, AlertTriangle } from 'lucide-react';
 
-export default function Navigation() {
+interface NotificationItem {
+  title: string;
+  days: number;
+  lastDone: Date | null;
+}
+
+interface NavigationProps {
+  notifications?: NotificationItem[];
+}
+
+export default function Navigation({ notifications = [] }: NavigationProps) {
   const pathname = usePathname();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotificationMenu, setShowNotificationMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -19,6 +31,7 @@ export default function Navigation() {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
+        setShowNotificationMenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -146,13 +159,139 @@ export default function Navigation() {
              <span className="material-symbols-outlined">menu</span>
            </button>
          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', position: 'relative' }} ref={menuRef}>
-            <button 
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container-high)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <span className="text-label-sm text-primary" style={{ fontWeight: 700, fontSize: '12px', letterSpacing: '0px' }}>KN</span>
-            </button>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }} ref={menuRef}>
+             {/* Notification Bell */}
+             <div style={{ position: 'relative' }}>
+               <button
+                 type="button"
+                 onClick={() => {
+                   setShowNotificationMenu(!showNotificationMenu);
+                   setShowProfileMenu(false);
+                 }}
+                 style={{
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   width: '36px',
+                   height: '36px',
+                   borderRadius: '50%',
+                   backgroundColor: 'var(--c-surface-container-high)',
+                   border: '1px solid var(--c-outline-variant)',
+                   color: 'var(--c-on-surface)',
+                   cursor: 'pointer',
+                   position: 'relative',
+                   transition: 'background-color 0.2s',
+                   padding: 0
+                 }}
+                 title="Notifications"
+               >
+                 <Bell size={18} />
+                 {notifications.length > 0 && (
+                   <span
+                     style={{
+                       position: 'absolute',
+                       top: '2px',
+                       right: '2px',
+                       width: '8px',
+                       height: '8px',
+                       borderRadius: '50%',
+                       backgroundColor: 'var(--c-error)',
+                       border: '1.5px solid var(--c-surface)',
+                       animation: 'pulse 2s infinite'
+                     }}
+                   />
+                 )}
+               </button>
+
+               {showNotificationMenu && (
+                 <div style={{
+                   position: 'absolute',
+                   top: '48px',
+                   right: '0',
+                   backgroundColor: 'var(--c-surface-container-lowest)',
+                   border: '1px solid var(--c-outline-variant)',
+                   borderRadius: '12px',
+                   padding: '12px 0',
+                   boxShadow: 'var(--shadow-lg)',
+                   minWidth: '300px',
+                   zIndex: 100
+                 }}>
+                   <div style={{ padding: '0 16px 8px 16px', borderBottom: '1px solid var(--c-outline-variant)', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <p className="text-body-md" style={{ fontWeight: 700, margin: 0 }}>Notifications</p>
+                     <span style={{
+                       fontSize: '11px',
+                       fontWeight: 700,
+                       backgroundColor: notifications.length > 0 ? 'var(--c-error-container)' : 'var(--c-surface-container-high)',
+                       color: notifications.length > 0 ? 'var(--c-on-error-container)' : 'var(--c-on-surface-variant)',
+                       padding: '2px 8px',
+                       borderRadius: '20px'
+                     }}>
+                       {notifications.length} Overdue
+                     </span>
+                   </div>
+
+                   <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '0 8px' }}>
+                     {notifications.map((item, index) => (
+                       <Link 
+                         key={index} 
+                         href="/tasks" 
+                         style={{ textDecoration: 'none' }}
+                         onClick={() => setShowNotificationMenu(false)}
+                       >
+                         <div style={{
+                           padding: '10px 12px',
+                           borderRadius: '8px',
+                           backgroundColor: 'var(--c-surface-container-low)',
+                           border: '1.5px solid var(--c-outline-variant)',
+                           marginBottom: index !== notifications.length - 1 ? '8px' : '0',
+                           display: 'flex',
+                           alignItems: 'start',
+                           gap: '10px',
+                           transition: 'all 0.2s',
+                           cursor: 'pointer'
+                         }}
+                         onMouseEnter={(e) => {
+                           e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)';
+                           e.currentTarget.style.borderColor = 'var(--c-primary)';
+                         }}
+                         onMouseLeave={(e) => {
+                           e.currentTarget.style.backgroundColor = 'var(--c-surface-container-low)';
+                           e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+                         }}
+                         >
+                           <AlertTriangle size={16} color="var(--c-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
+                             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+                               {item.title} Overdue
+                             </span>
+                             <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 550 }}>
+                               Crossed 35 days ({item.days} days since last done).
+                             </span>
+                           </div>
+                         </div>
+                       </Link>
+                     ))}
+
+                     {notifications.length === 0 && (
+                       <p style={{ textAlign: 'center', color: 'var(--c-on-surface-variant)', fontSize: '13px', padding: '16px 0', margin: 0, fontWeight: 500 }}>
+                         🎉 All trackers are up to date!
+                       </p>
+                     )}
+                   </div>
+                 </div>
+               )}
+             </div>
+
+             <button 
+               type="button"
+               onClick={() => {
+                 setShowProfileMenu(!showProfileMenu);
+                 setShowNotificationMenu(false);
+               }}
+               style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', border: '1px solid var(--c-outline-variant)', backgroundColor: 'var(--c-surface-container-high)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+             >
+               <span className="text-label-sm text-primary" style={{ fontWeight: 700, fontSize: '12px', letterSpacing: '0px' }}>KN</span>
+             </button>
 
           {showProfileMenu && (
             <div style={{

@@ -44,7 +44,8 @@ export default async function Dashboard() {
     latestDua,
     latestBook,
     latestRelapse,
-    persons
+    persons,
+    recurringTrackers
   ] = await Promise.all([
     prisma.transaction.findMany({
       where: { userId: sessionUser.id },
@@ -95,6 +96,9 @@ export default async function Dashboard() {
     prisma.person.findMany({
       where: { userId: sessionUser.id },
       include: { debts: true }
+    }),
+    prisma.recurringTracker.findMany({
+      where: { userId: sessionUser.id }
     })
   ]);
 
@@ -205,8 +209,112 @@ export default async function Dashboard() {
     });
   });
 
+  // Calculate overdue periodic trackers (exceeding 35 days)
+  const MAX_DAYS = 35;
+  const trackerTitlesToCheck = ['Feets Nail Cutting', 'Hair Removal', 'Hands Nail Cutting'];
+  const overdueTrackers: { title: string; days: number; lastDone: Date | null }[] = [];
+
+  recurringTrackers.forEach(t => {
+    if (trackerTitlesToCheck.includes(t.title)) {
+      if (t.lastDone) {
+        const diffMs = new Date().getTime() - new Date(t.lastDone).getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        if (diffDays > MAX_DAYS) {
+          overdueTrackers.push({
+            title: t.title,
+            days: diffDays,
+            lastDone: t.lastDone
+          });
+        }
+      } else {
+        // If never done, treat as overdue
+        overdueTrackers.push({
+          title: t.title,
+          days: 36,
+          lastDone: null
+        });
+      }
+    }
+  });
+
   return (
     <>
+      {/* OVERDUE PERIODIC TRACKER WARNING */}
+      {overdueTrackers.length > 0 && (
+        <div 
+          className="card"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            backgroundColor: 'rgba(239, 68, 68, 0.04)',
+            border: '1.5px solid rgba(239, 68, 68, 0.2)',
+            marginBottom: '24px',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div 
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--c-error)',
+                flexShrink: 0
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontWeight: 'bold' }}>warning</span>
+            </div>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
+                Periodic Tracker Alert
+              </h3>
+              <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--c-on-surface-variant)', fontWeight: 550 }}>
+                You have {overdueTrackers.length} hygiene/personal care tracker{overdueTrackers.length !== 1 ? 's' : ''} that crossed the 35-day limit:
+              </p>
+            </div>
+            <Link 
+              href="/tasks" 
+              className="primary-btn"
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '8px', 
+                fontSize: '12px', 
+                fontWeight: 700,
+                textDecoration: 'none',
+                boxShadow: 'none'
+              }}
+            >
+              Update Now
+            </Link>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '48px' }}>
+            {overdueTrackers.map((tracker, idx) => (
+              <span 
+                key={idx}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(239, 68, 68, 0.2)'
+                }}
+              >
+                ⚠️ {tracker.title} ({tracker.days} days ago)
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* HIJRI DATE DISPLAY */}
       <div style={{ marginBottom: '24px' }}>
         <HijriDateDisplay initialOffset={user?.hijriOffset ?? 0} />
