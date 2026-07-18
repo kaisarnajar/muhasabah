@@ -207,6 +207,7 @@ model WeekendTaskLog {
   weekendTaskId Int
   date          DateTime    @default(now()) @db.Date
   weekStartDate DateTime    @db.Date
+  status        String      @default("DONE") // "DONE" or "UNDONE"
   
   task          WeekendTask @relation(fields: [weekendTaskId], references: [id], onDelete: Cascade)
   

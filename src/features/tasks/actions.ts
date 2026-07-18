@@ -129,7 +129,7 @@ export async function deleteWeekendTask(id: number) {
   revalidatePath('/tasks/weekend');
 }
 
-export async function toggleWeekendTask(id: number, isCompleted: boolean, weekStartDateStr: string) {
+export async function updateWeekendTaskStatus(id: number, status: string, weekStartDateStr: string) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
@@ -140,7 +140,14 @@ export async function toggleWeekendTask(id: number, isCompleted: boolean, weekSt
 
   const weekStartDate = new Date(weekStartDateStr);
 
-  if (isCompleted) {
+  if (status === 'UNMARKED') {
+    await prisma.weekendTaskLog.deleteMany({
+      where: {
+        weekendTaskId: id,
+        weekStartDate: weekStartDate
+      }
+    });
+  } else {
     await prisma.weekendTaskLog.upsert({
       where: {
         weekendTaskId_weekStartDate: {
@@ -151,15 +158,11 @@ export async function toggleWeekendTask(id: number, isCompleted: boolean, weekSt
       create: {
         weekendTaskId: id,
         weekStartDate: weekStartDate,
-        date: new Date()
+        date: new Date(),
+        status: status
       },
-      update: {}
-    });
-  } else {
-    await prisma.weekendTaskLog.deleteMany({
-      where: {
-        weekendTaskId: id,
-        weekStartDate: weekStartDate
+      update: {
+        status: status
       }
     });
   }

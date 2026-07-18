@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, List, Calendar, CalendarHeart, X } from 'lucide-react';
+import { Plus, List, Calendar, CalendarHeart, X, Check } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
-import { addWeekendTask, deleteWeekendTask, toggleWeekendTask } from '@/features/tasks/actions';
+import { addWeekendTask, deleteWeekendTask, updateWeekendTaskStatus } from '@/features/tasks/actions';
 import DeleteConfirmButton from '@/components/ui/DeleteConfirmButton';
 import { WeekendTask, WeekendTaskLog } from '@prisma/client';
 
@@ -99,8 +99,8 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
 
 
 
-  const handleToggle = async (id: number, currentCompletedState: boolean, weekStartDateStr: string) => {
-    await toggleWeekendTask(id, !currentCompletedState, weekStartDateStr);
+  const handleStatusUpdate = async (id: number, status: 'DONE' | 'UNDONE' | 'UNMARKED', weekStartDateStr: string) => {
+    await updateWeekendTaskStatus(id, status, weekStartDateStr);
   };
 
   const handleViewChange = (newView: 'table' | 'manage') => {
@@ -274,33 +274,80 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                       </td>
                       
                       {initialTasks.map(task => {
-                        const isCompleted = task.logs.some(log => {
+                        const logEntry = task.logs.find(log => {
                           const logWeekStr = new Date(log.weekStartDate).toISOString().split('T')[0];
                           return logWeekStr === weekDateStr;
                         });
+
+                        let status: 'DONE' | 'UNDONE' | 'UNMARKED' = 'UNMARKED';
+                        if (logEntry) {
+                          status = logEntry.status as 'DONE' | 'UNDONE';
+                        } else {
+                          // Default to UNDONE for past weeks
+                          if (!isCurrentWeek) {
+                            status = 'UNDONE';
+                          }
+                        }
                         
                         return (
                           <td key={task.id} style={{ padding: '16px' }}>
-                            <input 
-                              type="checkbox" 
-                              checked={isCompleted}
-                              readOnly
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setSelectedEditWeek(week);
-                              }}
-                              onChange={() => {}}
-                              className="habit-checkbox"
-                              style={{ 
-                                margin: '0 auto', 
-                                appearance: 'auto', 
-                                width: '24px', 
-                                height: '24px', 
-                                cursor: 'pointer', 
-                                accentColor: 'var(--c-primary)', 
-                                opacity: 1 
-                              }}
-                            />
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                              {status === 'DONE' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedEditWeek(week)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#ffffff',
+                                    border: '1.5px solid var(--c-outline)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#22c55e',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Check size={16} strokeWidth={3} />
+                                </button>
+                              )}
+                              {status === 'UNDONE' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedEditWeek(week)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#0c0d0f',
+                                    border: '1.5px solid var(--c-outline-variant)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#ef4444',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <X size={16} strokeWidth={3} />
+                                </button>
+                              )}
+                              {status === 'UNMARKED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedEditWeek(week)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '4px',
+                                    backgroundColor: 'transparent',
+                                    border: '2px solid var(--c-outline)',
+                                    display: 'flex',
+                                    cursor: 'pointer'
+                                  }}
+                                />
+                              )}
+                            </div>
                           </td>
                         );
                       })}
@@ -380,10 +427,22 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto', paddingRight: '8px' }}>
               {initialTasks.map(task => {
                 const weekDateStr = selectedEditWeek.toISOString().split('T')[0];
-                const isCompleted = task.logs.some(log => {
+                const logEntry = task.logs.find(log => {
                   const logWeekStr = new Date(log.weekStartDate).toISOString().split('T')[0];
                   return logWeekStr === weekDateStr;
                 });
+
+                let status: 'DONE' | 'UNDONE' | 'UNMARKED' = 'UNMARKED';
+                if (logEntry) {
+                  status = logEntry.status as 'DONE' | 'UNDONE';
+                } else {
+                  // For past weeks, default display is UNDONE
+                  const currentWeekMonday = getMonday(new Date());
+                  const currentWeekStr = currentWeekMonday.toISOString().split('T')[0];
+                  if (weekDateStr !== currentWeekStr) {
+                    status = 'UNDONE';
+                  }
+                }
 
                 return (
                   <div 
@@ -403,13 +462,51 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                       {task.title}
                     </span>
                     
-                    <button 
-                      type="button"
-                      onClick={() => handleToggle(task.id, isCompleted, weekDateStr)}
-                      className={`habit-checkbox ${isCompleted ? 'checked' : ''}`}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {/* DONE BUTTON */}
+                      <button
+                        type="button"
+                        onClick={() => handleStatusUpdate(task.id, status === 'DONE' ? 'UNMARKED' : 'DONE', weekDateStr)}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '6px',
+                          backgroundColor: status === 'DONE' ? '#22c55e' : 'transparent',
+                          color: status === 'DONE' ? '#ffffff' : 'var(--c-on-surface-variant)',
+                          border: status === 'DONE' ? '1px solid #22c55e' : '1px solid var(--c-outline)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        title="Mark Done"
+                      >
+                        <Check size={16} strokeWidth={3} />
+                      </button>
+
+                      {/* UNDONE BUTTON */}
+                      <button
+                        type="button"
+                        onClick={() => handleStatusUpdate(task.id, status === 'UNDONE' ? 'UNMARKED' : 'UNDONE', weekDateStr)}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '6px',
+                          backgroundColor: status === 'UNDONE' ? '#ef4444' : 'transparent',
+                          color: status === 'UNDONE' ? '#ffffff' : 'var(--c-on-surface-variant)',
+                          border: status === 'UNDONE' ? '1px solid #ef4444' : '1px solid var(--c-outline)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        title="Mark Undone"
+                      >
+                        <X size={16} strokeWidth={3} />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
