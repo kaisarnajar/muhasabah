@@ -15,7 +15,9 @@ function getMonday(d: Date) {
   date.setHours(0, 0, 0, 0);
   const day = date.getDay();
   const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(date.setDate(diff));
+  const localMonday = new Date(date.setDate(diff));
+  // Return Monday at midnight in UTC
+  return new Date(Date.UTC(localMonday.getFullYear(), localMonday.getMonth(), localMonday.getDate()));
 }
 
 // Generate the last 12 weeks (Mondays)
@@ -25,7 +27,7 @@ function generatePastWeeks(count: number) {
   
   for (let i = 0; i < count; i++) {
     const w = new Date(currentMonday);
-    w.setDate(currentMonday.getDate() - (i * 7));
+    w.setUTCDate(currentMonday.getUTCDate() - (i * 7));
     weeks.push(w);
   }
   return weeks;
@@ -50,9 +52,9 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
 
   const getWeekLabel = (weekDate: Date) => {
     const endDate = new Date(weekDate);
-    endDate.setDate(weekDate.getDate() + 6);
-    const startLabel = weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    endDate.setUTCDate(weekDate.getUTCDate() + 6);
+    const startLabel = weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    const endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
     return `From ${startLabel} - To ${endLabel}`;
   };
 
