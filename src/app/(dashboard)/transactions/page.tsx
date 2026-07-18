@@ -3,6 +3,7 @@ import { Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import AddTransactionForm from "@/features/transactions/components/AddTransactionForm";
 import TransactionFilter from "@/features/transactions/components/TransactionFilter";
 import ExportButton from "@/features/transactions/components/ExportButton";
+import TransactionGrid from "@/features/transactions/components/TransactionGrid";
 import Link from 'next/link';
 
 export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
@@ -144,7 +145,7 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
           </div>
           <div>
             <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Income</p>
-            <p className="text-title-md" style={{ margin: 0, color: '#22c55e', fontWeight: 800, fontSize: '1.25rem' }}>+${totalIncome.toFixed(2)}</p>
+            <p className="text-title-md" style={{ margin: 0, color: '#22c55e', fontWeight: 800, fontSize: '1.25rem' }}>+₹{totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
 
@@ -154,7 +155,7 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
           </div>
           <div>
             <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Expense</p>
-            <p className="text-title-md" style={{ margin: 0, color: '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>-${totalExpense.toFixed(2)}</p>
+            <p className="text-title-md" style={{ margin: 0, color: '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>-₹{totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
 
@@ -165,7 +166,7 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
           <div>
             <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Flow</p>
             <p className="text-title-md" style={{ margin: 0, color: netFlow >= 0 ? 'var(--c-primary)' : '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>
-              {netFlow >= 0 ? '+' : '-'}${Math.abs(netFlow).toFixed(2)}
+              {netFlow >= 0 ? '+' : '-'}₹{Math.abs(netFlow).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
         </div>
@@ -202,51 +203,8 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
         <AddTransactionForm type={activeTab} />
       </div>
 
-      <div className="task-history-grid">
-        {paginatedTransactions.map(t => (
-          <div 
-            key={t.id} 
-            className="card" 
-            style={{ 
-              backgroundColor: 'var(--c-surface-container-low)', 
-              padding: '20px', 
-              borderRadius: '12px', 
-              border: '1px solid var(--c-outline-variant)', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              justifyContent: 'space-between', 
-              gap: '16px',
-              height: '100%',
-              margin: 0
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {t.type === 'INCOME' ? <ArrowUpCircle color="var(--c-secondary)" size={28} /> : <ArrowDownCircle color="var(--c-error)" size={28} />}
-              <span 
-                style={{ 
-                  fontWeight: 600, 
-                  color: t.type === 'INCOME' ? 'var(--c-secondary)' : 'var(--c-error)', 
-                  fontSize: '1.15rem' 
-                }}
-              >
-                {t.type === 'INCOME' ? '+' : '-'}${Number(t.amount).toFixed(2)}
-              </span>
-            </div>
+      <TransactionGrid transactions={paginatedTransactions} />
 
-            <div>
-              <p className="text-body-md" style={{ fontWeight: 600, margin: 0, color: 'var(--c-on-surface)' }}>{t.description}</p>
-              <p className="text-label-sm text-on-surface-variant" style={{ marginTop: '4px', margin: 0 }}>
-                {t.category} • {t.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
-        ))}
-        {paginatedTransactions.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', padding: '32px', textAlign: 'center', backgroundColor: 'var(--c-surface-container-low)', borderRadius: '12px', border: '1px dashed var(--c-outline)' }}>
-            <p className="text-on-surface-variant" style={{ margin: 0 }}>No {activeTab.toLowerCase()} records found for this period.</p>
-          </div>
-        )}
-      </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
