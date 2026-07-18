@@ -1,18 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Edit2, Calendar, Clock, X } from 'lucide-react';
-import { addNote, updateNote, deleteNote } from '@/features/notes/actions';
+import { Plus, Search, Edit2, Calendar, Clock, X, FolderOpen, ChevronRight, FolderPlus } from 'lucide-react';
+import { addNote, updateNote, deleteNote, deleteNoteFolder } from '@/features/notes/actions';
 import DeleteConfirmButton from '@/components/ui/DeleteConfirmButton';
 import { useToast } from '@/context/ToastContext';
-import { Note } from '@prisma/client';
+import { Note, NoteFolder } from '@prisma/client';
+import NoteFolderCard from './NoteFolderCard';
+import NoteFolderModal from './NoteFolderModal';
 
-export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] }) {
+export default function NotesDashboard({ initialNotes, initialFolders }: { initialNotes: Note[], initialFolders: NoteFolder[] }) {
   const [search, setSearch] = useState('');
   const { showToast } = useToast();
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   
+  // Folder navigation state
+  const [activeFolderId, setActiveFolderId] = useState<number | null>(null);
+
+  // Folder management modal states
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<NoteFolder | null>(null);
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
@@ -20,6 +29,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [noteCategory, setNoteCategory] = useState('General');
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,11 +51,36 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     ...initialNotes.map(n => n.category).filter(Boolean)
   ]));
 
+  // Folder handlers
+  const openAddFolder = () => {
+    setEditingFolder(null);
+    setIsFolderModalOpen(true);
+  };
+
+  const openRenameFolder = (f: NoteFolder, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingFolder(f);
+    setIsFolderModalOpen(true);
+  };
+
+  const handleDeleteFolder = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Delete this folder? Notes inside will become unfiled.')) return;
+    try {
+      await deleteNoteFolder(id);
+      if (activeFolderId === id) setActiveFolderId(null);
+      showToast('Folder deleted.', 'success');
+    } catch {
+      showToast('Failed to delete folder.', 'error');
+    }
+  };
+
   const openAddModal = () => {
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
     setNoteCategory('General');
+    setSelectedFolderId(activeFolderId);
     setIsModalOpen(true);
   };
 
@@ -54,6 +89,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setNoteTitle(note.title);
     setNoteContent(note.content);
     setNoteCategory(note.category || 'General');
+    setSelectedFolderId(note.folderId);
     setIsModalOpen(true);
   };
 
@@ -63,6 +99,7 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setNoteTitle('');
     setNoteContent('');
     setNoteCategory('General');
+    setSelectedFolderId(null);
   };
 
   const closeViewModal = () => {
@@ -75,9 +112,9 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     setSubmitting(true);
     try {
       if (editingNote) {
-        await updateNote(editingNote.id, noteTitle, noteContent, noteCategory);
+        await updateNote(editingNote.id, noteTitle, noteContent, noteCategory, selectedFolderId);
       } else {
-        await addNote(noteTitle, noteContent, noteCategory);
+        await addNote(noteTitle, noteContent, noteCategory, selectedFolderId);
         setCurrentPage(1); // Reset page on add
       }
       closeModal();
@@ -89,10 +126,15 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
     }
   };
 
+  // Derived folder data
+  const activeFolder = initialFolders.find(f => f.id === activeFolderId) ?? null;
 
+  // Filter notes by active folder, then by search and category
+  const viewNotes = initialNotes.filter(n => 
+    activeFolderId === null ? n.folderId === null : n.folderId === activeFolderId
+  );
 
-  // Filter notes
-  const filteredNotes = initialNotes.filter(note => {
+  const filteredNotes = viewNotes.filter(note => {
     const term = search.toLowerCase();
     const matchesSearch = note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
     const matchesCategory = selectedCategoryFilter === 'All' || note.category === selectedCategoryFilter;
@@ -118,6 +160,9 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   const totalPages = Math.ceil(filteredNotes.length / PAGE_SIZE) || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
   const paginatedNotes = filteredNotes.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+
+  const countInFolder = (id: number) => initialNotes.filter(n => n.folderId === id).length;
+  const unfiledCount = initialNotes.filter(n => n.folderId === null).length;
 
   return (
     <div>
@@ -147,11 +192,63 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
             <option value="title">Sort by Title</option>
           </select>
 
+          {activeFolderId === null && (
+            <button 
+              onClick={openAddFolder} 
+              className="primary-btn" 
+              style={{ padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--c-surface-container-high)', color: 'var(--c-on-surface)', boxShadow: 'none', border: '1px solid var(--c-outline-variant)' }}
+            >
+              <FolderPlus size={18} /> New Folder
+            </button>
+          )}
+
           <button onClick={openAddModal} className="primary-btn" style={{ padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Plus size={18} /> Add Note
           </button>
         </div>
       </div>
+
+      {/* Breadcrumb navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px', fontSize: '13px', fontWeight: 600, color: 'var(--c-on-surface-variant)' }}>
+        <button 
+          onClick={() => { setActiveFolderId(null); setSearch(''); setCurrentPage(1); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: activeFolderId ? 'var(--c-primary)' : 'var(--c-on-surface)', fontWeight: 700, fontSize: '13px', padding: 0 }}
+        >
+          All Notes
+        </button>
+        {activeFolder && (
+          <>
+            <ChevronRight size={14} />
+            <span style={{ color: 'var(--c-on-surface)' }}>{activeFolder.name}</span>
+          </>
+        )}
+      </div>
+
+      {/* Folders grid (root only) */}
+      {activeFolderId === null && initialFolders.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+          {initialFolders.map(folder => (
+            <NoteFolderCard
+              key={folder.id}
+              folder={folder}
+              count={countInFolder(folder.id)}
+              onClick={(id) => { setActiveFolderId(id); setSearch(''); setCurrentPage(1); }}
+              onRename={openRenameFolder}
+              onDelete={handleDeleteFolder}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Section label for unfiled notes at root */}
+      {activeFolderId === null && initialFolders.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <FolderOpen size={16} color="var(--c-on-surface-variant)" />
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Unfiled — {unfiledCount} note{unfiledCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
 
       {/* Category Filter Row */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
@@ -258,8 +355,10 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
       </div>
 
       {filteredNotes.length === 0 && (
-        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          <p className="text-on-surface-variant text-body-md" style={{ margin: 0 }}>No notes found. Create your first note above!</p>
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
+          <p className="text-on-surface-variant text-body-md" style={{ margin: 0 }}>
+            {search ? 'No notes match your search.' : activeFolderId ? 'This folder is empty. Click "Add Note" to add one.' : 'No unfiled notes found. Click "Add Note" to add one.'}
+          </p>
         </div>
       )}
 
@@ -371,28 +470,48 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label className="text-label-md" style={{ fontWeight: 600 }}>Category</label>
-                <select
-                  value={noteCategory}
-                  onChange={(e) => setNoteCategory(e.target.value)}
-                  className="search-input"
-                  style={{ width: '100%', borderRadius: '8px' }}
-                >
-                  <option value="General">General</option>
-                  <option value="Review">Review</option>
-                  <option value="Monthly Review">Monthly Review</option>
-                  <option value="Yearly Review">Yearly Review</option>
-                  <option value="College Life">College Life</option>
-                  <option value="Samsung R&D">Samsung R&D</option>
-                  <option value="Super 30">Super 30</option>
-                  <option value="Career & Tech">Career & Tech</option>
-                  <option value="Islamic & Religious">Islamic & Religious</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Health & Fitness">Health & Fitness</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Ideas & Goals">Ideas & Goals</option>
-                </select>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                  <label className="text-label-md" style={{ fontWeight: 600 }}>Folder</label>
+                  <select
+                    value={selectedFolderId ? selectedFolderId.toString() : 'unfiled'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedFolderId(val === 'unfiled' ? null : Number(val));
+                    }}
+                    className="search-input"
+                    style={{ width: '100%', borderRadius: '8px' }}
+                  >
+                    <option value="unfiled">Unfiled (No Folder)</option>
+                    {initialFolders.map(f => (
+                      <option key={f.id} value={f.id.toString()}>{f.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                  <label className="text-label-md" style={{ fontWeight: 600 }}>Category</label>
+                  <select
+                    value={noteCategory}
+                    onChange={(e) => setNoteCategory(e.target.value)}
+                    className="search-input"
+                    style={{ width: '100%', borderRadius: '8px' }}
+                  >
+                    <option value="General">General</option>
+                    <option value="Review">Review</option>
+                    <option value="Monthly Review">Monthly Review</option>
+                    <option value="Yearly Review">Yearly Review</option>
+                    <option value="College Life">College Life</option>
+                    <option value="Samsung R&D">Samsung R&D</option>
+                    <option value="Super 30">Super 30</option>
+                    <option value="Career & Tech">Career & Tech</option>
+                    <option value="Islamic & Religious">Islamic & Religious</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Health & Fitness">Health & Fitness</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Ideas & Goals">Ideas & Goals</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -428,6 +547,16 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
           </div>
         </div>
       )}
+
+      {/* FOLDER CREATION / RENAME MODAL */}
+      <NoteFolderModal
+        isOpen={isFolderModalOpen}
+        onClose={() => {
+          setIsFolderModalOpen(false);
+          setEditingFolder(null);
+        }}
+        editingFolder={editingFolder}
+      />
     </div>
   );
 }

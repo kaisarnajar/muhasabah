@@ -37,6 +37,7 @@ model User {
   documents         Document[]
   bookFolders       BookFolder[]
   documentFolders   DocumentFolder[]
+  noteFolders       NoteFolder[]
   timeTable         TimeTable?
 }
 
@@ -212,15 +213,28 @@ model WeekendTaskLog {
   @@unique([weekendTaskId, weekStartDate])
 }
 
-model Note {
+model NoteFolder {
   id        Int      @id @default(autoincrement())
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  content   String   @db.Text
-  category  String   @default("General")
+  name      String
   createdAt DateTime @default(now()) @db.Timestamptz()
-  updatedAt DateTime @updatedAt @db.Timestamptz()
+  notes     Note[]
+
+  @@unique([userId, name])
+}
+
+model Note {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId  Int?
+  folder    NoteFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  title     String
+  content   String      @db.Text
+  category  String      @default("General")
+  createdAt DateTime    @default(now()) @db.Timestamptz()
+  updatedAt DateTime    @updatedAt @db.Timestamptz()
 }
 
 model FitnessLog {
