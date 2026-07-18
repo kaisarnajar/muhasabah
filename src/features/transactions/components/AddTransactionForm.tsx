@@ -138,28 +138,35 @@ export default function AddTransactionForm({ type }: { type: 'INCOME' | 'EXPENSE
                 <select 
                   name="category"
                   className="search-input"
-                  style={{ borderRadius: '8px', WebkitAppearance: 'none' }}
+                  style={{ borderRadius: '8px' }}
                 >
                   {type === 'INCOME' ? (
                     <>
-                      <option>Salary</option>
-                      <option>Freelance</option>
-                      <option>Business</option>
-                      <option>Gift</option>
-                      <option>General</option>
-                      <option>Other</option>
+                      <option value="Salary">Salary</option>
+                      <option value="Freelance">Freelance</option>
+                      <option value="Business">Business</option>
+                      <option value="Gift">Gift</option>
+                      <option value="Tax Refund">Tax Refund</option>
+                      <option value="ITR">ITR</option>
+                      <option value="General">General</option>
+                      <option value="Other">Other</option>
                     </>
                   ) : (
                     <>
-                      <option>Food</option>
-                      <option>Transport</option>
-                      <option>Utilities</option>
-                      <option>Housing</option>
-                      <option>Charity/Sadaqah</option>
-                      <option>Health</option>
-                      <option>Shopping</option>
-                      <option>General</option>
-                      <option>Other</option>
+                      <option value="Rent">Rent</option>
+                      <option value="Home Transfer">Home Transfer</option>
+                      <option value="Donation">Donation</option>
+                      <option value="Education">Education</option>
+                      <option value="Electronics & Repair">Electronics & Repair</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Family & Gifts">Family & Gifts</option>
+                      <option value="Shopping">Shopping</option>
+                      <option value="Food & Dining">Food & Dining</option>
+                      <option value="Bills & Utilities">Bills & Utilities</option>
+                      <option value="Home Appliances">Home Appliances</option>
+                      <option value="Health & Fitness">Health & Fitness</option>
+                      <option value="General">General</option>
+                      <option value="Other">Other</option>
                     </>
                   )}
                 </select>
