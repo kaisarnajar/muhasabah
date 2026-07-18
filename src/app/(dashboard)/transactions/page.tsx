@@ -15,6 +15,13 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   const filterStart = searchParams?.start || '';
   const filterEnd = searchParams?.end || '';
   const activeTab = searchParams?.tab === 'income' ? 'INCOME' : 'EXPENSE';
+  const activeCategory = searchParams?.category || 'all';
+
+  const allCategories = Array.from(new Set(
+    allTransactions
+      .filter(t => t.type === activeTab)
+      .map(t => t.category)
+  )).sort();
 
   // Calculate Date Boundaries
   let startBoundary = new Date(0);
@@ -97,8 +104,10 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   const totalExpense = transactionsInPeriod.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0);
   const netFlow = totalIncome - totalExpense;
 
-  // Filter Transactions by Active Tab
-  const displayTransactions = transactionsInPeriod.filter(t => t.type === activeTab);
+  // Filter Transactions by Active Tab and Category
+  const displayTransactions = transactionsInPeriod
+    .filter(t => t.type === activeTab)
+    .filter(t => activeCategory === 'all' || t.category === activeCategory);
 
   // Pagination Logic
   const currentPageStr = searchParams?.page || '1';
@@ -173,30 +182,82 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--c-outline-variant)', paddingBottom: '12px' }}>
-        <Link href={buildUrl({ tab: 'expense', page: '1' })} 
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', borderBottom: '1px solid var(--c-outline-variant)', paddingBottom: '12px' }}>
+        <Link href={buildUrl({ tab: 'expense', category: 'all', page: '1' })} 
           style={{ 
             fontWeight: activeTab === 'EXPENSE' ? 'bold' : 'normal',
             color: activeTab === 'EXPENSE' ? 'var(--c-on-surface)' : 'var(--c-on-surface-variant)',
             borderBottom: activeTab === 'EXPENSE' ? '2px solid var(--c-error)' : 'none',
-            paddingBottom: '4px'
+            paddingBottom: '4px',
+            textDecoration: 'none'
           }}>
           Expenses
         </Link>
-        <Link href={buildUrl({ tab: 'income', page: '1' })} 
+        <Link href={buildUrl({ tab: 'income', category: 'all', page: '1' })} 
           style={{ 
             fontWeight: activeTab === 'INCOME' ? 'bold' : 'normal',
             color: activeTab === 'INCOME' ? 'var(--c-on-surface)' : 'var(--c-on-surface-variant)',
             borderBottom: activeTab === 'INCOME' ? '2px solid var(--c-secondary)' : 'none',
-            paddingBottom: '4px'
+            paddingBottom: '4px',
+            textDecoration: 'none'
           }}>
           Income
         </Link>
       </div>
 
+      {/* Category Filter Row */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+        <Link
+          href={buildUrl({ category: 'all', page: '1' })}
+          style={{
+            padding: '6px 16px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: 600,
+            textDecoration: 'none',
+            whiteSpace: 'nowrap',
+            backgroundColor: activeCategory === 'all' 
+              ? (activeTab === 'INCOME' ? 'var(--c-secondary)' : 'var(--c-error)') 
+              : 'var(--c-surface-container-high)',
+            color: activeCategory === 'all'
+              ? (activeTab === 'INCOME' ? 'var(--c-on-secondary)' : 'var(--c-on-error)')
+              : 'var(--c-on-surface-variant)',
+            border: activeCategory === 'all' ? 'none' : '1px solid var(--c-outline-variant)',
+            transition: 'background-color 0.2s, color 0.2s'
+          }}
+        >
+          All
+        </Link>
+        {allCategories.map(cat => (
+          <Link
+            key={cat}
+            href={buildUrl({ category: cat, page: '1' })}
+            style={{
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: 600,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              backgroundColor: activeCategory === cat 
+                ? (activeTab === 'INCOME' ? 'var(--c-secondary)' : 'var(--c-error)') 
+                : 'var(--c-surface-container-high)',
+              color: activeCategory === cat
+                ? (activeTab === 'INCOME' ? 'var(--c-on-secondary)' : 'var(--c-on-error)')
+                : 'var(--c-on-surface-variant)',
+              border: activeCategory === cat ? 'none' : '1px solid var(--c-outline-variant)',
+              transition: 'background-color 0.2s, color 0.2s'
+            }}
+          >
+            {cat}
+          </Link>
+        ))}
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h3 className="text-body-md text-on-surface-variant" style={{ fontWeight: 600, margin: 0 }}>
           {activeTab === 'INCOME' ? 'Income Transactions' : 'Expense Transactions'}
+          {activeCategory !== 'all' && ` • ${activeCategory}`}
         </h3>
         
         {/* The new simplified Add button */}
