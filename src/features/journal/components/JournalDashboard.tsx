@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { JournalEntry, JournalCategory } from '@prisma/client';
 import CustomDateRangeDialog from '@/components/ui/CustomDateRangeDialog';
+import SearchInput from '@/components/ui/SearchInput';
 
 import JournalFilterTabs from './JournalFilterTabs';
 import JournalEntryCard from './JournalEntryCard';
@@ -24,6 +25,7 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
   const [isCustomRangeOpen, setIsCustomRangeOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+  const [search, setSearch] = useState('');
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -72,6 +74,17 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
       return d >= start && d <= end;
     }
     return true;
+  }).filter(entry => {
+    if (!search) return true;
+    const term = search.toLowerCase();
+    return (
+      entry.content.toLowerCase().includes(term) ||
+      (entry.subject && entry.subject.toLowerCase().includes(term)) ||
+      (entry.project && entry.project.toLowerCase().includes(term)) ||
+      (entry.ticketId && entry.ticketId.toLowerCase().includes(term)) ||
+      (entry.activity && entry.activity.toLowerCase().includes(term)) ||
+      (entry.tag && entry.tag.toLowerCase().includes(term))
+    );
   });
 
   // Pagination
@@ -82,14 +95,22 @@ export default function JournalDashboard({ category, initialEntries }: Props) {
 
   return (
     <div>
-      {/* ADD BUTTON */}
-      <button 
-        onClick={() => setIsAddOpen(true)}
-        className="primary-btn" 
-        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', marginBottom: '24px', fontSize: '14px', fontWeight: 700 }}
-      >
-        <Plus size={18} /> Add New Entry
-      </button>
+      {/* ADD BUTTON & SEARCH INPUT ROW */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+        <button 
+          onClick={() => setIsAddOpen(true)}
+          className="primary-btn" 
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontSize: '14px', fontWeight: 700 }}
+        >
+          <Plus size={18} /> Add New Entry
+        </button>
+        <SearchInput 
+          placeholder="Search journal entries..." 
+          value={search} 
+          onChange={(val) => { setSearch(val); setCurrentPage(1); }} 
+          isClientSide 
+        />
+      </div>
 
       {/* FILTER TABS */}
       <JournalFilterTabs filterPeriod={filterPeriod} onFilterChange={handleFilterChange} />

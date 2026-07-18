@@ -40,20 +40,26 @@ export default function TransactionFilter() {
   }, [searchParams]);
 
   const applyFilter = useCallback((type: string, date: string, start: string, end: string) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     params.set('filter', type);
+    params.set('page', '1');
     
     if (type === 'custom') {
       if (start) params.set('start', start);
       if (end) params.set('end', end);
+      params.delete('date');
     } else if (type === 'all') {
-      // no date required
+      params.delete('date');
+      params.delete('start');
+      params.delete('end');
     } else {
       params.set('date', date);
+      params.delete('start');
+      params.delete('end');
     }
 
     router.push(`?${params.toString()}`);
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleFilterChange = (newType: string) => {
     if (newType === 'custom') {

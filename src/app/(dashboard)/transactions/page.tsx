@@ -5,10 +5,12 @@ import TransactionFilter from "@/features/transactions/components/TransactionFil
 import ExportButton from "@/features/transactions/components/ExportButton";
 import TransactionGrid from "@/features/transactions/components/TransactionGrid";
 import Link from 'next/link';
+import SearchInput from "@/components/ui/SearchInput";
 
 export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
   const searchParams = await props.searchParams;
   const allTransactions = await getTransactions();
+  const search = searchParams?.search || '';
   
   const filterType = searchParams?.filter || 'month';
   const filterDate = searchParams?.date || new Date().toISOString().substring(0, 7);
@@ -104,10 +106,18 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
   const totalExpense = transactionsInPeriod.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount), 0);
   const netFlow = totalIncome - totalExpense;
 
-  // Filter Transactions by Active Tab and Category
+  // Filter Transactions by Active Tab, Category, and Search
   const displayTransactions = transactionsInPeriod
     .filter(t => t.type === activeTab)
-    .filter(t => activeCategory === 'all' || t.category === activeCategory);
+    .filter(t => activeCategory === 'all' || t.category === activeCategory)
+    .filter(t => {
+      if (!search) return true;
+      const term = search.toLowerCase();
+      return (
+        (t.description && t.description.toLowerCase().includes(term)) ||
+        t.category.toLowerCase().includes(term)
+      );
+    });
 
   const categoryTotal = displayTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
 
@@ -147,6 +157,10 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
       </div>
 
       <TransactionFilter />
+
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <SearchInput placeholder="Search transactions by title, description or category..." />
+      </div>
 
       {/* Dynamic Summaries */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>

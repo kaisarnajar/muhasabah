@@ -2,11 +2,13 @@ import { getPersons } from '@/features/debts/actions';
 import Link from 'next/link';
 import { UserPlus, ArrowRight, Wallet } from 'lucide-react';
 import AddPersonDialog from "@/features/debts/components/AddPersonDialog";
+import SearchInput from "@/components/ui/SearchInput";
 
 
 export default async function DebtsPage(props: { searchParams?: Promise<{ [key: string]: string | undefined }> }) {
   const searchParams = await props.searchParams;
   const persons = await getPersons();
+  const search = searchParams?.search || '';
 
   // Calculate Net Balances
   // If type === 'CREDIT' (I lend to others), the balance goes UP (They owe me).
@@ -33,15 +35,19 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
     return { ...person, netBalance };
   });
 
+  const filteredPersons = enrichedPersons.filter(person => 
+    person.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   // Pagination Logic
   const currentPageStr = searchParams?.page || '1';
   let currentPage = parseInt(currentPageStr, 10);
   if (isNaN(currentPage) || currentPage < 1) currentPage = 1;
   const PAGE_SIZE = 24;
-  const totalPages = Math.ceil(enrichedPersons.length / PAGE_SIZE) || 1;
+  const totalPages = Math.ceil(filteredPersons.length / PAGE_SIZE) || 1;
   if (currentPage > totalPages) currentPage = totalPages;
 
-  const paginatedPersons = enrichedPersons.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginatedPersons = filteredPersons.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div style={{ paddingBottom: '60px' }}>
@@ -51,6 +57,10 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
           <p className="text-body-md text-on-surface-variant">Manage your contacts and financial relationships</p>
         </div>
         <AddPersonDialog />
+      </div>
+
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <SearchInput placeholder="Search contacts by name..." />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '40px' }}>
