@@ -1,5 +1,5 @@
 import { getTransactions } from '@/actions/index';
-import { Receipt, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Receipt, ArrowUpCircle, ArrowDownCircle, Tag } from 'lucide-react';
 import AddTransactionForm from "@/features/transactions/components/AddTransactionForm";
 import TransactionFilter from "@/features/transactions/components/TransactionFilter";
 import ExportButton from "@/features/transactions/components/ExportButton";
@@ -109,6 +109,8 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
     .filter(t => t.type === activeTab)
     .filter(t => activeCategory === 'all' || t.category === activeCategory);
 
+  const categoryTotal = displayTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+
   // Pagination Logic
   const currentPageStr = searchParams?.page || '1';
   let currentPage = parseInt(currentPageStr, 10);
@@ -168,14 +170,30 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
           </div>
         </div>
 
-        <div style={{ backgroundColor: 'var(--c-surface-container-low)', padding: '20px', borderRadius: '16px', border: `1.5px solid ${netFlow >= 0 ? 'rgba(191,145,41,0.4)' : 'rgba(239,68,68,0.3)'}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: 'var(--shadow-sm)' }}>
-          <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: netFlow >= 0 ? 'rgba(191,145,41,0.1)' : 'rgba(239,68,68,0.1)', flexShrink: 0 }}>
-            <Receipt size={24} color={netFlow >= 0 ? 'var(--c-primary)' : '#ef4444'} />
+        <div style={{ 
+          backgroundColor: 'var(--c-surface-container-low)', 
+          padding: '20px', 
+          borderRadius: '16px', 
+          border: activeTab === 'INCOME' ? '1.5px solid rgba(34,197,94,0.3)' : '1.5px solid rgba(239,68,68,0.3)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '16px', 
+          boxShadow: 'var(--shadow-sm)' 
+        }}>
+          <div style={{ 
+            padding: '12px', 
+            borderRadius: '12px', 
+            backgroundColor: activeTab === 'INCOME' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', 
+            flexShrink: 0 
+          }}>
+            <Tag size={24} color={activeTab === 'INCOME' ? '#22c55e' : '#ef4444'} />
           </div>
           <div>
-            <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Flow</p>
-            <p className="text-title-md" style={{ margin: 0, color: netFlow >= 0 ? 'var(--c-primary)' : '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>
-              {netFlow >= 0 ? '+' : '-'}₹{Math.abs(netFlow).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <p className="text-label-sm" style={{ margin: '0 0 4px 0', fontWeight: 700, fontSize: '11px', color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {activeCategory === 'all' ? 'Category Total (All)' : `Total ${activeCategory}`}
+            </p>
+            <p className="text-title-md" style={{ margin: 0, color: activeTab === 'INCOME' ? '#22c55e' : '#ef4444', fontWeight: 800, fontSize: '1.25rem' }}>
+              {activeTab === 'INCOME' ? '+' : '-'}₹{categoryTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
         </div>
