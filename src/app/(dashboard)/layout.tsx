@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   });
 
   const MAX_DAYS = 35;
-  const trackerTitlesToCheck = ['Feets Nail Cutting', 'Hair Removal', 'Hands Nail Cutting'];
+  const trackerTitlesToCheck = ['Trim Toenails', 'Remove Body Hair', 'Trim Fingernails'];
   const notifications: { title: string; days: number; lastDone: Date | null }[] = [];
 
   trackers.forEach(t => {

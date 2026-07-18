@@ -211,7 +211,7 @@ export default async function Dashboard() {
 
   // Calculate overdue periodic trackers (exceeding 35 days)
   const MAX_DAYS = 35;
-  const trackerTitlesToCheck = ['Feets Nail Cutting', 'Hair Removal', 'Hands Nail Cutting'];
+  const trackerTitlesToCheck = ['Trim Toenails', 'Remove Body Hair', 'Trim Fingernails'];
   const overdueTrackers: { title: string; days: number; lastDone: Date | null }[] = [];
 
   recurringTrackers.forEach(t => {
