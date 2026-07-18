@@ -198,6 +198,7 @@ model WeekendTask {
   userId          Int
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title           String
+  order           Int       @default(0)
   createdAt       DateTime  @default(now()) @db.Timestamptz()
   logs            WeekendTaskLog[]
 }

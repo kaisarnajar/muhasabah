@@ -102,7 +102,7 @@ export async function getWeekendTasks() {
 
   return await prisma.weekendTask.findMany({
     where: { userId: user.id },
-    orderBy: { id: 'asc' },
+    orderBy: { order: 'asc' },
     include: { logs: true },
   });
 }
