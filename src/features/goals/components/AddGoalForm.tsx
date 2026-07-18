@@ -6,7 +6,7 @@ import { Plus, X } from 'lucide-react';
 import { addGoal } from '@/actions/index';
 import { GoalCategory } from '@prisma/client';
 
-export function AddGoalForm({ activeCategory }: { activeCategory: GoalCategory }) {
+export function AddGoalForm({ activeCategory }: { activeCategory: GoalCategory | 'ALL' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -66,7 +66,7 @@ export function AddGoalForm({ activeCategory }: { activeCategory: GoalCategory }
                   <label className="text-label-sm text-on-surface-variant" style={{ fontWeight: 600 }}>Category</label>
                   <select 
                     name="category" 
-                    defaultValue={activeCategory} 
+                    defaultValue={activeCategory === 'ALL' ? 'RELIGIOUS' : activeCategory} 
                     className="search-input" 
                     style={{ width: '100%', borderRadius: '8px' }}
                   >

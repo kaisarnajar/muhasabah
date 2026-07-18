@@ -9,7 +9,7 @@ import { Goal, GoalCategory, GoalPriority } from '@prisma/client';
 import { deleteGoal, toggleGoal, editGoal } from '@/actions/index';
 
 export function GoalsDashboard({ goals }: { goals: Goal[] }) {
-  const [activeTab, setActiveTab] = useState<GoalCategory>('RELIGIOUS');
+  const [activeTab, setActiveTab] = useState<GoalCategory | 'ALL'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -20,7 +20,8 @@ export function GoalsDashboard({ goals }: { goals: Goal[] }) {
     return () => setMounted(false);
   }, []);
 
-  const tabs: Array<{ value: GoalCategory; label: string }> = [
+  const tabs: Array<{ value: GoalCategory | 'ALL'; label: string }> = [
+    { value: 'ALL', label: 'All Goals' },
     { value: 'RELIGIOUS', label: 'Religious' },
     { value: 'CAREER', label: 'Career' },
     { value: 'FINANCES', label: 'Finances' },
@@ -28,12 +29,13 @@ export function GoalsDashboard({ goals }: { goals: Goal[] }) {
     { value: 'PERSONAL', label: 'Personal' }
   ];
 
-  const handleTabChange = (tab: GoalCategory) => {
+  const handleTabChange = (tab: GoalCategory | 'ALL') => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
 
   const filteredGoals = goals.filter(goal => {
+    if (activeTab === 'ALL') return true;
     return goal.category === activeTab;
   });
 
