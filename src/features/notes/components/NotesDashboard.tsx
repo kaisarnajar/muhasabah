@@ -251,7 +251,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
       )}
 
       {/* Category Filter Row */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px' }}>
         {noteCategories.map(cat => (
           <button
             key={cat}
