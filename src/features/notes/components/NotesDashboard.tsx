@@ -26,8 +26,18 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
   const noteCategories = Array.from(new Set([
     'All',
     'General',
+    'Review',
     'Monthly Review',
     'Yearly Review',
+    'College Life',
+    'Samsung R&D',
+    'Super 30',
+    'Career & Tech',
+    'Islamic & Religious',
+    'Personal',
+    'Health & Fitness',
+    'Finance',
+    'Ideas & Goals',
     ...initialNotes.map(n => n.category).filter(Boolean)
   ]));
 
@@ -370,8 +380,18 @@ export default function NotesDashboard({ initialNotes }: { initialNotes: Note[] 
                   style={{ width: '100%', borderRadius: '8px' }}
                 >
                   <option value="General">General</option>
+                  <option value="Review">Review</option>
                   <option value="Monthly Review">Monthly Review</option>
                   <option value="Yearly Review">Yearly Review</option>
+                  <option value="College Life">College Life</option>
+                  <option value="Samsung R&D">Samsung R&D</option>
+                  <option value="Super 30">Super 30</option>
+                  <option value="Career & Tech">Career & Tech</option>
+                  <option value="Islamic & Religious">Islamic & Religious</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Health & Fitness">Health & Fitness</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Ideas & Goals">Ideas & Goals</option>
                 </select>
               </div>
 
