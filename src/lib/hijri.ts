@@ -1,7 +1,17 @@
-/**
- * Helper utility to calculate and format Hijri Dates using standard
- * browser/Node.js Internationalisation APIs.
- */
+const ISLAMIC_MONTHS = [
+  'Muharram',
+  'Safar',
+  "Rabi' al-Awwal",
+  "Rabi' al-Thani",
+  'Jumada al-Awwal',
+  'Jumada al-Thani',
+  'Rajab',
+  "Sha'ban",
+  'Ramadan',
+  'Shawwal',
+  "Dhu al-Qi'dah",
+  'Dhu al-Hijjah'
+];
 
 export function getHijriDateString(date: Date, offsetDays: number = 0): string {
   // Apply manual offset (convert offset in days to milliseconds)
@@ -11,17 +21,25 @@ export function getHijriDateString(date: Date, offsetDays: number = 0): string {
   try {
     const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
       day: 'numeric',
-      month: 'long',
+      month: 'numeric',
       year: 'numeric'
     });
 
     const parts = formatter.formatToParts(adjustedDate);
     const day = parts.find(p => p.type === 'day')?.value;
-    const month = parts.find(p => p.type === 'month')?.value;
+    const monthVal = parts.find(p => p.type === 'month')?.value;
     const year = parts.find(p => p.type === 'year')?.value;
     const era = parts.find(p => p.type === 'era')?.value || 'AH';
 
-    return `${day} ${month} ${year} ${era}`;
+    let monthName = monthVal || '';
+    if (monthVal) {
+      const monthNum = parseInt(monthVal, 10);
+      if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+        monthName = ISLAMIC_MONTHS[monthNum - 1];
+      }
+    }
+
+    return `${day} ${monthName} ${year} ${era}`;
   } catch (e) {
     console.error('Failed to format Hijri date using Intl', e);
     // Fallback to local date string
