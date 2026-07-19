@@ -2,6 +2,17 @@ import Navigation from '@/components/layout/Navigation';
 import { getAuthenticatedUser } from '@/features/auth/actions';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
+
+export interface AppNotification {
+  type: 'TRACKER' | 'ISLAMIC_EVENT';
+  title: string;
+  days?: number;
+  lastDone?: Date | null;
+  statusLabel?: string;
+  dayLabel?: string;
+  description?: string;
+}
 
 export default async function DashboardLayout({
   children,
@@ -13,15 +24,17 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  // Fetch recurring trackers for the user to check nail/hair removal limits
-  const trackers = await prisma.recurringTracker.findMany({
-    where: { userId: sessionUser.id }
-  });
+  // Fetch user settings and recurring trackers in parallel
+  const [user, trackers] = await Promise.all([
+    prisma.user.findUnique({ where: { id: sessionUser.id } }),
+    prisma.recurringTracker.findMany({ where: { userId: sessionUser.id } })
+  ]);
 
   const MAX_DAYS = 35;
   const trackerTitlesToCheck = ['Trim Toenails', 'Remove Body Hair', 'Trim Fingernails'];
-  const notifications: { title: string; days: number; lastDone: Date | null }[] = [];
+  const notifications: AppNotification[] = [];
 
+  // 1. Add overdue hygiene trackers
   trackers.forEach(t => {
     if (trackerTitlesToCheck.includes(t.title)) {
       if (t.lastDone) {
@@ -29,20 +42,39 @@ export default async function DashboardLayout({
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         if (diffDays > MAX_DAYS) {
           notifications.push({
+            type: 'TRACKER',
             title: t.title,
             days: diffDays,
             lastDone: t.lastDone
           });
         }
       } else {
-        // If never completed, it's considered overdue
         notifications.push({
+          type: 'TRACKER',
           title: t.title,
           days: 36,
           lastDone: null
         });
       }
     }
+  });
+
+  // 2. Add upcoming Islamic Events (in 2 days, 1 day, or today)
+  const upcomingEvents = getUpcomingIslamicEvents(new Date(), user?.hijriOffset ?? 0, 2);
+  upcomingEvents.forEach(item => {
+    const statusLabel = item.status === 'TODAY' 
+      ? 'Today' 
+      : item.status === 'IN_1_DAY' 
+      ? 'Tomorrow' 
+      : 'In 2 Days';
+
+    notifications.push({
+      type: 'ISLAMIC_EVENT',
+      title: item.event.title,
+      statusLabel,
+      dayLabel: item.event.dayLabel,
+      description: item.event.description
+    });
   });
 
   return (

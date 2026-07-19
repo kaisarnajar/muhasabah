@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useTransition, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarRange, ChevronLeft, ChevronRight, RotateCcw, Edit3, X } from 'lucide-react';
@@ -160,6 +161,26 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
           >
             <CalendarRange size={15} /> {showMonthsList ? 'Hide Months' : 'View Calendar'}
           </button>
+
+          <Link
+            href="/religious"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(220, 174, 46, 0.1)',
+              color: 'var(--c-primary)',
+              border: '1px solid rgba(220, 174, 46, 0.3)',
+              textDecoration: 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            🌙 Islamic Events
+          </Link>
 
           {showControls && (
             <button

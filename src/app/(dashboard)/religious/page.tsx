@@ -1,10 +1,12 @@
 import { getSpiritualTodayData, getSpiritualHistory, getSpiritualHabits, seedDefaultSpiritualHabits } from '@/features/religious/actions';
-import SpiritualDashboard from "@/features/religious/components/SpiritualDashboard";
+import ReligiousPageClient from "@/features/religious/components/ReligiousPageClient";
+import { getAuthenticatedUser } from '@/features/auth/actions';
 
 export default async function ReligiousPage() {
   // Seed default habits (5 prayers + Adhkar) if none exist
   await seedDefaultSpiritualHabits();
 
+  const user = await getAuthenticatedUser();
   const today = new Date();
   // Adjust for local timezone to ensure 'today' is the user's today
   const offset = today.getTimezoneOffset() * 60000;
@@ -19,11 +21,12 @@ export default async function ReligiousPage() {
 
   return (
     <div style={{ padding: '0 24px 60px 24px' }}>
-      <SpiritualDashboard
+      <ReligiousPageClient
         dateStr={dateStr}
         initialTodayData={todayData}
         initialHistory={history}
         allHabits={allHabits}
+        hijriOffset={user?.hijriOffset ?? 0}
       />
     </div>
   );

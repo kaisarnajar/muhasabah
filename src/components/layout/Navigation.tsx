@@ -6,14 +6,11 @@ import { logoutAction } from '@/features/auth/actions';
 import { useState, useRef, useEffect } from 'react';
 import { Bell, AlertTriangle } from 'lucide-react';
 
-interface NotificationItem {
-  title: string;
-  days: number;
-  lastDone: Date | null;
-}
+import { AppNotification } from '@/app/(dashboard)/layout';
+import { Moon } from 'lucide-react';
 
 interface NavigationProps {
-  notifications?: NotificationItem[];
+  notifications?: AppNotification[];
 }
 
 export default function Navigation({ notifications = [] }: NavigationProps) {
@@ -221,62 +218,88 @@ export default function Navigation({ notifications = [] }: NavigationProps) {
                      <span style={{
                        fontSize: '11px',
                        fontWeight: 700,
-                       backgroundColor: notifications.length > 0 ? 'var(--c-error-container)' : 'var(--c-surface-container-high)',
-                       color: notifications.length > 0 ? 'var(--c-on-error-container)' : 'var(--c-on-surface-variant)',
+                       backgroundColor: notifications.length > 0 ? 'var(--c-primary)' : 'var(--c-surface-container-high)',
+                       color: notifications.length > 0 ? '#ffffff' : 'var(--c-on-surface-variant)',
                        padding: '2px 8px',
                        borderRadius: '20px'
                      }}>
-                       {notifications.length} Overdue
+                       {notifications.length} {notifications.length === 1 ? 'Alert' : 'Alerts'}
                      </span>
                    </div>
 
-                   <div style={{ maxHeight: '240px', overflowY: 'auto', padding: '0 8px' }}>
-                     {notifications.map((item, index) => (
-                       <Link 
-                         key={index} 
-                         href="/tasks" 
-                         style={{ textDecoration: 'none' }}
-                         onClick={() => setShowNotificationMenu(false)}
-                       >
-                         <div style={{
-                           padding: '10px 12px',
-                           borderRadius: '8px',
-                           backgroundColor: 'var(--c-surface-container-low)',
-                           border: '1.5px solid var(--c-outline-variant)',
-                           marginBottom: index !== notifications.length - 1 ? '8px' : '0',
-                           display: 'flex',
-                           alignItems: 'start',
-                           gap: '10px',
-                           transition: 'all 0.2s',
-                           cursor: 'pointer'
-                         }}
-                         onMouseEnter={(e) => {
-                           e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)';
-                           e.currentTarget.style.borderColor = 'var(--c-primary)';
-                         }}
-                         onMouseLeave={(e) => {
-                           e.currentTarget.style.backgroundColor = 'var(--c-surface-container-low)';
-                           e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
-                         }}
-                         >
-                           <AlertTriangle size={16} color="var(--c-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
-                             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
-                               {item.title} Overdue
-                             </span>
-                             <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 550 }}>
-                               Crossed 35 days ({item.days} days since last done).
-                             </span>
-                           </div>
-                         </div>
-                       </Link>
-                     ))}
+                   <div style={{ maxHeight: '280px', overflowY: 'auto', padding: '0 8px' }}>
+                      {notifications.map((item, index) => {
+                        const targetHref = item.type === 'ISLAMIC_EVENT' ? '/religious' : '/tasks';
+                        
+                        return (
+                          <Link 
+                            key={index} 
+                            href={targetHref} 
+                            style={{ textDecoration: 'none' }}
+                            onClick={() => setShowNotificationMenu(false)}
+                          >
+                            <div style={{
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              backgroundColor: 'var(--c-surface-container-low)',
+                              border: '1.5px solid var(--c-outline-variant)',
+                              marginBottom: index !== notifications.length - 1 ? '8px' : '0',
+                              display: 'flex',
+                              alignItems: 'start',
+                              gap: '10px',
+                              transition: 'all 0.2s',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--c-surface-container-high)';
+                              e.currentTarget.style.borderColor = 'var(--c-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'var(--c-surface-container-low)';
+                              e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+                            }}
+                            >
+                              {item.type === 'ISLAMIC_EVENT' ? (
+                                <Moon size={16} color="var(--c-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                              ) : (
+                                <AlertTriangle size={16} color="var(--c-error)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                              )}
+                              
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+                                    {item.title}
+                                  </span>
+                                  {item.type === 'ISLAMIC_EVENT' && item.statusLabel && (
+                                    <span style={{
+                                      fontSize: '9px',
+                                      fontWeight: 800,
+                                      backgroundColor: item.statusLabel === 'Today' ? '#22c55e' : 'rgba(220, 174, 46, 0.15)',
+                                      color: item.statusLabel === 'Today' ? '#ffffff' : 'var(--c-primary)',
+                                      padding: '1px 6px',
+                                      borderRadius: '10px'
+                                    }}>
+                                      {item.statusLabel}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 550 }}>
+                                  {item.type === 'ISLAMIC_EVENT' 
+                                    ? `🌙 ${item.dayLabel}: ${item.description}` 
+                                    : `Overdue by ${item.days} days since last done.`}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
 
-                     {notifications.length === 0 && (
-                       <p style={{ textAlign: 'center', color: 'var(--c-on-surface-variant)', fontSize: '13px', padding: '16px 0', margin: 0, fontWeight: 500 }}>
-                         🎉 All trackers are up to date!
-                       </p>
-                     )}
+                      {notifications.length === 0 && (
+                        <p style={{ textAlign: 'center', color: 'var(--c-on-surface-variant)', fontSize: '13px', padding: '16px 0', margin: 0, fontWeight: 500 }}>
+                          🎉 No pending alerts!
+                        </p>
+                      )}
                    </div>
                  </div>
                )}

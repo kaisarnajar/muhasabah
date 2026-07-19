@@ -5,6 +5,7 @@ import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
 
 const ALL_SECTIONS = [
   { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
@@ -237,8 +238,87 @@ export default async function Dashboard() {
     }
   });
 
+  // Calculate upcoming Islamic events (occurring today, tomorrow, or in 2 days)
+  const upcomingIslamicEvents = getUpcomingIslamicEvents(new Date(), user?.hijriOffset ?? 0, 2);
+
   return (
     <>
+      {/* UPCOMING ISLAMIC EVENT ALERT BANNER */}
+      {upcomingIslamicEvents.length > 0 && (
+        <div 
+          className="card"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            backgroundColor: 'rgba(220, 174, 46, 0.05)',
+            border: '1.5px solid rgba(220, 174, 46, 0.3)',
+            marginBottom: '24px',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div 
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(220, 174, 46, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--c-primary)',
+                flexShrink: 0
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontWeight: 'bold' }}>brightness_3</span>
+            </div>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
+                Upcoming Islamic (Hijri) Event Alert
+              </h3>
+              <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--c-on-surface-variant)', fontWeight: 550 }}>
+                You have {upcomingIslamicEvents.length} event{upcomingIslamicEvents.length !== 1 ? 's' : ''} upcoming within 2 days:
+              </p>
+            </div>
+            <Link 
+              href="/religious" 
+              className="primary-btn"
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '8px', 
+                fontSize: '12px', 
+                fontWeight: 700,
+                textDecoration: 'none',
+                boxShadow: 'none'
+              }}
+            >
+              View Calendar
+            </Link>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '48px' }}>
+            {upcomingIslamicEvents.map((item, idx) => (
+              <span 
+                key={idx}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  backgroundColor: 'rgba(220, 174, 46, 0.15)',
+                  color: 'var(--c-primary)',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(220, 174, 46, 0.3)'
+                }}
+              >
+                🌙 {item.event.title} ({item.event.dayLabel} — {item.status === 'TODAY' ? 'Today' : item.status === 'IN_1_DAY' ? 'Tomorrow' : 'In 2 Days'})
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* OVERDUE PERIODIC TRACKER WARNING */}
       {overdueTrackers.length > 0 && (
         <div 
