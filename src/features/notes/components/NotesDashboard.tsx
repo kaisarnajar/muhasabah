@@ -299,9 +299,34 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                 border: note.isPinned ? '1.5px solid var(--c-primary)' : '1px solid var(--c-outline-variant)', 
                 backgroundColor: note.isPinned ? 'rgba(220, 174, 46, 0.04)' : 'var(--c-surface-container-low)',
                 cursor: 'pointer',
-                position: 'relative'
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
+              {/* PINNED RIBBON — top-left corner */}
+              {note.isPinned && (
+                <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  left: '-1px',
+                  backgroundColor: 'var(--c-primary)',
+                  color: '#1a1200',
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
+                  padding: '3px 8px 3px 10px',
+                  borderRadius: '0 20px 20px 0',
+                  zIndex: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  boxShadow: '2px 2px 6px rgba(191,145,41,0.25)',
+                  textTransform: 'uppercase'
+                }}>
+                  📌 Pinned
+                </div>
+              )}
+
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
                   <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', color: 'var(--c-on-surface)' }}>
@@ -374,11 +399,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {note.isPinned && (
-                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)' }}>
-                      📌 PINNED
-                    </span>
-                  )}
                   <span className="text-label-sm" style={{ 
                     padding: '2px 8px', 
                     borderRadius: '12px', 

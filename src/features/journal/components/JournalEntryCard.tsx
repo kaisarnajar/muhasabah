@@ -80,11 +80,6 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
-            {entry.isPinned && (
-              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                📌 PINNED
-              </span>
-            )}
           </div>
         </div>
       );
@@ -144,11 +139,6 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
-            {entry.isPinned && (
-              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                📌 PINNED
-              </span>
-            )}
           </div>
         </div>
       );
@@ -218,11 +208,6 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
-            {entry.isPinned && (
-              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                📌 PINNED
-              </span>
-            )}
           </div>
         </div>
       );
@@ -248,11 +233,6 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
-            {entry.isPinned && (
-              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                📌 PINNED
-              </span>
-            )}
           </div>
         </div>
       );
@@ -289,6 +269,30 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
+      {/* PINNED RIBBON — top-left corner */}
+      {entry.isPinned && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '-1px',
+          backgroundColor: 'var(--c-primary)',
+          color: '#1a1200',
+          fontSize: '9px',
+          fontWeight: 800,
+          letterSpacing: '0.06em',
+          padding: '3px 8px 3px 10px',
+          borderRadius: '0 20px 20px 0',
+          zIndex: 6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '3px',
+          boxShadow: '2px 2px 6px rgba(191,145,41,0.25)',
+          textTransform: 'uppercase'
+        }}>
+          📌 Pinned
+        </div>
+      )}
+
       {/* PIN BUTTON */}
       <button
         onClick={handleTogglePin}
