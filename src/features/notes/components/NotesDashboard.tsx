@@ -303,33 +303,10 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                 overflow: 'hidden'
               }}
             >
-              {/* PINNED RIBBON — top-left corner */}
-              {note.isPinned && (
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '-1px',
-                  backgroundColor: 'var(--c-primary)',
-                  color: '#1a1200',
-                  fontSize: '9px',
-                  fontWeight: 800,
-                  letterSpacing: '0.06em',
-                  padding: '3px 8px 3px 10px',
-                  borderRadius: '0 20px 20px 0',
-                  zIndex: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  boxShadow: '2px 2px 6px rgba(191,145,41,0.25)',
-                  textTransform: 'uppercase'
-                }}>
-                  📌 Pinned
-                </div>
-              )}
-
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
                   <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', color: 'var(--c-on-surface)' }}>
+                    {note.isPinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
                     {note.title}
                   </h3>
                   
