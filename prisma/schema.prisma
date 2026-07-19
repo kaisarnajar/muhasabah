@@ -144,6 +144,7 @@ model JournalEntry {
   location  String?
   activity  String?
   tag       String?
+  isPinned  Boolean         @default(false)
   date      DateTime        @default(now()) @db.Date
   createdAt DateTime        @default(now()) @db.Timestamptz()
 }
@@ -235,6 +236,7 @@ model Note {
   title     String
   content   String      @db.Text
   category  String      @default("General")
+  isPinned  Boolean     @default(false)
   createdAt DateTime    @default(now()) @db.Timestamptz()
   updatedAt DateTime    @updatedAt @db.Timestamptz()
 }

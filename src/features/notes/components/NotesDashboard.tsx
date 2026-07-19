@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search, Edit2, Calendar, Clock, X, FolderOpen, ChevronRight, FolderPlus } from 'lucide-react';
-import { addNote, updateNote, deleteNote, deleteNoteFolder } from '@/features/notes/actions';
+import { Plus, Search, Edit2, Calendar, Clock, X, FolderOpen, ChevronRight, FolderPlus, Pin } from 'lucide-react';
+import { addNote, updateNote, deleteNote, deleteNoteFolder, togglePinNote } from '@/features/notes/actions';
 import DeleteConfirmButton from '@/components/ui/DeleteConfirmButton';
 import { useToast } from '@/context/ToastContext';
 import { Note, NoteFolder } from '@prisma/client';
@@ -290,7 +290,17 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
               key={note.id}
               className="card"
               onClick={() => setViewingNote(note)}
-              style={{ display: 'flex', flexDirection: 'column', height: '240px', justifyContent: 'space-between', padding: '20px', border: '1px solid var(--c-outline-variant)', cursor: 'pointer' }}
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '240px', 
+                justifyContent: 'space-between', 
+                padding: '20px', 
+                border: note.isPinned ? '1.5px solid var(--c-primary)' : '1px solid var(--c-outline-variant)', 
+                backgroundColor: note.isPinned ? 'rgba(220, 174, 46, 0.04)' : 'var(--c-surface-container-low)',
+                cursor: 'pointer',
+                position: 'relative'
+              }}
             >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
@@ -299,6 +309,32 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                   </h3>
                   
                   <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    <button
+                      onClick={async (event) => {
+                        event.stopPropagation();
+                        try {
+                          await togglePinNote(note.id);
+                          showToast(note.isPinned ? 'Unpinned note' : 'Pinned note to top', 'success');
+                        } catch {
+                          showToast('Failed to toggle pin', 'error');
+                        }
+                      }}
+                      style={{ 
+                        color: note.isPinned ? 'var(--c-primary)' : 'var(--c-on-surface-variant)', 
+                        background: note.isPinned ? 'rgba(220, 174, 46, 0.15)' : 'none', 
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        padding: '6px', 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        transition: 'all 0.2s',
+                        opacity: note.isPinned ? 1 : 0.6
+                      }}
+                      className="icon-btn-hover"
+                      title={note.isPinned ? "Unpin Note" : "Pin Note to top"}
+                    >
+                      <Pin size={15} style={{ transform: note.isPinned ? 'rotate(45deg)' : 'none' }} />
+                    </button>
                     <button 
                       onClick={(event) => { event.stopPropagation(); openEditModal(note); }}
                       style={{ color: 'var(--c-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'background-color 0.2s' }}
@@ -337,17 +373,24 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                     {timeString}
                   </span>
                 </div>
-                <span className="text-label-sm" style={{ 
-                  padding: '2px 8px', 
-                  borderRadius: '12px', 
-                  backgroundColor: 'var(--c-surface-container-high)', 
-                  border: '1px solid var(--c-outline-variant)',
-                  color: 'var(--c-on-surface)',
-                  fontSize: '10px',
-                  fontWeight: 600
-                }}>
-                  {note.category || 'General'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {note.isPinned && (
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)' }}>
+                      📌 PINNED
+                    </span>
+                  )}
+                  <span className="text-label-sm" style={{ 
+                    padding: '2px 8px', 
+                    borderRadius: '12px', 
+                    backgroundColor: 'var(--c-surface-container-high)', 
+                    border: '1px solid var(--c-outline-variant)',
+                    color: 'var(--c-on-surface)',
+                    fontSize: '10px',
+                    fontWeight: 600
+                  }}>
+                    {note.category || 'General'}
+                  </span>
+                </div>
               </div>
             </div>
           );

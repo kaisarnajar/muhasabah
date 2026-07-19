@@ -58,7 +58,7 @@ export async function getNotes() {
 
   return await prisma.note.findMany({
     where: { userId: user.id },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: [{ isPinned: 'desc' }, { updatedAt: 'desc' }],
   });
 }
 
@@ -120,5 +120,22 @@ export async function deleteNote(id: number) {
   await prisma.note.deleteMany({
     where: { id, userId: user.id },
   });
+  revalidatePath('/notes');
+}
+
+export async function togglePinNote(id: number) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const note = await prisma.note.findFirst({
+    where: { id, userId: user.id }
+  });
+  if (!note) throw new Error('Note not found');
+
+  await prisma.note.update({
+    where: { id },
+    data: { isPinned: !note.isPinned }
+  });
+
   revalidatePath('/notes');
 }

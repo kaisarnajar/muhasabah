@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { JournalEntry, JournalCategory } from '@prisma/client';
-import { Calendar, GraduationCap, MapPin } from 'lucide-react';
+import { Calendar, GraduationCap, MapPin, Pin } from 'lucide-react';
 import { getWorkTypeStyle, getSubjectColor, getMiscActivityStyle } from './utils';
+import { togglePinJournalEntry } from '@/features/journal/actions';
+import { useToast } from '@/context/ToastContext';
 
 interface Props {
   entry: JournalEntry;
@@ -11,12 +14,28 @@ interface Props {
 }
 
 export default function JournalEntryCard({ entry, category, onClick }: Props) {
+  const { showToast } = useToast();
+  const [isPinning, setIsPinning] = useState(false);
+
+  const handleTogglePin = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsPinning(true);
+    try {
+      await togglePinJournalEntry(entry.id);
+      showToast(entry.isPinned ? 'Unpinned entry' : 'Pinned entry to top', 'success');
+    } catch {
+      showToast('Failed to toggle pin', 'error');
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   const renderCardContent = () => {
     if (category === 'OFFICE') {
       const typeStyle = getWorkTypeStyle(entry.workType || 'Other');
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', paddingRight: '20px' }}>
             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)', wordBreak: 'break-word', lineHeight: 1.4 }}>
               {entry.project || 'General Work'}
             </h4>
@@ -61,6 +80,11 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
+            {entry.isPinned && (
+              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                📌 PINNED
+              </span>
+            )}
           </div>
         </div>
       );
@@ -68,7 +92,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
       const colors = entry.subject ? getSubjectColor(entry.subject) : null;
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingRight: '20px' }}>
             {entry.subject ? (
               <span style={{ 
                 fontSize: '11px', 
@@ -120,6 +144,11 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
+            {entry.isPinned && (
+              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                📌 PINNED
+              </span>
+            )}
           </div>
         </div>
       );
@@ -128,7 +157,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
           {/* Card Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', paddingRight: '20px' }}>
             <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)', display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.4 }}>
               <MapPin size={13} color="var(--c-primary)" />
               {entry.location || 'Everyday Event'}
@@ -189,6 +218,11 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
+            {entry.isPinned && (
+              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                📌 PINNED
+              </span>
+            )}
           </div>
         </div>
       );
@@ -214,6 +248,11 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
               {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
+            {entry.isPinned && (
+              <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: 800, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                📌 PINNED
+              </span>
+            )}
           </div>
         </div>
       );
@@ -228,8 +267,12 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
         padding: '20px', 
         cursor: 'pointer',
         borderRadius: '16px',
-        border: '1.5px solid var(--c-outline-variant)',
-        backgroundColor: 'var(--c-surface-container-low)',
+        border: entry.isPinned 
+          ? '1.5px solid var(--c-primary)' 
+          : '1.5px solid var(--c-outline-variant)',
+        backgroundColor: entry.isPinned 
+          ? 'rgba(220, 174, 46, 0.04)' 
+          : 'var(--c-surface-container-low)',
         transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         minWidth: 0,
         position: 'relative',
@@ -242,10 +285,38 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
+        e.currentTarget.style.borderColor = entry.isPinned ? 'var(--c-primary)' : 'var(--c-outline-variant)';
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
+      {/* PIN BUTTON */}
+      <button
+        onClick={handleTogglePin}
+        disabled={isPinning}
+        title={entry.isPinned ? "Unpin entry" : "Pin to top"}
+        style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          background: entry.isPinned ? 'rgba(220, 174, 46, 0.15)' : 'none',
+          border: entry.isPinned ? '1px solid rgba(220, 174, 46, 0.4)' : 'none',
+          cursor: 'pointer',
+          padding: '4px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: entry.isPinned ? 'var(--c-primary)' : 'var(--c-on-surface-variant)',
+          opacity: entry.isPinned ? 1 : 0.5,
+          transition: 'all 0.2s',
+          zIndex: 5
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = entry.isPinned ? '1' : '0.5'; }}
+      >
+        <Pin size={14} style={{ transform: entry.isPinned ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }} />
+      </button>
+
       {renderCardContent()}
     </div>
   );

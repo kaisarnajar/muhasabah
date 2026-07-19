@@ -14,7 +14,7 @@ export async function getJournalEntries(category?: JournalCategory) {
       userId: user.id,
       ...(category ? { category } : {}),
     },
-    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+    orderBy: [{ isPinned: 'desc' }, { date: 'desc' }, { createdAt: 'desc' }],
   });
 }
 
@@ -100,6 +100,26 @@ export async function editJournalEntry(
       ...(tag !== undefined ? { tag } : {}),
     },
   });
+  revalidatePath('/journal/office');
+  revalidatePath('/journal/learning');
+  revalidatePath('/journal/misc');
+  revalidatePath('/');
+}
+
+export async function togglePinJournalEntry(id: number) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const entry = await prisma.journalEntry.findFirst({
+    where: { id, userId: user.id }
+  });
+  if (!entry) throw new Error('Entry not found');
+
+  await prisma.journalEntry.update({
+    where: { id },
+    data: { isPinned: !entry.isPinned }
+  });
+
   revalidatePath('/journal/office');
   revalidatePath('/journal/learning');
   revalidatePath('/journal/misc');
