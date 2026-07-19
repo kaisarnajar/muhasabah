@@ -59,7 +59,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
-              {new Date(entry.createdAt).toLocaleDateString()}
+              {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
-              {new Date(entry.createdAt).toLocaleDateString()}
+              {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
-              {new Date(entry.createdAt).toLocaleDateString()}
+              {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function JournalEntryCard({ entry, category, onClick }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '10px', marginTop: 'auto' }}>
             <Calendar size={12} color="var(--c-on-surface-variant)" style={{ opacity: 0.7 }} />
             <span className="text-label-sm text-on-surface-variant" style={{ textTransform: 'none', fontWeight: 600, fontSize: '11px' }}>
-              {new Date(entry.createdAt).toLocaleDateString()}
+              {new Date(entry.date || entry.createdAt).toLocaleDateString()}
             </span>
           </div>
         </div>

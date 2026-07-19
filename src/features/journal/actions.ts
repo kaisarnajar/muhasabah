@@ -14,7 +14,7 @@ export async function getJournalEntries(category?: JournalCategory) {
       userId: user.id,
       ...(category ? { category } : {}),
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
   });
 }
 
