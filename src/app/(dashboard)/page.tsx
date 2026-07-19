@@ -243,6 +243,33 @@ export default async function Dashboard() {
 
   return (
     <>
+      {/* UMAR RA QUOTE */}
+      <div className="quote-card" style={{ marginBottom: '24px' }}>
+        {/* Decorative Quote Icon Background */}
+        <span className="material-symbols-outlined quote-icon">format_quote</span>
+        
+        <p className="quote-arabic">
+          حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا، وَزِنُوا أَعْمَالَكُمْ قَبْلَ أَنْ تُوزَنَ عَلَيْكُمْ
+        </p>
+        
+        <div className="quote-divider">
+          <div className="quote-divider-line" />
+          <span className="material-symbols-outlined quote-divider-symbol">diamond</span>
+          <div className="quote-divider-line" />
+        </div>
+        
+        <p className="quote-english">
+          "Hold yourselves accountable before you are held accountable, and weigh your deeds before they are weighed against you."
+        </p>
+        
+        <div className="quote-author">
+          <div className="quote-author-line" />
+          <span className="quote-author-name">Umar ibn al-Khattab</span>
+          <span className="quote-author-honorific">رضي الله عنه</span>
+          <div className="quote-author-line" />
+        </div>
+      </div>
+
       {/* UPCOMING ISLAMIC EVENT ALERT BANNER */}
       {upcomingIslamicEvents.length > 0 && (
         <div 
@@ -398,33 +425,6 @@ export default async function Dashboard() {
       {/* HIJRI DATE DISPLAY */}
       <div style={{ marginBottom: '24px' }}>
         <HijriDateDisplay initialOffset={user?.hijriOffset ?? 0} />
-      </div>
-
-      {/* UMAR RA QUOTE */}
-      <div className="quote-card">
-        {/* Decorative Quote Icon Background */}
-        <span className="material-symbols-outlined quote-icon">format_quote</span>
-        
-        <p className="quote-arabic">
-          حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا، وَزِنُوا أَعْمَالَكُمْ قَبْلَ أَنْ تُوزَنَ عَلَيْكُمْ
-        </p>
-        
-        <div className="quote-divider">
-          <div className="quote-divider-line" />
-          <span className="material-symbols-outlined quote-divider-symbol">diamond</span>
-          <div className="quote-divider-line" />
-        </div>
-        
-        <p className="quote-english">
-          "Hold yourselves accountable before you are held accountable, and weigh your deeds before they are weighed against you."
-        </p>
-        
-        <div className="quote-author">
-          <div className="quote-author-line" />
-          <span className="quote-author-name">Umar ibn al-Khattab</span>
-          <span className="quote-author-honorific">رضي الله عنه</span>
-          <div className="quote-author-line" />
-        </div>
       </div>
 
       {/* TIMETABLE SECTION */}
