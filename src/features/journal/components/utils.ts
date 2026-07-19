@@ -37,6 +37,14 @@ export function getWorkTypeStyle(type: string) {
 
 export function getMiscActivityStyle(activity: string) {
   switch (activity) {
+    case 'Projects':
+      return { bg: '#e0f2fe', text: '#0284c7', border: '#bae6fd' }; // Sky / Blue
+    case 'Movies & Shows':
+      return { bg: '#f3e8ff', text: '#7e22ce', border: '#e9d5ff' }; // Purple
+    case 'Courses & Education':
+      return { bg: '#fef3c7', text: '#b45309', border: '#fde68a' }; // Amber
+    case 'Self Improvement':
+      return { bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' }; // Green
     case 'Travel':
       return { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' }; // Sky
     case 'Food':

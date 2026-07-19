@@ -17,6 +17,10 @@ export const WORK_TYPES = [
 ];
 
 export const MISC_ACTIVITIES = [
+  'Projects',
+  'Movies & Shows',
+  'Courses & Education',
+  'Self Improvement',
   'Travel',
   'Food',
   'Social',
