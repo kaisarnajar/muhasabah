@@ -10,10 +10,13 @@ A comprehensive personal dashboard and self-accountability app to help you track
 - Daily habit tracking for all 5 prayers (Fajr, Dhuhr, Asr, Maghrib, Isha), Adhkar, Quran Memorisation, Tahajjud, and Duha
 - Log whether each prayer was prayed in congregation (Jamaat)
 - Quran verse memorisation logging per day with Surah and verse range
+- **Ibadah Register**: Log and edit spiritual tracker data for any past day, ensuring you never miss a day.
+- **Islamic Events Calendar**: Interactive modal calendar to view significant Islamic historical events for any month.
 - 180-day rolling history view
 
 ### ⏰ Dynamic Timetable & Hijri Calendar
 - **Adjustable Hijri Date Display**: Displays today's adjusted Hijri date prominently on the Dashboard and Time Table pages.
+  - Automatically advances the Hijri date by 1 day after local Maghrib time.
   - Allows manual adjustment of ±1 day (or more) via a clean portal dialog popup modal on the Time Table page to align with local moon sighting announcements.
   - Selected offset persists across refreshes and sessions (saved in the database per user).
 - Save your GPS coordinates via browser Geolocation API
