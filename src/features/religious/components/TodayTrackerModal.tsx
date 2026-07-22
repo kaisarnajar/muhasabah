@@ -28,6 +28,13 @@ interface TodayTrackerModalProps {
 
 export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTodayData }: TodayTrackerModalProps) {
   const { showToast } = useToast();
+  
+  const isToday = new Date().toISOString().split('T')[0] === dateStr;
+  const displayDate = new Date(dateStr);
+  // adjust timezone offset to show correct local day if needed, 
+  // or simply use UTC to parse the YYYY-MM-DD correctly.
+  const displayDateOffset = displayDate.getTimezoneOffset() * 60000;
+  const localDisplayDate = new Date(displayDate.getTime() + displayDateOffset);
 
   const [selectedSurahNum, setSelectedSurahNum] = useState<number>(() => {
     if (initialTodayData.quranMemorization) {
@@ -139,11 +146,11 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
           <Moon color="var(--c-primary)" size={24} />
-          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Today&apos;s Spiritual Tracker</h2>
+          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>{isToday ? "Today's Spiritual Tracker" : "Spiritual Tracker"}</h2>
         </div>
 
         <p className="text-body-md text-on-surface-variant mb-24" style={{ fontWeight: 500 }}>
-          {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          {localDisplayDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
 
         {initialTodayData.habits.length === 0 ? (

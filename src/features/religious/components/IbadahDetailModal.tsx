@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ScrollText, CheckCircle2, Circle, Users } from 'lucide-react';
+import { X, ScrollText, CheckCircle2, Circle, Users, Pencil } from 'lucide-react';
+import { getSpiritualTodayData } from '@/features/religious/actions';
+import TodayTrackerModal from './TodayTrackerModal';
 import { PRAYER_HABIT_NAMES } from '@/lib/spiritualHabits';
 import { QURAN_SURAHS } from '@/lib/quranData';
 
@@ -20,7 +23,46 @@ interface IbadahDetailModalProps {
 }
 
 export default function IbadahDetailModal({ selectedRecord, onClose }: IbadahDetailModalProps) {
-  if (!selectedRecord) return null;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!selectedRecord) {
+    if (isEditing) {
+       setIsEditing(false);
+       setEditData(null);
+    }
+    return null;
+  }
+
+  const dateStr = selectedRecord.date.toISOString().split('T')[0];
+
+  const handleEditClick = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getSpiritualTodayData(dateStr);
+      setEditData(data);
+      setIsEditing(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isEditing && editData) {
+    return (
+      <TodayTrackerModal
+        isOpen={true}
+        onClose={() => {
+          setIsEditing(false);
+          onClose(); // Close both and rely on Next.js to re-fetch IbadahRegister history
+        }}
+        dateStr={dateStr}
+        initialTodayData={editData}
+      />
+    );
+  }
 
   const formatQuranMemorization = (val: string | null): string => {
     if (!val) return '';
@@ -53,11 +95,34 @@ export default function IbadahDetailModal({ selectedRecord, onClose }: IbadahDet
           <X size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-          <ScrollText color="var(--c-secondary)" size={22} />
-          <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
-            {new Date(selectedRecord.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-          </h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ScrollText color="var(--c-secondary)" size={22} />
+            <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
+              {new Date(selectedRecord.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            </h3>
+          </div>
+          <button
+            onClick={handleEditClick}
+            disabled={isLoading}
+            className="primary-btn"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              padding: '6px 12px', 
+              borderRadius: '8px', 
+              backgroundColor: 'var(--c-surface-container-high)', 
+              color: 'var(--c-on-surface)', 
+              border: '1px solid var(--c-outline)',
+              boxShadow: 'none',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: isLoading ? 'wait' : 'pointer'
+            }}
+          >
+            <Pencil size={14} /> {isLoading ? 'Loading...' : 'Edit'}
+          </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
