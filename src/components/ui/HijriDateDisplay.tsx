@@ -8,7 +8,7 @@ import { updateHijriOffset } from '@/features/timetable/actions';
 import { getHijriDateString, getHijriMonthNumber, ISLAMIC_MONTHS } from '@/lib/hijri';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
-import IslamicEventsModal from '@/features/religious/components/IslamicEventsModal';
+import IslamicMonthPopup from '@/features/religious/components/IslamicMonthPopup';
 
 interface Props {
   baseOffset: number;
@@ -18,7 +18,8 @@ interface Props {
 
 export default function HijriDateDisplay({ baseOffset, maghribPassed = false, showControls = false }: Props) {
   const [offsetState, setOffsetState] = useState(baseOffset);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [showMonthsList, setShowMonthsList] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -146,7 +147,7 @@ export default function HijriDateDisplay({ baseOffset, maghribPassed = false, sh
           )}
 
           <button
-            onClick={() => setIsCalendarOpen(true)}
+            onClick={() => setShowMonthsList(!showMonthsList)}
             style={{
               padding: '8px 16px',
               borderRadius: '8px',
@@ -155,14 +156,14 @@ export default function HijriDateDisplay({ baseOffset, maghribPassed = false, sh
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              backgroundColor: 'var(--c-surface-container-high)',
-              color: 'var(--c-on-surface)',
+              backgroundColor: showMonthsList ? 'var(--c-primary)' : 'var(--c-surface-container-high)',
+              color: showMonthsList ? 'var(--c-on-primary)' : 'var(--c-on-surface)',
               border: '1px solid var(--c-outline-variant)',
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
           >
-            <CalendarRange size={15} /> View Calendar
+            <CalendarRange size={15} /> {showMonthsList ? 'Hide Months' : 'View Calendar'}
           </button>
 
           {showControls && (
@@ -185,11 +186,78 @@ export default function HijriDateDisplay({ baseOffset, maghribPassed = false, sh
         </div>
       </div>
 
-      <IslamicEventsModal 
-        isOpen={isCalendarOpen} 
-        onClose={() => setIsCalendarOpen(false)} 
-        baseOffset={baseOffset}
-        maghribPassed={maghribPassed}
+      {/* Islamic Months Grid */}
+      {showMonthsList && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid var(--c-outline-variant)', margin: '0' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', width: '100%' }}>
+            {ISLAMIC_MONTHS.map((monthName, index) => {
+              const monthNum = index + 1;
+              const isCurrent = monthNum === currentMonthNum;
+              return (
+                <div
+                  key={monthName}
+                  onClick={() => setSelectedMonth(monthNum)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '12px 10px',
+                    borderRadius: '12px',
+                    border: isCurrent ? '2px solid var(--c-primary)' : '1.5px solid var(--c-outline-variant)',
+                    backgroundColor: isCurrent ? 'var(--c-primary-container)' : 'var(--c-surface-container-lowest)',
+                    boxShadow: isCurrent ? 'var(--shadow-glow-primary)' : 'none',
+                    textAlign: 'center',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    minHeight: '68px',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = isCurrent ? 'var(--shadow-glow-primary)' : 'none';
+                  }}
+                >
+                  {isCurrent && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        fontSize: '9px',
+                        fontWeight: 800,
+                        backgroundColor: 'var(--c-primary)',
+                        color: 'var(--c-on-primary)',
+                        padding: '1px 8px',
+                        borderRadius: '10px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        boxShadow: 'var(--shadow-glow-primary)'
+                      }}
+                    >
+                      Current
+                    </span>
+                  )}
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: isCurrent ? 'var(--c-primary)' : 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {monthNum}
+                  </span>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--c-on-surface)', marginTop: '2px', wordBreak: 'break-word' }}>
+                    {monthName}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <IslamicMonthPopup 
+        monthNum={selectedMonth} 
+        onClose={() => setSelectedMonth(null)} 
       />
 
       {/* Edit Offset Modal */}
