@@ -4,6 +4,7 @@ import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCar
 import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import DashboardCalendarWidget from '@/components/dashboard/DashboardCalendarWidget';
 import prisma from '@/lib/prisma';
 import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
 import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
@@ -303,20 +304,7 @@ export default async function Dashboard() {
                 You have {upcomingIslamicEvents.length} event{upcomingIslamicEvents.length !== 1 ? 's' : ''} upcoming within 2 days:
               </p>
             </div>
-            <Link 
-              href="/religious" 
-              className="primary-btn"
-              style={{ 
-                padding: '8px 16px', 
-                borderRadius: '8px', 
-                fontSize: '12px', 
-                fontWeight: 700,
-                textDecoration: 'none',
-                boxShadow: 'none'
-              }}
-            >
-              View Calendar
-            </Link>
+
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '48px' }}>
             {upcomingIslamicEvents.map((item, idx) => (
@@ -415,9 +403,10 @@ export default async function Dashboard() {
         </div>
       )}
 
-      {/* HIJRI DATE DISPLAY */}
-      <div style={{ marginBottom: '24px' }}>
+      {/* HIJRI DATE DISPLAY & CALENDAR */}
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <HijriDateDisplay baseOffset={baseOffset} maghribPassed={maghribPassed} />
+        <DashboardCalendarWidget baseOffset={baseOffset} maghribPassed={maghribPassed} />
       </div>
 
       {/* TIMETABLE SECTION */}
