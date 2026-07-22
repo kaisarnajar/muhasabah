@@ -1,5 +1,5 @@
 import { getSpiritualTodayData, getSpiritualHistory, getSpiritualHabits, seedDefaultSpiritualHabits } from '@/features/religious/actions';
-import ReligiousPageClient from "@/features/religious/components/ReligiousPageClient";
+import SpiritualDashboard from "@/features/religious/components/SpiritualDashboard";
 import { getAuthenticatedUser } from '@/features/auth/actions';
 import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
 
@@ -26,7 +26,7 @@ export default async function ReligiousPage() {
 
   return (
     <div style={{ padding: '0 24px 60px 24px' }}>
-      <ReligiousPageClient
+      <SpiritualDashboard
         dateStr={dateStr}
         initialTodayData={todayData}
         initialHistory={history}

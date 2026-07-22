@@ -11,6 +11,7 @@ import ManageHabitsModal from './ManageHabitsModal';
 import PrayerStats from './PrayerStats';
 import IbadahRegister from './IbadahRegister';
 import StatsDetailsModal from './StatsDetailsModal';
+import IslamicEventsModal from './IslamicEventsModal';
 
 interface HabitStatus {
   id: number;
@@ -37,6 +38,8 @@ interface SpiritualDashboardProps {
   };
   initialHistory: HistoryRecord[];
   allHabits: Array<{ id: number; name: string }>;
+  baseOffset: number;
+  maghribPassed: boolean;
 }
 
 export default function SpiritualDashboard({
@@ -44,10 +47,13 @@ export default function SpiritualDashboard({
   initialTodayData,
   initialHistory,
   allHabits,
+  baseOffset,
+  maghribPassed
 }: SpiritualDashboardProps) {
   // Modal states
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Statistics Filter States
@@ -508,26 +514,48 @@ export default function SpiritualDashboard({
           <Moon color="var(--c-primary)" size={28} />
           <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Spiritual Tracker</h2>
         </div>
-        <button
-          onClick={() => setIsManageModalOpen(true)}
-          className="primary-btn"
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            padding: '10px 20px', 
-            borderRadius: '12px', 
-            backgroundColor: 'var(--c-primary)', 
-            color: '#ffffff', 
-            border: 'none',
-            boxShadow: 'none',
-            fontSize: '14px',
-            fontWeight: 600,
-            transition: 'var(--transition-fast)'
-          }}
-        >
-          <Settings size={18} /> Manage Habits
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setIsCalendarModalOpen(true)}
+            className="secondary-btn"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '10px 20px', 
+              borderRadius: '12px', 
+              backgroundColor: 'var(--c-surface-container-high)', 
+              color: 'var(--c-on-surface)', 
+              border: '1px solid var(--c-outline)',
+              boxShadow: 'none',
+              fontSize: '14px',
+              fontWeight: 600,
+              transition: 'var(--transition-fast)'
+            }}
+          >
+            <Calendar size={18} /> Islamic Events
+          </button>
+          <button
+            onClick={() => setIsManageModalOpen(true)}
+            className="primary-btn"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '10px 20px', 
+              borderRadius: '12px', 
+              backgroundColor: 'var(--c-primary)', 
+              color: '#ffffff', 
+              border: 'none',
+              boxShadow: 'none',
+              fontSize: '14px',
+              fontWeight: 600,
+              transition: 'var(--transition-fast)'
+            }}
+          >
+            <Settings size={18} /> Manage Habits
+          </button>
+        </div>
       </div>
 
       {/* TODAY'S SUMMARY CARD */}
@@ -796,6 +824,14 @@ export default function SpiritualDashboard({
         onClose={() => setIsTrackerOpen(false)}
         dateStr={dateStr}
         initialTodayData={initialTodayData}
+      />
+
+      {/* ISLAMIC EVENTS MODAL */}
+      <IslamicEventsModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        baseOffset={baseOffset}
+        maghribPassed={maghribPassed}
       />
 
       {/* MANAGE HABITS MODAL */}
