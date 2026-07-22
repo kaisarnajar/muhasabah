@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, X, Edit, Trash2, Heart, Search } from 'lucide-react';
-import { addDua, updateDua, deleteDua } from '@/features/dua/actions';
+import { addDua, updateDua, deleteDua, searchAuthenticDuas, type AuthenticDua } from '@/features/dua/actions';
 import { useToast } from '@/context/ToastContext';
 import { Dua, DuaCategory } from '@prisma/client';
 
@@ -27,6 +27,12 @@ export default function DuaDashboard({ initialDuas }: { initialDuas: Dua[] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [mounted, setMounted] = useState(false);
 
+  // Web search states
+  const [webResults, setWebResults] = useState<AuthenticDua[]>([]);
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
+  const [hasSearchedWeb, setHasSearchedWeb] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDua, setSelectedDua] = useState<Dua | null>(null);
@@ -43,6 +49,35 @@ export default function DuaDashboard({ initialDuas }: { initialDuas: Dua[] }) {
     setMounted(true);
     return () => setMounted(false);
   }, []);
+
+  const handleWebSearch = async () => {
+    if (!search.trim()) return;
+    setIsSearchingWeb(true);
+    try {
+      const results = await searchAuthenticDuas(search);
+      setWebResults(results);
+      setHasSearchedWeb(true);
+      if (results.length === 0) {
+        showToast('No matching authentic Duas found in Hisn al-Muslim.', 'info');
+      } else {
+        showToast(`Found ${results.length} authentic Duas!`, 'success');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to fetch authentic Duas.', 'error');
+    } finally {
+      setIsSearchingWeb(false);
+    }
+  };
+
+  const handleImportDua = (webDua: AuthenticDua) => {
+    setTitle(webDua.title);
+    setContent(webDua.content);
+    setTranslation(webDua.translation + `\n\nSource: ${webDua.reference}`);
+    setCategory('GENERAL');
+    setIsFormOpen(true);
+    showToast('Supplication loaded. Select a category and save.', 'info');
+  };
 
   const openAddModal = () => {
     setTitle('');
@@ -117,22 +152,167 @@ export default function DuaDashboard({ initialDuas }: { initialDuas: Dua[] }) {
     <div>
       {/* Search and Action Toolbar */}
       <div className="flex-row justify-between mb-24 gap-16" style={{ flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '250px', position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-on-surface-variant)' }} />
-          <input 
-            type="text" 
-            placeholder="Search Duas by title, content or translation..." 
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            className="search-input"
-            style={{ width: '100%', paddingLeft: '40px', borderRadius: '8px' }}
-          />
+        <div style={{ display: 'flex', flex: 1, minWidth: '250px', gap: '8px' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-on-surface-variant)' }} />
+            <input 
+              type="text" 
+              placeholder="Search Duas by title, content or translation..." 
+              value={search}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => {
+                setTimeout(() => setIsInputFocused(false), 200);
+              }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+                setWebResults([]);
+                setHasSearchedWeb(false);
+              }}
+              className="search-input"
+              style={{ 
+                width: '100%', 
+                paddingLeft: '40px', 
+                borderRadius: '16px',
+                border: isInputFocused ? '2px solid var(--c-primary)' : '2px solid rgba(191, 145, 41, 0.4)',
+                boxShadow: isInputFocused ? '0 0 0 4px var(--c-primary-container)' : 'none',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          </div>
+          {!isInputFocused && search.trim().length >= 2 && (
+            <button
+              onClick={handleWebSearch}
+              disabled={isSearchingWeb}
+              className="secondary-btn"
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--c-surface-container-high)',
+                color: 'var(--c-primary)',
+                border: '1px solid rgba(191, 145, 41, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 700,
+              }}
+            >
+              {isSearchingWeb ? 'Searching...' : 'Fetch from Web'}
+            </button>
+          )}
         </div>
 
         <button onClick={openAddModal} className="primary-btn" style={{ padding: '10px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Plus size={18} /> Add Dua
         </button>
       </div>
+
+      {/* Authentic Sunnah Duas (Web Results) */}
+      {hasSearchedWeb && (
+        <div style={{ marginBottom: '32px', padding: '20px', borderRadius: '12px', backgroundColor: 'rgba(195, 150, 38, 0.04)', border: '1px dashed var(--c-primary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--c-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ✨ Verified Duas from Hisn al-Muslim ({webResults.length})
+            </h4>
+            <button 
+              onClick={() => { setWebResults([]); setHasSearchedWeb(false); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-on-surface-variant)', fontSize: '12px', fontWeight: 600 }}
+            >
+              Clear Results
+            </button>
+          </div>
+
+          {webResults.length === 0 ? (
+            <p className="text-body-md text-on-surface-variant" style={{ margin: 0 }}>No matching authenticated supplications found in Hisn al-Muslim.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+              {webResults.map((webDua, idx) => {
+                const isContentArabic = isArabicText(webDua.content);
+                return (
+                  <div
+                    key={idx}
+                    className="card"
+                    style={{
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(195, 150, 38, 0.2)',
+                      backgroundColor: 'var(--c-surface)',
+                      justifyContent: 'space-between',
+                      minHeight: '180px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <span
+                        style={{
+                          alignSelf: 'flex-start',
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          backgroundColor: 'rgba(195, 150, 38, 0.15)',
+                          color: 'var(--c-primary)',
+                          padding: '2px 8px',
+                          borderRadius: '8px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        Hisn al-Muslim
+                      </span>
+                      <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+                        {webDua.title}
+                      </h5>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: isContentArabic ? '18px' : '13px',
+                          lineHeight: 1.5,
+                          direction: isContentArabic ? 'rtl' : 'ltr',
+                          textAlign: isContentArabic ? 'right' : 'left',
+                          fontFamily: isContentArabic ? '"Scheherazade New", Amiri, serif' : 'inherit',
+                          color: 'var(--c-on-surface-variant)',
+                          maxHeight: '120px',
+                          overflowY: 'auto',
+                          paddingRight: '4px',
+                        }}
+                      >
+                        {webDua.content}
+                      </p>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: '12px',
+                          fontStyle: 'italic',
+                          color: 'var(--c-on-surface-variant)',
+                          opacity: 0.9,
+                        }}
+                      >
+                        {webDua.translation}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleImportDua(webDua)}
+                      className="primary-btn"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        width: '100%',
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        marginTop: '8px',
+                      }}
+                    >
+                      + Import to My List
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Category Tabs */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>

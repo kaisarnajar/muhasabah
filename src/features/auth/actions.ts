@@ -4,6 +4,11 @@ import prisma from '@/lib/prisma';
 import { hashPassword, createSession, destroySession, getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { isEmailAuthorized } from './authorization';
+import crypto from 'crypto';
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
 
 export async function register(formData: FormData) {
   const name = formData.get('name') as string;
@@ -13,8 +18,15 @@ export async function register(formData: FormData) {
     return { error: 'All fields are required.' };
   }
 
-  if (!isEmailAuthorized(email)) {
-    return { error: 'Registration is currently restricted. This email is not authorized.' };
+  const emailLower = email.trim().toLowerCase();
+  const envAllowed = process.env.ALLOWED_REGISTRATION_EMAILS;
+
+  // Registration is open to the public unless ALLOWED_REGISTRATION_EMAILS is set to a restricted list (and not '*')
+  if (envAllowed && envAllowed !== '*') {
+    const allowedList = envAllowed.split(',').map(e => e.trim().toLowerCase());
+    if (!allowedList.includes(emailLower)) {
+      return { error: 'Registration is currently restricted. This application is not yet open for public registration.' };
+    }
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email } });

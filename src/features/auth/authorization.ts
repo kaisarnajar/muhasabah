@@ -22,14 +22,14 @@ function getAuthorizedEmails(): string[] {
  */
 export function isPublicRegistrationEnabled(): boolean {
   const allowPublic = process.env.ALLOW_PUBLIC_REGISTRATION;
-  if (allowPublic === 'true') {
-    return true;
+  if (allowPublic === 'false') {
+    return false;
   }
   const regMode = process.env.REGISTRATION_MODE;
-  if (regMode === 'public') {
-    return true;
+  if (regMode === 'restricted') {
+    return false;
   }
-  return false;
+  return true;
 }
 
 /**
