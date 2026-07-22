@@ -1,21 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { MONTH_DETAILS, ISLAMIC_EVENTS_DATA, IslamicEvent, EventCategory } from '@/lib/islamicEvents';
+import { MONTH_DETAILS, ISLAMIC_EVENTS_DATA, IslamicEvent, EventCategory, getUpcomingIslamicEvents } from '@/lib/islamicEvents';
 import { getHijriMonthNumber, ISLAMIC_MONTHS } from '@/lib/hijri';
 import { Search, Calendar, Moon, Sparkles, Shield, Bookmark, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Props {
-  initialHijriOffset?: number;
+  baseOffset?: number;
+  maghribPassed?: boolean;
 }
 
-export default function IslamicEventsCalendar({ initialHijriOffset = 0 }: Props) {
+export default function IslamicEventsCalendar({ baseOffset = 0, maghribPassed = false }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [expandedMonths, setExpandedMonths] = useState<Record<number, boolean>>({});
 
   const today = new Date();
-  const currentMonthNum = getHijriMonthNumber(today, initialHijriOffset);
+  const effectiveOffset = baseOffset + (maghribPassed ? 1 : 0);
+  const currentMonthNum = getHijriMonthNumber(today, effectiveOffset);
+
+  const todayStr = today.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  const allEvents = getUpcomingIslamicEvents(today, effectiveOffset, 365);
 
   // Filter events based on search & category
   const filteredEvents = ISLAMIC_EVENTS_DATA.filter(ev => {

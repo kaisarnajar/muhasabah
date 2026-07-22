@@ -125,3 +125,44 @@ export async function updateHijriOffset(offset: number) {
   return { success: 'Hijri offset updated successfully.' };
 }
 
+export async function getPrayerTimesAndMaghribStatus() {
+  const user = await getAuthenticatedUser();
+  if (!user || !user.latitude || !user.longitude) {
+    return { prayerTimes: null, maghribPassed: false, timezone: null };
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  let prayerTimes = null;
+  let timezone = null;
+  let maghribPassed = false;
+
+  try {
+    const method = user.calculationMethod ?? 1;
+    const school = user.asrTiming ?? 0;
+    const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=${method}&school=${school}`, { next: { revalidate: 3600 } });
+    const data = await res.json();
+    if (data && data.data && data.data.timings) {
+      prayerTimes = data.data.timings;
+      timezone = data.data.meta?.timezone;
+
+      if (prayerTimes && prayerTimes.Maghrib) {
+        const maghribTime = prayerTimes.Maghrib as string;
+        const [mHour, mMin] = maghribTime.split(':').map(Number);
+        
+        const userNow = timezone 
+          ? new Date(new Date().toLocaleString("en-US", { timeZone: timezone }))
+          : new Date();
+        
+        const currentHour = userNow.getHours();
+        const currentMin = userNow.getMinutes();
+        
+        maghribPassed = currentHour > mHour || (currentHour === mHour && currentMin >= mMin);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to fetch prayer times', e);
+  }
+
+  return { prayerTimes, maghribPassed, timezone };
+}
+

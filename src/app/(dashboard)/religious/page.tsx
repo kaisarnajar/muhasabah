@@ -1,6 +1,7 @@
 import { getSpiritualTodayData, getSpiritualHistory, getSpiritualHabits, seedDefaultSpiritualHabits } from '@/features/religious/actions';
 import ReligiousPageClient from "@/features/religious/components/ReligiousPageClient";
 import { getAuthenticatedUser } from '@/features/auth/actions';
+import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
 
 export default async function ReligiousPage() {
   // Seed default habits (5 prayers + Adhkar) if none exist
@@ -13,11 +14,15 @@ export default async function ReligiousPage() {
   const localToday = new Date(today.getTime() - offset);
   const dateStr = localToday.toISOString().split('T')[0];
 
-  const [todayData, history, allHabits] = await Promise.all([
+  const [todayData, history, allHabits, prayerTimesData] = await Promise.all([
     getSpiritualTodayData(dateStr),
     getSpiritualHistory(),
-    getSpiritualHabits()
+    getSpiritualHabits(),
+    getPrayerTimesAndMaghribStatus()
   ]);
+
+  const { maghribPassed } = prayerTimesData;
+  const baseOffset = user?.hijriOffset ?? 0;
 
   return (
     <div style={{ padding: '0 24px 60px 24px' }}>
@@ -26,7 +31,8 @@ export default async function ReligiousPage() {
         initialTodayData={todayData}
         initialHistory={history}
         allHabits={allHabits}
-        hijriOffset={user?.hijriOffset ?? 0}
+        baseOffset={baseOffset}
+        maghribPassed={maghribPassed}
       />
     </div>
   );

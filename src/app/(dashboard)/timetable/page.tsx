@@ -5,6 +5,7 @@ import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCar
 import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import { CalendarRange } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
 
 export default async function TimetablePage() {
   const sessionUser = await getAuthenticatedUser();
@@ -23,26 +24,12 @@ export default async function TimetablePage() {
       }
       return t;
     }),
-    prisma.user.findUnique({ where: { id: sessionUser.id } })
+    prisma.user.findUnique({ where: { id: sessionUser.id } }),
+    getPrayerTimesAndMaghribStatus()
   ]);
 
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
-
-  let prayerTimes = null;
-  if (user?.latitude && user?.longitude) {
-    try {
-      const method = user.calculationMethod ?? 1;
-      const school = user.asrTiming ?? 0;
-      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=${method}&school=${school}`, { next: { revalidate: 3600 } });
-      const data = await res.json();
-      if (data && data.data && data.data.timings) {
-        prayerTimes = data.data.timings;
-      }
-    } catch (e) {
-      console.error('Failed to fetch prayer times', e);
-    }
-  }
+  const { prayerTimes, maghribPassed } = prayerTimesData;
+  const baseOffset = user?.hijriOffset ?? 0;
 
   const initialData = {
     ...timetable,
@@ -60,7 +47,7 @@ export default async function TimetablePage() {
         <h2 className="text-headline-md" style={{ margin: 0 }}>Daily Time Table</h2>
       </div>
 
-      <HijriDateDisplay initialOffset={user?.hijriOffset ?? 0} showControls={true} />
+      <HijriDateDisplay baseOffset={baseOffset} maghribPassed={maghribPassed} showControls={true} />
 
       <div className="w-full" style={{ marginBottom: '12px' }}>
         <TimetableDashboardCard timetable={initialData} prayerTimes={prayerTimes} />

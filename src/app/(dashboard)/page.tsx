@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
+import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
 
 const ALL_SECTIONS = [
   { href: '/religious',       icon: 'auto_awesome',   label: 'Spiritual',       desc: 'Daily ibadah & prayers'      },
@@ -46,7 +47,8 @@ export default async function Dashboard() {
     latestBook,
     latestRelapse,
     persons,
-    recurringTrackers
+    recurringTrackers,
+    prayerTimesData
   ] = await Promise.all([
     prisma.transaction.findMany({
       where: { userId: sessionUser.id },
@@ -100,22 +102,11 @@ export default async function Dashboard() {
     }),
     prisma.recurringTracker.findMany({
       where: { userId: sessionUser.id }
-    })
+    }),
+    getPrayerTimesAndMaghribStatus()
   ]);
 
-  let prayerTimes = null;
-  if (user?.latitude && user?.longitude) {
-    try {
-      const method = user.calculationMethod ?? 1;
-      const res = await fetch(`https://api.aladhan.com/v1/timings/${todayStr}?latitude=${user.latitude}&longitude=${user.longitude}&method=${method}&school=0`, { next: { revalidate: 3600 } });
-      const data = await res.json();
-      if (data && data.data && data.data.timings) {
-        prayerTimes = data.data.timings;
-      }
-    } catch (e) {
-      console.error('Failed to fetch prayer times', e);
-    }
-  }
+  const { prayerTimes, maghribPassed } = prayerTimesData;
 
   const todayStart = new Date(now);
   todayStart.setHours(0, 0, 0, 0);
@@ -239,7 +230,9 @@ export default async function Dashboard() {
   });
 
   // Calculate upcoming Islamic events (occurring today, tomorrow, or in 2 days)
-  const upcomingIslamicEvents = getUpcomingIslamicEvents(new Date(), user?.hijriOffset ?? 0, 2);
+  const baseOffset = user?.hijriOffset ?? 0;
+  const effectiveOffset = baseOffset + (maghribPassed ? 1 : 0);
+  const upcomingIslamicEvents = getUpcomingIslamicEvents(new Date(), effectiveOffset, 2);
 
   return (
     <>
@@ -424,7 +417,7 @@ export default async function Dashboard() {
 
       {/* HIJRI DATE DISPLAY */}
       <div style={{ marginBottom: '24px' }}>
-        <HijriDateDisplay initialOffset={user?.hijriOffset ?? 0} />
+        <HijriDateDisplay baseOffset={baseOffset} maghribPassed={maghribPassed} />
       </div>
 
       {/* TIMETABLE SECTION */}

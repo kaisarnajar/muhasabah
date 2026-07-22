@@ -9,8 +9,9 @@ interface Props {
   dateStr: string;
   initialTodayData: any;
   initialHistory: any;
-  allHabits: any;
-  hijriOffset: number;
+  allHabits: Array<{ id: number; name: string }>;
+  baseOffset: number;
+  maghribPassed: boolean;
 }
 
 export default function ReligiousPageClient({
@@ -18,7 +19,8 @@ export default function ReligiousPageClient({
   initialTodayData,
   initialHistory,
   allHabits,
-  hijriOffset
+  baseOffset,
+  maghribPassed
 }: Props) {
   const [activeTab, setActiveTab] = useState<'TRACKERS' | 'CALENDAR'>('TRACKERS');
 
@@ -87,7 +89,9 @@ export default function ReligiousPageClient({
           allHabits={allHabits}
         />
       ) : (
-        <IslamicEventsCalendar initialHijriOffset={hijriOffset} />
+        <div className="w-full">
+          <IslamicEventsCalendar baseOffset={baseOffset} maghribPassed={maghribPassed} />
+        </div>
       )}
     </div>
   );

@@ -10,12 +10,13 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 
 interface Props {
-  initialOffset: number;
+  baseOffset: number;
+  maghribPassed?: boolean;
   showControls?: boolean;
 }
 
-export default function HijriDateDisplay({ initialOffset, showControls = false }: Props) {
-  const [offset, setOffset] = useState(initialOffset);
+export default function HijriDateDisplay({ baseOffset, maghribPassed = false, showControls = false }: Props) {
+  const [offsetState, setOffsetState] = useState(baseOffset);
   const [showMonthsList, setShowMonthsList] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -29,8 +30,9 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
   }, []);
 
   const today = new Date();
-  const hijriStr = getHijriDateString(today, offset);
-  const currentMonthNum = getHijriMonthNumber(today, offset);
+  const effectiveOffset = offsetState + (maghribPassed ? 1 : 0);
+  const hijriStr = getHijriDateString(today, effectiveOffset);
+  const currentMonthNum = getHijriMonthNumber(today, effectiveOffset);
   const gregorianStr = today.toLocaleDateString(undefined, {
     weekday: 'long',
     day: 'numeric',
@@ -39,12 +41,12 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
   });
 
   const handleAdjust = (diff: number) => {
-    const newOffset = offset + diff;
-    setOffset(newOffset);
+    const newBaseOffset = offsetState + diff;
+    setOffsetState(newBaseOffset);
     startTransition(async () => {
       try {
-        await updateHijriOffset(newOffset);
-        showToast(`Hijri date adjusted by ${newOffset > 0 ? `+${newOffset}` : newOffset} ${Math.abs(newOffset) === 1 ? 'day' : 'days'}.`, 'success');
+        await updateHijriOffset(newBaseOffset);
+        showToast(`Hijri date adjusted by ${newBaseOffset > 0 ? `+${newBaseOffset}` : newBaseOffset} ${Math.abs(newBaseOffset) === 1 ? 'day' : 'days'}.`, 'success');
         router.refresh();
       } catch (error) {
         console.error('Failed to update Hijri offset:', error);
@@ -54,7 +56,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
   };
 
   const handleReset = () => {
-    setOffset(0);
+    setOffsetState(0);
     startTransition(async () => {
       try {
         await updateHijriOffset(0);
@@ -125,7 +127,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
 
         {/* Buttons group */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {offset !== 0 && (
+          {offsetState !== 0 && (
             <span 
               className="text-label-sm" 
               style={{ 
@@ -138,7 +140,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
                 border: '1px solid rgba(239, 68, 68, 0.2)'
               }}
             >
-              Offset: {offset > 0 ? `+${offset}` : offset} Day{Math.abs(offset) !== 1 && 's'}
+              Offset: {offsetState > 0 ? `+${offsetState}` : offsetState} Day{Math.abs(offsetState) !== 1 && 's'}
             </span>
           )}
 
@@ -357,10 +359,10 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '90px' }}>
                 <span style={{ fontSize: '32px', fontWeight: 800, color: 'var(--c-primary)' }}>
-                  {offset > 0 ? `+${offset}` : offset}
+                  {offsetState > 0 ? `+${offsetState}` : offsetState}
                 </span>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--c-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {Math.abs(offset) === 1 ? 'Day' : 'Days'}
+                  {Math.abs(offsetState) === 1 ? 'Day' : 'Days'}
                 </span>
               </div>
 
@@ -403,7 +405,7 @@ export default function HijriDateDisplay({ initialOffset, showControls = false }
             {/* Footer Buttons */}
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '4px' }}>
               <div>
-                {offset !== 0 && (
+                {offsetState !== 0 && (
                   <button
                     type="button"
                     onClick={handleReset}
