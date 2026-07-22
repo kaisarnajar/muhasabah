@@ -95,7 +95,7 @@ export default function IbadahDetailModal({ selectedRecord, onClose }: IbadahDet
           <X size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', paddingRight: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ScrollText color="var(--c-secondary)" size={22} />
             <h3 className="text-headline-sm" style={{ margin: 0, fontWeight: 700 }}>
