@@ -143,6 +143,9 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
 
   // Sort notes
   filteredNotes.sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+
     if (sortBy === 'newest') {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
@@ -279,8 +282,11 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
       </div>
 
       {/* Notes Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-        {paginatedNotes.map(note => {
+      {(() => {
+        const pinned = paginatedNotes.filter(n => n.isPinned);
+        const unpinned = paginatedNotes.filter(n => !n.isPinned);
+
+        const renderCard = (note: Note) => {
           const createdDate = new Date(note.createdAt);
           const dateString = createdDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
           const timeString = createdDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
@@ -391,8 +397,30 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
               </div>
             </div>
           );
-        })}
-      </div>
+        };
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {pinned.length > 0 && (
+              <div>
+                <h3 className="text-label-md" style={{ marginBottom: '16px', color: 'var(--c-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>PINNED</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                  {pinned.map(renderCard)}
+                </div>
+              </div>
+            )}
+            
+            {unpinned.length > 0 && (
+              <div>
+                {pinned.length > 0 && <h3 className="text-label-md" style={{ marginBottom: '16px', color: 'var(--c-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>OTHERS</h3>}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                  {unpinned.map(renderCard)}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {filteredNotes.length === 0 && (
         <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
