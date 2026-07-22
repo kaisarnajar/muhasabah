@@ -13,7 +13,7 @@ export default async function TimetablePage() {
     redirect('/login');
   }
 
-  const [timetable, user] = await Promise.all([
+  const [timetable, user, prayerTimesData] = await Promise.all([
     prisma.timeTable.findUnique({
       where: { userId: sessionUser.id }
     }).then(async (t) => {

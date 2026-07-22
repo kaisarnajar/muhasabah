@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Moon, CheckCircle2, Circle, Settings, ScrollText, Plus } from 'lucide-react';
+import { Moon, CheckCircle2, Circle, Settings, ScrollText, Plus, Calendar } from 'lucide-react';
 import { OPTIONAL_HABIT_NAMES } from '@/lib/spiritualHabits';
 import { QURAN_SURAHS } from '@/lib/quranData';
 
