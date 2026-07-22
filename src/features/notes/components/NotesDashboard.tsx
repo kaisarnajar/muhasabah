@@ -299,8 +299,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
               style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
-                height: '240px', 
-                justifyContent: 'space-between', 
+                height: '260px', 
                 padding: '20px', 
                 border: note.isPinned ? '1.5px solid var(--c-primary)' : '1px solid var(--c-outline-variant)', 
                 backgroundColor: note.isPinned ? 'rgba(220, 174, 46, 0.04)' : 'var(--c-surface-container-low)',
@@ -309,7 +308,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                 overflow: 'hidden'
               }}
             >
-              <div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
                   <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', color: 'var(--c-on-surface)' }}>
                     {note.isPinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
@@ -332,9 +331,13 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                         background: note.isPinned ? 'rgba(220, 174, 46, 0.15)' : 'none', 
                         border: 'none', 
                         cursor: 'pointer', 
-                        padding: '6px', 
+                        padding: 0,
+                        width: '28px',
+                        height: '28px', 
                         borderRadius: '50%', 
-                        display: 'flex', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center', 
                         transition: 'all 0.2s',
                         opacity: note.isPinned ? 1 : 0.6
                       }}
@@ -345,7 +348,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                     </button>
                     <button 
                       onClick={(event) => { event.stopPropagation(); openEditModal(note); }}
-                      style={{ color: 'var(--c-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', transition: 'background-color 0.2s' }}
+                      style={{ color: 'var(--c-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}
                       className="icon-btn-hover"
                       title="Edit Note"
                     >
@@ -370,7 +373,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                 </p>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: '12px', color: 'var(--c-on-surface-variant)' }}>
+              <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '12px', marginTop: '12px', color: 'var(--c-on-surface-variant)' }}>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <span className="text-label-sm" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={14} />
