@@ -182,27 +182,88 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
         </div>
 
         {isAddingPastDay && (
-          <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-primary)', backgroundColor: 'rgba(195, 150, 38, 0.05)' }}>
-            <h3 className="text-title-sm" style={{ marginTop: 0, fontWeight: 700, color: 'var(--c-on-surface)' }}>Log a Past Day</h3>
+          <div 
+            style={{ 
+              marginBottom: '24px', 
+              padding: '20px 24px', 
+              borderRadius: '16px', 
+              border: '1.5px solid rgba(220, 174, 46, 0.3)', 
+              background: 'linear-gradient(135deg, rgba(220, 174, 46, 0.08) 0%, rgba(220, 174, 46, 0.02) 100%)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div 
+                style={{ 
+                  width: '36px', height: '36px', borderRadius: '10px', 
+                  backgroundColor: 'rgba(220, 174, 46, 0.15)', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--c-primary)' 
+                }}
+              >
+                <Calendar size={18} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 750, color: 'var(--c-on-surface)' }}>Log a Past Day</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: 'var(--c-on-surface-variant)' }}>Select a previous date to enter missing ibadah records.</p>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <input 
-                type="date" 
-                value={pastDayDate}
-                onChange={(e) => setPastDayDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--c-outline)', backgroundColor: 'var(--c-surface)', color: 'var(--c-on-surface)', outline: 'none' }}
-              />
+              <div style={{ position: 'relative', flex: 1, minWidth: '200px', maxWidth: '300px' }}>
+                <input 
+                  type="date" 
+                  value={pastDayDate}
+                  onChange={(e) => setPastDayDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  style={{ 
+                    width: '100%',
+                    padding: '10px 14px', 
+                    borderRadius: '12px', 
+                    border: '1px solid var(--c-outline-variant)', 
+                    backgroundColor: 'var(--c-surface)', 
+                    color: 'var(--c-on-surface)',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    outline: 'none',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                />
+              </div>
               <button 
                 onClick={handleStartAddingPastDay} 
                 disabled={!pastDayDate || isLoadingNew}
                 className="primary-btn"
-                style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-primary)', color: 'var(--c-on-primary)', border: 'none', fontWeight: 600, cursor: (!pastDayDate || isLoadingNew) ? 'not-allowed' : 'pointer' }}
+                style={{ 
+                  padding: '10px 20px', 
+                  borderRadius: '12px', 
+                  backgroundColor: 'var(--c-primary)', 
+                  color: 'var(--c-on-primary)', 
+                  border: 'none', 
+                  fontWeight: 650, 
+                  fontSize: '14px',
+                  cursor: (!pastDayDate || isLoadingNew) ? 'not-allowed' : 'pointer',
+                  opacity: (!pastDayDate || isLoadingNew) ? 0.7 : 1,
+                  boxShadow: '0 4px 12px rgba(220, 174, 46, 0.25)'
+                }}
               >
                 {isLoadingNew ? 'Loading...' : 'Continue'}
               </button>
               <button 
                 onClick={() => { setIsAddingPastDay(false); setPastDayDate(''); }}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}
+                style={{ 
+                  padding: '10px 16px', 
+                  borderRadius: '12px', 
+                  border: '1px solid var(--c-outline-variant)', 
+                  backgroundColor: 'var(--c-surface-container-high)', 
+                  cursor: 'pointer', 
+                  color: 'var(--c-on-surface)', 
+                  fontWeight: 650,
+                  fontSize: '14px',
+                  transition: 'all 0.2s'
+                }}
               >
                 Cancel
               </button>
