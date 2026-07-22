@@ -235,7 +235,6 @@ model Note {
   folder    NoteFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
   title     String
   content   String      @db.Text
-  category  String      @default("General")
   isPinned  Boolean     @default(false)
   createdAt DateTime    @default(now()) @db.Timestamptz()
   updatedAt DateTime    @updatedAt @db.Timestamptz()

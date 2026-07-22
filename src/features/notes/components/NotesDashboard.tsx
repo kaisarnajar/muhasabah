@@ -28,28 +28,8 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
-  const [noteCategory, setNoteCategory] = useState('General');
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
   const [submitting, setSubmitting] = useState(false);
-
-  const noteCategories = Array.from(new Set([
-    'All',
-    'General',
-    'Review',
-    'Monthly Review',
-    'Yearly Review',
-    'College Life',
-    'Samsung R&D',
-    'Super 30',
-    'Career & Tech',
-    'Islamic & Religious',
-    'Personal',
-    'Health & Fitness',
-    'Finance',
-    'Ideas & Goals',
-    ...initialNotes.map(n => n.category).filter(Boolean)
-  ]));
 
   // Folder handlers
   const openAddFolder = () => {
@@ -79,7 +59,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
-    setNoteCategory('General');
     setSelectedFolderId(activeFolderId);
     setIsModalOpen(true);
   };
@@ -88,7 +67,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
     setEditingNote(note);
     setNoteTitle(note.title);
     setNoteContent(note.content);
-    setNoteCategory(note.category || 'General');
     setSelectedFolderId(note.folderId);
     setIsModalOpen(true);
   };
@@ -98,7 +76,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
     setEditingNote(null);
     setNoteTitle('');
     setNoteContent('');
-    setNoteCategory('General');
     setSelectedFolderId(null);
   };
 
@@ -112,9 +89,9 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
     setSubmitting(true);
     try {
       if (editingNote) {
-        await updateNote(editingNote.id, noteTitle, noteContent, noteCategory, selectedFolderId);
+        await updateNote(editingNote.id, noteTitle, noteContent, selectedFolderId);
       } else {
-        await addNote(noteTitle, noteContent, noteCategory, selectedFolderId);
+        await addNote(noteTitle, noteContent, selectedFolderId);
         setCurrentPage(1); // Reset page on add
       }
       closeModal();
@@ -129,16 +106,14 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
   // Derived folder data
   const activeFolder = initialFolders.find(f => f.id === activeFolderId) ?? null;
 
-  // Filter notes by active folder, then by search and category
+  // Filter notes by active folder, then by search
   const viewNotes = initialNotes.filter(n => 
     activeFolderId === null ? n.folderId === null : n.folderId === activeFolderId
   );
 
   const filteredNotes = viewNotes.filter(note => {
     const term = search.toLowerCase();
-    const matchesSearch = note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
-    const matchesCategory = selectedCategoryFilter === 'All' || note.category === selectedCategoryFilter;
-    return matchesSearch && matchesCategory;
+    return note.title.toLowerCase().includes(term) || note.content.toLowerCase().includes(term);
   });
 
   // Sort notes
@@ -253,33 +228,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
         </div>
       )}
 
-      {/* Category Filter Row */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '8px' }}>
-        {noteCategories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => { setSelectedCategoryFilter(cat); setCurrentPage(1); }}
-            style={{
-              padding: '6px 16px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              backgroundColor: selectedCategoryFilter === cat 
-                ? 'var(--c-primary)' 
-                : 'var(--c-surface-container-high)',
-              color: selectedCategoryFilter === cat
-                ? 'var(--c-on-primary)'
-                : 'var(--c-on-surface-variant)',
-              border: selectedCategoryFilter === cat ? 'none' : '1px solid var(--c-outline-variant)',
-              transition: 'background-color 0.2s, color 0.2s'
-            }}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+
 
       {/* Notes Grid */}
       {(() => {
@@ -384,19 +333,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                     {timeString}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span className="text-label-sm" style={{ 
-                    padding: '2px 8px', 
-                    borderRadius: '12px', 
-                    backgroundColor: 'var(--c-surface-container-high)', 
-                    border: '1px solid var(--c-outline-variant)',
-                    color: 'var(--c-on-surface)',
-                    fontSize: '10px',
-                    fontWeight: 600
-                  }}>
-                    {note.category || 'General'}
-                  </span>
-                </div>
               </div>
             </div>
           );
@@ -491,17 +427,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
               <div className="text-label-sm text-on-surface-variant" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
                 <span>{new Date(viewingNote.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 <span>{new Date(viewingNote.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
-                <span style={{ 
-                  padding: '2px 8px', 
-                  borderRadius: '12px', 
-                  backgroundColor: 'var(--c-surface-container-high)', 
-                  border: '1px solid var(--c-outline-variant)',
-                  color: 'var(--c-on-surface)',
-                  fontSize: '10px',
-                  fontWeight: 600
-                }}>
-                  {viewingNote.category || 'General'}
-                </span>
               </div>
             </div>
 
@@ -541,48 +466,22 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-                  <label className="text-label-md" style={{ fontWeight: 600 }}>Folder</label>
-                  <select
-                    value={selectedFolderId ? selectedFolderId.toString() : 'unfiled'}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setSelectedFolderId(val === 'unfiled' ? null : Number(val));
-                    }}
-                    className="search-input"
-                    style={{ width: '100%', borderRadius: '8px' }}
-                  >
-                    <option value="unfiled">Unfiled (No Folder)</option>
-                    {initialFolders.map(f => (
-                      <option key={f.id} value={f.id.toString()}>{f.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-                  <label className="text-label-md" style={{ fontWeight: 600 }}>Category</label>
-                  <select
-                    value={noteCategory}
-                    onChange={(e) => setNoteCategory(e.target.value)}
-                    className="search-input"
-                    style={{ width: '100%', borderRadius: '8px' }}
-                  >
-                    <option value="General">General</option>
-                    <option value="Review">Review</option>
-                    <option value="Monthly Review">Monthly Review</option>
-                    <option value="Yearly Review">Yearly Review</option>
-                    <option value="College Life">College Life</option>
-                    <option value="Samsung R&D">Samsung R&D</option>
-                    <option value="Super 30">Super 30</option>
-                    <option value="Career & Tech">Career & Tech</option>
-                    <option value="Islamic & Religious">Islamic & Religious</option>
-                    <option value="Personal">Personal</option>
-                    <option value="Health & Fitness">Health & Fitness</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Ideas & Goals">Ideas & Goals</option>
-                  </select>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label className="text-label-md" style={{ fontWeight: 600 }}>Folder</label>
+                <select
+                  value={selectedFolderId ? selectedFolderId.toString() : 'unfiled'}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedFolderId(val === 'unfiled' ? null : Number(val));
+                  }}
+                  className="search-input"
+                  style={{ width: '100%', borderRadius: '8px' }}
+                >
+                  <option value="unfiled">Unfiled (No Folder)</option>
+                  {initialFolders.map(f => (
+                    <option key={f.id} value={f.id.toString()}>{f.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

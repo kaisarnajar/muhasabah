@@ -65,7 +65,6 @@ export async function getNotes() {
 export async function addNote(
   title: string,
   content: string,
-  category: string = 'General',
   folderId?: number | null,
 ) {
   const user = await getAuthenticatedUser();
@@ -79,7 +78,6 @@ export async function addNote(
     data: {
       title: title.trim(),
       content: content.trim(),
-      category: category.trim(),
       userId: user.id,
       folderId: folderId ?? null,
     },
@@ -91,7 +89,6 @@ export async function updateNote(
   id: number,
   title: string,
   content: string,
-  category: string = 'General',
   folderId?: number | null,
 ) {
   const user = await getAuthenticatedUser();
@@ -106,7 +103,6 @@ export async function updateNote(
     data: {
       title: title.trim(),
       content: content.trim(),
-      category: category.trim(),
       folderId: folderId ?? null,
     },
   });
