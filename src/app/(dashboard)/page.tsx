@@ -4,7 +4,6 @@ import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCar
 import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import DashboardCalendarWidget from '@/components/dashboard/DashboardCalendarWidget';
 import prisma from '@/lib/prisma';
 import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
 import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
@@ -403,10 +402,9 @@ export default async function Dashboard() {
         </div>
       )}
 
-      {/* HIJRI DATE DISPLAY & CALENDAR */}
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+      {/* HIJRI DATE DISPLAY */}
+      <div style={{ marginBottom: '24px' }}>
         <HijriDateDisplay baseOffset={baseOffset} maghribPassed={maghribPassed} />
-        <DashboardCalendarWidget baseOffset={baseOffset} maghribPassed={maghribPassed} />
       </div>
 
       {/* TIMETABLE SECTION */}

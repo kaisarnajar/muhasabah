@@ -21,7 +21,7 @@ export default function IslamicEventsModal({ isOpen, onClose, baseOffset, maghri
     >
       <div
         className="card"
-        style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', position: 'relative', boxShadow: 'var(--shadow-lg)' }}
+        style={{ width: '100%', height: '100%', maxWidth: '100vw', maxHeight: '100vh', overflowY: 'auto', padding: '24px', position: 'relative', borderRadius: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
