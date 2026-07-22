@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { ScrollText, Calendar, Plus } from 'lucide-react';
 import CustomDateRangeDialog from '@/components/ui/CustomDateRangeDialog';
 import IbadahDetailModal from './IbadahDetailModal';
+import TodayTrackerModal from './TodayTrackerModal';
+import { getSpiritualTodayData } from '@/features/religious/actions';
 import { QURAN_SURAHS } from '@/lib/quranData';
 
 interface HistoryRecord {
@@ -27,6 +29,27 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>('all');
+
+  // Past day entry states
+  const [isAddingPastDay, setIsAddingPastDay] = useState(false);
+  const [pastDayDate, setPastDayDate] = useState<string>('');
+  const [isEditingNew, setIsEditingNew] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
+  const [isLoadingNew, setIsLoadingNew] = useState(false);
+
+  const handleStartAddingPastDay = async () => {
+    if (!pastDayDate) return;
+    setIsLoadingNew(true);
+    try {
+      const data = await getSpiritualTodayData(pastDayDate);
+      setEditData(data);
+      setIsEditingNew(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingNew(false);
+    }
+  };
 
   const formatQuranMemorization = (val: string | null): string => {
     if (!val) return '';
@@ -126,10 +149,66 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
   return (
     <>
       <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <ScrollText color="var(--c-secondary)" size={24} />
-          <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Ibadah Register</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <ScrollText color="var(--c-secondary)" size={24} />
+            <h2 className="text-headline-md" style={{ margin: 0, fontWeight: 700 }}>Ibadah Register</h2>
+          </div>
+          <button
+            onClick={() => {
+              setIsAddingPastDay(true);
+              const yesterday = new Date();
+              yesterday.setDate(yesterday.getDate() - 1);
+              setPastDayDate(yesterday.toISOString().split('T')[0]);
+            }}
+            className="primary-btn"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '8px 16px', 
+              borderRadius: '8px', 
+              backgroundColor: 'var(--c-surface-container-high)', 
+              color: 'var(--c-on-surface)', 
+              border: '1px solid var(--c-outline)',
+              boxShadow: 'none',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <Plus size={18} /> Add Past Day
+          </button>
         </div>
+
+        {isAddingPastDay && (
+          <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', border: '1px solid var(--c-primary)', backgroundColor: 'rgba(195, 150, 38, 0.05)' }}>
+            <h3 className="text-title-sm" style={{ marginTop: 0, fontWeight: 700, color: 'var(--c-on-surface)' }}>Log a Past Day</h3>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input 
+                type="date" 
+                value={pastDayDate}
+                onChange={(e) => setPastDayDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--c-outline)', backgroundColor: 'var(--c-surface)', color: 'var(--c-on-surface)', outline: 'none' }}
+              />
+              <button 
+                onClick={handleStartAddingPastDay} 
+                disabled={!pastDayDate || isLoadingNew}
+                className="primary-btn"
+                style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: 'var(--c-primary)', color: 'var(--c-on-primary)', border: 'none', fontWeight: 600, cursor: (!pastDayDate || isLoadingNew) ? 'not-allowed' : 'pointer' }}
+              >
+                {isLoadingNew ? 'Loading...' : 'Continue'}
+              </button>
+              <button 
+                onClick={() => { setIsAddingPastDay(false); setPastDayDate(''); }}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {initialHistory.length === 0 ? (
           <p className="text-on-surface-variant" style={{ margin: 0 }}>No ibadah records saved yet. Start tracking today&apos;s worship to build your register.</p>
@@ -369,6 +448,20 @@ export default function IbadahRegister({ initialHistory }: IbadahRegisterProps) 
         selectedRecord={selectedRecord}
         onClose={() => setSelectedHistoryIndex(null)}
       />
+
+      {isEditingNew && editData && (
+        <TodayTrackerModal
+          isOpen={true}
+          onClose={() => {
+            setIsEditingNew(false);
+            setIsAddingPastDay(false);
+            setPastDayDate('');
+            setEditData(null);
+          }}
+          dateStr={pastDayDate}
+          initialTodayData={editData}
+        />
+      )}
     </>
   );
 }
