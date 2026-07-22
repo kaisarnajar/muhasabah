@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Calendar, Clock, X, FolderOpen, ChevronRight, FolderPlus, Pin } from 'lucide-react';
 import { addNote, updateNote, deleteNote, deleteNoteFolder, togglePinNote } from '@/features/notes/actions';
 import DeleteConfirmButton from '@/components/ui/DeleteConfirmButton';
@@ -30,6 +30,11 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
   const [noteContent, setNoteContent] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Folder handlers
   const openAddFolder = () => {
@@ -138,6 +143,12 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
   const totalPages = Math.ceil(filteredNotes.length / PAGE_SIZE) || 1;
   const activePage = currentPage > totalPages ? totalPages : currentPage;
   const paginatedNotes = filteredNotes.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const countInFolder = (id: number) => initialNotes.filter(n => n.folderId === id).length;
   const unfiledCount = initialNotes.filter(n => n.folderId === null).length;
@@ -307,7 +318,6 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
                       <DeleteConfirmButton
                         action={async () => {
                           await deleteNote(note.id);
-                          setCurrentPage(1);
                         }}
                         iconSize={16}
                         title="Delete Note"
@@ -374,7 +384,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '32px' }}>
           <button 
             disabled={activePage <= 1}
-            onClick={() => setCurrentPage(activePage - 1)}
+            onClick={() => handlePageChange(activePage - 1)}
             className="primary-btn" 
             style={{ padding: '8px 16px', backgroundColor: activePage <= 1 ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', color: activePage <= 1 ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', opacity: activePage <= 1 ? 0.5 : 1, cursor: activePage <= 1 ? 'not-allowed' : 'pointer', boxShadow: 'none' }}
           >
@@ -387,7 +397,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
 
           <button 
             disabled={activePage >= totalPages}
-            onClick={() => setCurrentPage(activePage + 1)}
+            onClick={() => handlePageChange(activePage + 1)}
             className="primary-btn" 
             style={{ padding: '8px 16px', backgroundColor: activePage >= totalPages ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', color: activePage >= totalPages ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', opacity: activePage >= totalPages ? 0.5 : 1, cursor: activePage >= totalPages ? 'not-allowed' : 'pointer', boxShadow: 'none' }}
           >
