@@ -221,4 +221,4 @@ After running `npx prisma db seed`:
 - **Portal-based modals** — all popups use `createPortal` to render at `document.body`, preventing z-index and overflow issues
 - **No CSS framework** — pure CSS custom properties with design tokens for theming, spacing, and shadows
 - **Strict typing** — Prisma-generated types used throughout; no `any` in data-rendering paths
-- **Folder-first organisation** — Books and Documents support optional folder grouping with unfiled fallback
+- **Folder-first organisation** — Books and Documents support optional folder grouping with unfiled fallback.
