@@ -353,7 +353,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
             {pinned.length > 0 && (
               <div>
                 <h3 className="text-label-md" style={{ marginBottom: '16px', color: 'var(--c-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>PINNED</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                <div className="notes-grid">
                   {pinned.map(renderCard)}
                 </div>
               </div>
@@ -362,7 +362,7 @@ export default function NotesDashboard({ initialNotes, initialFolders }: { initi
             {unpinned.length > 0 && (
               <div>
                 {pinned.length > 0 && <h3 className="text-label-md" style={{ marginBottom: '16px', color: 'var(--c-on-surface-variant)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>OTHERS</h3>}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                <div className="notes-grid">
                   {unpinned.map(renderCard)}
                 </div>
               </div>
