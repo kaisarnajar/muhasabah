@@ -140,6 +140,32 @@ export async function toggleSpiritualHabit(dateStr: string, habitId: number, cur
   revalidatePath('/religious');
 }
 
+export async function setPrayerStatus(dateStr: string, habitId: number, status: 'NONE' | 'INDIVIDUAL' | 'JAMAAT') {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const habit = await prisma.spiritualHabit.findUnique({
+    where: { id: habitId },
+    select: { name: true, userId: true },
+  });
+
+  if (!habit || habit.userId !== user.id || !PRAYER_HABIT_NAMES.has(habit.name)) {
+    throw new Error('Prayer status is only available for daily prayers.');
+  }
+
+  const date = parseLocalDate(dateStr);
+  const isCompleted = status !== 'NONE';
+  const prayedWithJamaat = status === 'JAMAAT';
+
+  await prisma.spiritualHabitLog.upsert({
+    where: { habitId_date: { habitId, date } },
+    update: { isCompleted, prayedWithJamaat },
+    create: { habitId, date, isCompleted, prayedWithJamaat },
+  });
+
+  revalidatePath('/religious');
+}
+
 export async function setPrayerJamaat(dateStr: string, habitId: number, prayedWithJamaat: boolean) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');

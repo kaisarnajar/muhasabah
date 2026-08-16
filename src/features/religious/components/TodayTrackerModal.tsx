@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Moon, CheckCircle2, Plus, X, Users } from 'lucide-react';
-import { toggleSpiritualHabit, setPrayerJamaat, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
+import { Moon, Plus, X, Users, User, CheckCircle2 } from 'lucide-react';
+import { toggleSpiritualHabit, setPrayerStatus, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
 import { useToast } from '@/context/ToastContext';
 import { PRAYER_HABIT_NAMES } from '@/lib/spiritualHabits';
 
@@ -41,8 +41,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
 
   if (!isOpen) return null;
 
-
-
   const handleToggle = async (habitId: number, currentCompleted: boolean) => {
     setTogglingId(habitId);
     try {
@@ -55,13 +53,13 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
     }
   };
 
-  const handleJamaatChange = async (habitId: number, prayedWithJamaat: boolean) => {
+  const handleStatusChange = async (habitId: number, status: 'NONE' | 'INDIVIDUAL' | 'JAMAAT') => {
     setTogglingId(habitId);
     try {
-      await setPrayerJamaat(dateStr, habitId, prayedWithJamaat);
+      await setPrayerStatus(dateStr, habitId, status);
     } catch (error) {
       console.error(error);
-      showToast('Failed to update Jamaat status.', 'error');
+      showToast('Failed to update prayer status.', 'error');
     } finally {
       setTogglingId(null);
     }
@@ -130,49 +128,114 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                     transition: 'all 0.18s ease',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
-                    <span
-                      onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
-                      style={{
-                        border: '2px solid var(--c-primary)',
-                        width: '24px',
-                        height: '24px',
-                        minWidth: '24px',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: habit.isCompleted ? 'var(--c-primary)' : 'none',
-                        cursor: isToggling ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      {habit.isCompleted && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-primary)', fontWeight: 'bold' }}>check</span>}
-                    </span>
-                    <p
-                      className="text-body-md"
-                      onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
-                      style={{ fontWeight: 600, margin: 0, cursor: isToggling ? 'not-allowed' : 'pointer', flex: 1 }}
-                    >
-                      {habit.name}
-                    </p>
-                    {isPrayer && (
-                      <button
-                        type="button"
-                        onClick={() => !isToggling && handleJamaatChange(habit.id, !habit.prayedWithJamaat)}
-                        disabled={isToggling}
-                        aria-pressed={habit.prayedWithJamaat}
+                  {isPrayer ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '18px' }}>🕌</span>
+                        <p className="text-body-md" style={{ fontWeight: 700, margin: 0, color: 'var(--c-on-surface)' }}>
+                          {habit.name}
+                        </p>
+                      </div>
+
+                      {/* Separate Natural Buttons for Prayer Options */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* Individual Option */}
+                        <button
+                          type="button"
+                          disabled={isToggling}
+                          onClick={() => {
+                            if (isToggling) return;
+                            const isCurrentlyIndividual = habit.isCompleted && !habit.prayedWithJamaat;
+                            handleStatusChange(habit.id, isCurrentlyIndividual ? 'NONE' : 'INDIVIDUAL');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            border: habit.isCompleted && !habit.prayedWithJamaat 
+                              ? '1.5px solid var(--c-primary)' 
+                              : '1px solid var(--c-outline)',
+                            backgroundColor: habit.isCompleted && !habit.prayedWithJamaat 
+                              ? 'var(--c-primary-container)' 
+                              : 'var(--c-surface)',
+                            color: habit.isCompleted && !habit.prayedWithJamaat 
+                              ? 'var(--c-on-primary-container)' 
+                              : 'var(--c-on-surface-variant)',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            cursor: isToggling ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.18s ease',
+                          }}
+                        >
+                          <User size={14} />
+                          Individual
+                        </button>
+
+                        {/* With Jamaat Option */}
+                        <button
+                          type="button"
+                          disabled={isToggling}
+                          onClick={() => {
+                            if (isToggling) return;
+                            const isCurrentlyJamaat = habit.isCompleted && habit.prayedWithJamaat;
+                            handleStatusChange(habit.id, isCurrentlyJamaat ? 'NONE' : 'JAMAAT');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 14px',
+                            borderRadius: '20px',
+                            border: habit.isCompleted && habit.prayedWithJamaat 
+                              ? '1.5px solid #22c55e' 
+                              : '1px solid var(--c-outline)',
+                            backgroundColor: habit.isCompleted && habit.prayedWithJamaat 
+                              ? 'rgba(34, 197, 94, 0.15)' 
+                              : 'var(--c-surface)',
+                            color: habit.isCompleted && habit.prayedWithJamaat 
+                              ? '#15803d' 
+                              : 'var(--c-on-surface-variant)',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            cursor: isToggling ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.18s ease',
+                          }}
+                        >
+                          <Users size={14} />
+                          With Jama&apos;at
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
+                      <span
+                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 10px', borderRadius: '999px',
-                          border: `1px solid ${habit.prayedWithJamaat ? 'var(--c-secondary)' : 'var(--c-outline-variant)'}`,
-                          background: habit.prayedWithJamaat ? 'var(--c-secondary-container)' : 'transparent',
-                          color: habit.prayedWithJamaat ? 'var(--c-on-secondary-container)' : 'var(--c-on-surface-variant)',
-                          cursor: isToggling ? 'not-allowed' : 'pointer', fontWeight: 600,
+                          border: '2px solid var(--c-primary)',
+                          width: '24px',
+                          height: '24px',
+                          minWidth: '24px',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: habit.isCompleted ? 'var(--c-primary)' : 'none',
+                          cursor: isToggling ? 'not-allowed' : 'pointer',
                         }}
                       >
-                        <Users size={15} /> {habit.prayedWithJamaat ? 'Jamaat' : 'Jamaat?'}
-                      </button>
-                    )}
-                  </div>
+                        {habit.isCompleted && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-primary)', fontWeight: 'bold' }}>check</span>}
+                      </span>
+                      <p
+                        className="text-body-md"
+                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
+                        style={{ fontWeight: 600, margin: 0, cursor: isToggling ? 'not-allowed' : 'pointer', flex: 1 }}
+                      >
+                        {habit.name}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}
