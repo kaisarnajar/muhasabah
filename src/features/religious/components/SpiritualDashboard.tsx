@@ -733,77 +733,8 @@ export default function SpiritualDashboard({
         setActiveStatsDetail={setActiveStatsDetail}
       />
 
-      {/* ADDITIONAL STATISTICS (QURAN & OTHER ACTIVITIES) */}
+      {/* ADDITIONAL STATISTICS (OTHER ACTIVITIES & SHORTCOMINGS) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-        {/* QURAN INSIGHTS */}
-        <div
-          className="card"
-          onClick={() => setActiveStatsDetail({ type: 'quran', title: 'Quran Memorisation Details' })}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            height: '100%',
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
-            border: '1px solid var(--c-outline-variant)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-            e.currentTarget.style.borderColor = 'var(--c-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.borderColor = 'var(--c-outline-variant)';
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <ScrollText color="var(--c-primary)" size={22} />
-            <h3 className="text-title-md" style={{ margin: 0, fontWeight: 700 }}>Quran Memorisation Insights</h3>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div style={{ padding: '14px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Days Completed</span>
-              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--c-on-surface)' }}>{additionalStats.quranDays}</span>
-            </div>
-            
-            <div style={{ padding: '14px', borderRadius: '12px', backgroundColor: 'var(--c-surface-container-low)', border: '1px solid var(--c-outline-variant)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verses Memorised</span>
-              <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--c-secondary)' }}>{additionalStats.totalVerses}</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1 }}>
-            <span style={{ fontSize: '12px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>Surahs Memorised</span>
-            {additionalStats.surahs.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                {additionalStats.surahs.map(sName => (
-                  <span
-                    key={sName}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '20px',
-                      backgroundColor: 'rgba(195, 150, 38, 0.08)',
-                      border: '1px solid rgba(195, 150, 38, 0.2)',
-                      color: 'var(--c-primary)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {sName}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p style={{ fontSize: '13px', color: 'var(--c-on-surface-variant)', margin: 0, fontStyle: 'italic', opacity: 0.7 }}>
-                No surahs memorised during this period.
-              </p>
-            )}
-          </div>
-        </div>
 
         {/* OTHER ACTIVITIES INSIGHTS */}
         <div

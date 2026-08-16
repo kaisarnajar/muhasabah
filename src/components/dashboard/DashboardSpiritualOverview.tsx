@@ -32,7 +32,7 @@ export default function DashboardSpiritualOverview({
         Spiritual Insights (This Month)
       </h4>
 
-      <div style={{ display: 'grid', gridTemplateRows: 'repeat(4, 1fr)', gap: '12px', flexGrow: 1 }}>
+      <div style={{ display: 'grid', gridTemplateRows: 'repeat(3, 1fr)', gap: '12px', flexGrow: 1 }}>
         {/* 1. Prayer Status Card */}
         <Link
           href="/religious"
@@ -66,41 +66,6 @@ export default function DashboardSpiritualOverview({
               </div>
             ))}
           </div>
-        </Link>
-
-        {/* 2. Quran Memorisation Insights Card */}
-        <Link
-          href="/religious"
-          className="card"
-          style={{
-            padding: '12px 16px',
-            borderRadius: '12px',
-            backgroundColor: 'var(--c-surface-container-high)',
-            border: '1px solid var(--c-outline-variant)',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', justifyContent: 'center' }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-secondary)', letterSpacing: '0.05em' }}>
-              QURAN MEMORISATION
-            </span>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'baseline' }}>
-              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
-                {monthlyQuranVerses} <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--c-on-surface-variant)' }}>verses</span>
-              </span>
-              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--c-on-surface)' }}>
-                {monthlyQuranSurahsCount} <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--c-on-surface-variant)' }}>surahs</span>
-              </span>
-            </div>
-          </div>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-surface-variant)' }}>
-            arrow_forward
-          </span>
         </Link>
 
         {/* 3. Good Deeds Log Card */}
