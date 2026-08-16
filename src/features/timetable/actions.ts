@@ -32,7 +32,7 @@ export async function updateTimeTable(formData: FormData) {
   const fields = [
     'wakeUpTime', 'tillSunrise', 'sunriseTillOffice', 
     'officeDeparture', 'officeReturn', 'gymPreference', 
-    'maghribToIsha', 'ishaToHifz', 'sleepTime', 'hifzClassTime'
+    'maghribToIsha', 'ishaTillSleep', 'sleepTime'
   ];
 
   for (const f of fields) {
@@ -54,9 +54,8 @@ export async function updateTimeTable(formData: FormData) {
       officeReturn: updateData.officeReturn || '17:00',
       gymPreference: updateData.gymPreference || 'NONE',
       maghribToIsha: updateData.maghribToIsha || 'Spiritual reading, family time',
-      ishaToHifz: updateData.ishaToHifz || 'Isha prayer and Quran review',
+      ishaTillSleep: updateData.ishaTillSleep || 'Isha prayer, relaxation & family time',
       sleepTime: updateData.sleepTime || '22:30',
-      hifzClassTime: updateData.hifzClassTime || '22:00',
     }
   });
 

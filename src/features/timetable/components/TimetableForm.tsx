@@ -16,9 +16,8 @@ interface TimetableFormProps {
     officeReturn: string;
     gymPreference: string;
     maghribToIsha: string;
-    ishaToHifz: string;
+    ishaTillSleep: string;
     sleepTime: string;
-    hifzClassTime: string;
     latitude?: number | null;
     longitude?: number | null;
     locationName?: string | null;
@@ -59,7 +58,7 @@ const gymOptions = [
   {
     value: 'AFTER_ISHA',
     label: 'After Isha',
-    desc: 'Workout after Isha till Hifz class',
+    desc: 'Workout after Isha till bedtime',
     icon: '🌙',
     badge: 'Evening',
   },
@@ -377,7 +376,6 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
             { key: 'officeReturn',     label: 'Return from Office',   val: initialData.officeReturn,     icon: <Home size={15} color="#0ea5e9" /> },
             { key: 'asrTiming',        label: 'Asr Prayer Timing',    val: initialData.asrTiming === 1 ? 'Later Asr' : 'Earlier Asr', icon: <Sun size={15} color="#f97316" />, rawVal: initialData.asrTiming ?? 0 },
             { key: 'gymPreference',    label: 'Gym Preference',       val: getGymLabel(selectedGym),     icon: <Dumbbell size={15} color="#e11d48" />, rawVal: selectedGym },
-            { key: 'hifzClassTime',    label: 'Hifz Class Time',      val: initialData.hifzClassTime,    icon: <BookOpen size={15} color="#a855f7" /> },
             { key: 'sleepTime',        label: 'Sleep Time',           val: initialData.sleepTime,        icon: <Moon size={15} color="#10b981" /> }
           ].map((item, idx) => (
             <div
@@ -454,11 +452,11 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
             placeholder="e.g., Quran recitation, family time, review of the day..."
           />
           <TextAreaInput
-            name="ishaToHifz"
-            label="What to do from Isha till Quran Hifz Class"
+            name="ishaTillSleep"
+            label="What to do from Isha till Sleep"
             icon={<Moon size={13} />}
-            defaultValue={initialData.ishaToHifz}
-            placeholder="e.g., Dinner, revising Quran portions, Hifz class preparation..."
+            defaultValue={initialData.ishaTillSleep}
+            placeholder="e.g., Dinner, relaxation, reading, family time..."
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

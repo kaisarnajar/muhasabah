@@ -99,14 +99,13 @@ async function main() {
     data: {
       userId: uId,
       wakeUpTime: '05:00',
-      tillSunrise: 'Adhkar, Quran Memorisation & morning reflection',
+      tillSunrise: 'Adhkar & morning reflection',
       sunriseTillOffice: 'Exercise at home, study technical concepts & breakfast',
       officeDeparture: '08:30',
       officeReturn: '17:30',
       gymPreference: 'AFTER_ISHA',
       maghribToIsha: 'Dua class, Arabic grammar revision & family dinner',
-      ishaToHifz: 'Isha prayer, revision of previous Juz, dinner prep',
-      hifzClassTime: '22:00',
+      ishaTillSleep: 'Isha prayer & family dinner prep',
       sleepTime: '22:30',
     },
   });
@@ -157,7 +156,7 @@ async function main() {
   const goalSamples = [
     { title: 'Read 1 Juz of Quran daily', description: 'Keep up with daily Quranic reading goals.', category: GoalCategory.RELIGIOUS },
     { title: 'Pray Fajr in congregation', description: 'Pray congregational Fajr at the masjid.', category: GoalCategory.RELIGIOUS },
-    { title: 'Memorise 2 new pages weekly', description: 'Consistent Hifz progress.', category: GoalCategory.RELIGIOUS },
+    { title: 'Memorise 2 new pages weekly', description: 'Consistent Quranic progress.', category: GoalCategory.RELIGIOUS },
     { title: 'Learn system design patterns', description: 'Improve architecture skills for senior roles.', category: GoalCategory.CAREER },
     { title: 'Build and release side project', description: 'Ship a production-ready mobile app.', category: GoalCategory.CAREER },
     { title: 'Complete DSA revision', description: 'Cover all major data structures and algorithms.', category: GoalCategory.CAREER },
@@ -301,7 +300,7 @@ async function main() {
   // ── Daily Tasks ────────────────────────────────────────────────────────────
   console.log('✅ Seeding Daily Tasks...');
   const taskTitles = [
-    'Review Quran Hifz notes', 'Do 30 min workout', 'Read 20 pages', 'Reply to emails',
+    'Review Quran notes', 'Do 30 min workout', 'Read 20 pages', 'Reply to emails',
     'Study DSA topic', 'Update expense tracker', 'Call family', 'Drink 8 glasses of water',
     'Prepare tomorrow\'s plan', 'Submit daily report', 'Review PR comments', 'Attend standup',
     'Complete LeetCode problem', 'Watch 1 lecture', 'Clean workspace', 'Review goals',
@@ -372,7 +371,7 @@ async function main() {
       { userId: uId, title: 'Project Ideas', content: '1. Personal finance tracker\n2. Quran revision app\n3. Habit streak visualiser\n4. AI-powered journaling assistant', createdAt: getPastDate(10) },
       { userId: uId, title: 'Shopping List', content: '- Milk\n- Eggs\n- Almonds\n- Dates\n- Protein powder', createdAt: getPastDate(3) },
       { userId: uId, title: 'Books to Read', content: '1. Atomic Habits — James Clear\n2. Deep Work — Cal Newport\n3. The Alchemist — Paulo Coelho\n4. Fiqh of Worship — Dr. Hatem al-Haj', createdAt: getPastDate(7) },
-      { userId: uId, title: 'Quran Hifz Plan', content: 'Target: 2 pages new + 5 pages revision daily\nWeek 1: Surah Al-Mulk\nWeek 2: Surah Al-Qiyamah\nWeek 3: Surah Al-Insan', createdAt: getPastDate(14) },
+      { userId: uId, title: 'Quran Revision Plan', content: 'Target: 2 pages new + 5 pages revision daily\nWeek 1: Surah Al-Mulk\nWeek 2: Surah Al-Qiyamah\nWeek 3: Surah Al-Insan', createdAt: getPastDate(14) },
       { userId: uId, title: 'Career Goals 2026', content: '- Get senior developer title\n- Build 2 production-ready side projects\n- Complete system design course\n- Contribute to open source', createdAt: getPastDate(20) },
       { userId: uId, title: 'Daily Dua Reminders', content: 'Morning: Ayatul Kursi + last 2 ayahs of Al-Baqarah\nEvening: Surah Al-Ikhlas x3, Al-Falaq, An-Nas\nBefore sleep: Surah Al-Mulk', createdAt: getPastDate(1) },
     ],
@@ -488,7 +487,7 @@ async function main() {
     { title: 'Monthly Budget Spreadsheet', link: 'https://docs.google.com/spreadsheets/d/example-budget', notes: 'Income vs expense tracker for each month.', folderName: 'Finance' },
     { title: 'Investment Portfolio', link: 'https://docs.google.com/spreadsheets/d/example-portfolio', notes: 'Index fund SIP tracking and returns.', folderName: 'Finance' },
     { title: 'Tax Documents 2025-26', link: 'https://drive.google.com/file/d/example-tax', notes: 'ITR and Form 16 for FY 2025-26.', folderName: 'Finance' },
-    { title: 'Quran Memorisation Tracker', link: 'https://docs.google.com/spreadsheets/d/example-quran-tracker', notes: 'Month-wise Juz progress sheet for Hifz program.', folderName: 'Islamic Resources' },
+    { title: 'Quran Memorisation Tracker', link: 'https://docs.google.com/spreadsheets/d/example-quran-tracker', notes: 'Month-wise Juz progress sheet.', folderName: 'Islamic Resources' },
     { title: 'Islamic Books Reading List', link: 'https://docs.google.com/document/d/example-books', notes: 'Curated list of must-read Islamic books with notes.', folderName: 'Islamic Resources' },
     { title: 'Daily Adhkar Sheet', link: 'https://drive.google.com/file/d/example-adhkar', notes: 'Morning and evening adhkar reference card.', folderName: 'Islamic Resources' },
     { title: 'Passport & ID Scan', link: 'https://drive.google.com/file/d/example-passport', notes: 'Scanned copies of travel and identity documents.', folderName: 'Personal' },

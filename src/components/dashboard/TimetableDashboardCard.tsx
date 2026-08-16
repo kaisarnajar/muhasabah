@@ -11,9 +11,8 @@ interface TimetableData {
   officeReturn: string;
   gymPreference: string;
   maghribToIsha: string;
-  ishaToHifz: string;
+  ishaTillSleep: string;
   sleepTime: string;
-  hifzClassTime: string;
 }
 
 function formatTime(t: string) {
@@ -50,7 +49,6 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
   const depMin  = timeToMinutes(timetable.officeDeparture);
   const retMin  = timeToMinutes(timetable.officeReturn);
   const sleepMin = timeToMinutes(timetable.sleepTime);
-  const hifzClassMin = timeToMinutes(timetable.hifzClassTime);
 
   // Extract prayer times safely (Aladhan API sometimes returns "05:12 (IST)", so we substring)
   const getPT = (name: string) => prayerTimes?.[name] ? timeToMinutes(prayerTimes[name].substring(0, 5)) : null;
@@ -259,20 +257,20 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
       key: 'gym',
       icon: <Dumbbell size={16} />,
       label: 'Gym (After Isha)',
-      time: getPTFmt('Isha') ? `Isha – 10:00 PM` : 'After Isha',
-      desc: 'Evening workout before Hifz class',
+      time: getPTFmt('Isha') ? `After Isha` : 'After Isha',
+      desc: 'Evening workout after Isha prayer',
       color: '#e11d48',
       startMin: ishaMin + 20,
-      endMin: hifzClassMin,
+      endMin: Math.min(ishaMin + 80, sleepMin),
     }] : []),
     {
       key: 'isha',
       icon: <BookOpen size={16} />,
-      label: 'Isha–Hifz',
-      time: getPTFmt('Isha') ? (gym === 'AFTER_ISHA' ? `10:00 PM onwards` : `${getPTFmt('Isha')} onwards`) : 'Isha',
-      desc: timetable.ishaToHifz,
+      label: 'Night Routine',
+      time: getPTFmt('Isha') ? (gym === 'AFTER_ISHA' ? `Post-workout – Sleep` : `${getPTFmt('Isha')} – Sleep`) : 'Night',
+      desc: timetable.ishaTillSleep,
       color: '#a855f7',
-      startMin: gym === 'AFTER_ISHA' ? hifzClassMin : ishaMin + 20,
+      startMin: gym === 'AFTER_ISHA' ? Math.min(ishaMin + 80, sleepMin) : ishaMin + 20,
       endMin: sleepMin,
     },
     {
