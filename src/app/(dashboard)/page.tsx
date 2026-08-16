@@ -1,5 +1,4 @@
 import { getAuthenticatedUser } from '@/features/auth/actions';
-import TasksOfTheDay from '@/components/dashboard/TasksOfTheDay';
 import TimetableDashboardCard from '@/components/dashboard/TimetableDashboardCard';
 import HijriDateDisplay from '@/components/ui/HijriDateDisplay';
 import TopGoalCard from '@/components/dashboard/TopGoalCard';
@@ -786,12 +785,6 @@ export default async function Dashboard() {
           overallNetBalance={overallNetBalance}
         />
 
-      </div>
-
-      <div className="grid-container" style={{ marginTop: '24px' }}>
-        <div className="col-span-12 flex-col gap-24" style={{ alignContent: 'start' }}>
-          <TasksOfTheDay dateStr={todayStr} />
-        </div>
       </div>
     </>
   );
