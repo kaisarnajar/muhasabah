@@ -5,7 +5,6 @@ export const DEFAULT_HABIT_ORDER = [
   'Maghrib',
   'Isha',
   'Azkaar',
-  'Quran Memorisation',
   'Tahajjud',
 ] as const;
 
@@ -25,7 +24,6 @@ export const PRAYER_HABIT_NAMES = new Set<string>([
 
 export const OPTIONAL_HABIT_NAMES = new Set<string>([
   'Tahajjud',
-  'Quran Memorisation',
 ]);
 
 const defaultOrderMap = new Map<string, number>(DEFAULT_HABIT_ORDER.map((name, index) => [name, index]));

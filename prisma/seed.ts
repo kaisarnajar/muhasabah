@@ -184,7 +184,7 @@ async function main() {
 
   // ── Spiritual Habits & Logs ────────────────────────────────────────────────
   console.log('🕌 Seeding Spiritual Habits & Logs...');
-  const habitNames = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Azkaar', 'Quran Memorisation', 'Tahajjud', 'Duha Prayer'];
+  const habitNames = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Azkaar', 'Tahajjud', 'Duha Prayer'];
   const prayers = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha'];
   const seededHabits = [];
   for (const name of habitNames) {
