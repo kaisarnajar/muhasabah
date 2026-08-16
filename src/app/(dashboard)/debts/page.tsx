@@ -10,10 +10,11 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
   const persons = await getPersons();
   const search = searchParams?.search || '';
 
-  // Calculate Net Balances
+  // Calculate Net Balances per person
   // Credit (+): They owe me money.
   // Debit (-): I owe them money.
-  let overallNetBalance = 0;
+  let totalTheyOweMe = 0;
+  let totalIOweThem = 0;
 
   const enrichedPersons = persons.map(person => {
     let netBalance = 0;
@@ -25,7 +26,13 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
         netBalance -= amt;
       }
     });
-    overallNetBalance += netBalance;
+    
+    if (netBalance > 0) {
+      totalTheyOweMe += netBalance;
+    } else if (netBalance < 0) {
+      totalIOweThem += Math.abs(netBalance);
+    }
+
     return { ...person, netBalance };
   });
 
@@ -57,39 +64,81 @@ export default async function DebtsPage(props: { searchParams?: Promise<{ [key: 
         <SearchInput placeholder="Search contacts by name..." />
       </div>
 
-      {/* SINGLE OVERALL NET BALANCE CARD */}
-      <div style={{ marginBottom: '40px' }}>
-        {overallNetBalance > 0 ? (
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', maxWidth: '380px' }}>
-            <div style={{ padding: '16px', backgroundColor: 'var(--c-primary-container)', color: 'var(--c-primary)', borderRadius: '16px' }}>
-              <Wallet size={32} />
-            </div>
-            <div>
-              <span className="text-label-md text-on-surface-variant">They Owe You</span>
-              <h3 className="text-title-md" style={{ color: 'var(--c-primary)', margin: 0 }}>${overallNetBalance.toFixed(2)}</h3>
-            </div>
+      {/* TWO SUMMARY CARDS FOR LEDGER */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '36px' }}>
+        {/* Card 1: They Owe You */}
+        <div 
+          className="card" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px', 
+            padding: '20px',
+            borderRadius: '16px',
+            backgroundColor: 'var(--c-surface-container-low)',
+            border: '1.5px solid rgba(191, 145, 41, 0.3)',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <div 
+            style={{ 
+              padding: '14px', 
+              backgroundColor: 'var(--c-primary-container)', 
+              color: 'var(--c-primary)', 
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Wallet size={26} />
           </div>
-        ) : overallNetBalance < 0 ? (
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', maxWidth: '380px' }}>
-            <div style={{ padding: '16px', backgroundColor: 'var(--c-error-container)', color: 'var(--c-error)', borderRadius: '16px' }}>
-              <Wallet size={32} />
-            </div>
-            <div>
-              <span className="text-label-md text-on-surface-variant">You Owe Them</span>
-              <h3 className="text-title-md" style={{ color: 'var(--c-error)', margin: 0 }}>${Math.abs(overallNetBalance).toFixed(2)}</h3>
-            </div>
+          <div>
+            <span className="text-label-sm text-on-surface-variant" style={{ fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              They Owe You
+            </span>
+            <h3 className="text-title-lg" style={{ color: 'var(--c-primary)', margin: '2px 0 0 0', fontWeight: 850, fontSize: '24px' }}>
+              ${totalTheyOweMe.toFixed(2)}
+            </h3>
           </div>
-        ) : (
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '20px', maxWidth: '380px' }}>
-            <div style={{ padding: '16px', backgroundColor: 'var(--c-surface-variant)', color: 'var(--c-on-surface)', borderRadius: '16px' }}>
-              <Wallet size={32} />
-            </div>
-            <div>
-              <span className="text-label-md text-on-surface-variant">Overall Settled</span>
-              <h3 className="text-title-md" style={{ color: 'var(--c-on-surface)', margin: 0 }}>$0.00</h3>
-            </div>
+        </div>
+
+        {/* Card 2: You Owe Them */}
+        <div 
+          className="card" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px', 
+            padding: '20px',
+            borderRadius: '16px',
+            backgroundColor: 'var(--c-surface-container-low)',
+            border: '1.5px solid rgba(239, 68, 68, 0.3)',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+          <div 
+            style={{ 
+              padding: '14px', 
+              backgroundColor: 'var(--c-error-container)', 
+              color: 'var(--c-error)', 
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Wallet size={26} />
           </div>
-        )}
+          <div>
+            <span className="text-label-sm text-on-surface-variant" style={{ fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              You Owe Them
+            </span>
+            <h3 className="text-title-lg" style={{ color: 'var(--c-error)', margin: '2px 0 0 0', fontWeight: 850, fontSize: '24px' }}>
+              ${totalIOweThem.toFixed(2)}
+            </h3>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>

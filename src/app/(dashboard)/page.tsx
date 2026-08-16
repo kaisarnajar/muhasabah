@@ -204,18 +204,25 @@ export default async function Dashboard() {
     }
   }
 
-  // Calculate Net Balances for Ledger
-  let overallNetBalance = 0;
+  // Calculate Net Balances for Ledger per person
+  let totalTheyOweMe = 0;
+  let totalIOweThem = 0;
 
   persons.forEach(person => {
+    let personNet = 0;
     person.debts.forEach(debt => {
       const amt = Number(debt.amount);
       if (debt.type === 'CREDIT') {
-        overallNetBalance += amt;
+        personNet += amt;
       } else {
-        overallNetBalance -= amt;
+        personNet -= amt;
       }
     });
+    if (personNet > 0) {
+      totalTheyOweMe += personNet;
+    } else if (personNet < 0) {
+      totalIOweThem += Math.abs(personNet);
+    }
   });
 
   // Calculate overdue periodic trackers (exceeding 35 days)
@@ -787,7 +794,8 @@ export default async function Dashboard() {
 
         {/* LEDGER SUMMARY */}
         <DashboardLedgerOverview
-          overallNetBalance={overallNetBalance}
+          totalTheyOweMe={totalTheyOweMe}
+          totalIOweThem={totalIOweThem}
         />
 
       </div>
