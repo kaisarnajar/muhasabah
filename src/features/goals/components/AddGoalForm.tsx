@@ -90,12 +90,12 @@ export function AddGoalForm({ activeCategory }: { activeCategory: GoalCategory |
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <label className="text-label-sm text-on-surface-variant" style={{ fontWeight: 600 }}>Description (Optional)</label>
-                <input 
-                  type="text" 
+                <textarea 
                   name="description"
+                  rows={4}
                   placeholder="Additional details..." 
                   className="search-input"
-                  style={{ width: '100%', borderRadius: '8px' }}
+                  style={{ width: '100%', borderRadius: '8px', fontFamily: 'inherit', resize: 'vertical', minHeight: '90px' }}
                 />
               </div>
 

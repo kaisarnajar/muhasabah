@@ -80,7 +80,7 @@ export function GoalsDashboard({ goals }: { goals: Goal[] }) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
         {paginatedGoals.map(goal => (
           <GoalItem 
             key={goal.id} 
@@ -351,12 +351,13 @@ export function GoalsDashboard({ goals }: { goals: Goal[] }) {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <label className="text-label-sm text-on-surface-variant" style={{ fontWeight: 600 }}>Description (Optional)</label>
-                <input 
-                  type="text" 
+                <textarea 
                   name="description"
+                  rows={4}
                   defaultValue={selectedGoal.description || ''}
+                  placeholder="Additional details..."
                   className="search-input"
-                  style={{ width: '100%', borderRadius: '8px' }}
+                  style={{ width: '100%', borderRadius: '8px', fontFamily: 'inherit', resize: 'vertical', minHeight: '90px' }}
                 />
               </div>
 
