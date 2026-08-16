@@ -21,6 +21,14 @@ export async function seedDefaultSpiritualHabits() {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');
 
+  // Purge any existing Quran Memorisation habit from database
+  await prisma.spiritualHabit.deleteMany({
+    where: {
+      userId: user.id,
+      name: { in: ['Quran Memorisation', 'Quran Memorization'] },
+    },
+  });
+
   await prisma.spiritualHabit.createMany({
     data: DEFAULT_HABIT_ORDER.map(name => ({ name, userId: user.id })),
     skipDuplicates: true,

@@ -3,10 +3,9 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Moon, CheckCircle2, Plus, X, Users } from 'lucide-react';
-import { toggleSpiritualHabit, setPrayerJamaat, updateQuranMemorization, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
+import { toggleSpiritualHabit, setPrayerJamaat, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
 import { useToast } from '@/context/ToastContext';
 import { PRAYER_HABIT_NAMES } from '@/lib/spiritualHabits';
-import { QURAN_SURAHS } from '@/lib/quranData';
 
 interface HabitStatus {
   id: number;
@@ -35,34 +34,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
   const isToday = getTodayDateString() === dateStr;
   const formattedDisplayDate = formatDateForDisplay(dateStr);
 
-  const [selectedSurahNum, setSelectedSurahNum] = useState<number>(() => {
-    if (initialTodayData.quranMemorization) {
-      try {
-        const parsed = JSON.parse(initialTodayData.quranMemorization);
-        return parsed?.surahNumber || 1;
-      } catch {}
-    }
-    return 1;
-  });
-  const [fromVerse, setFromVerse] = useState<number>(() => {
-    if (initialTodayData.quranMemorization) {
-      try {
-        const parsed = JSON.parse(initialTodayData.quranMemorization);
-        return parsed?.fromVerse || 1;
-      } catch {}
-    }
-    return 1;
-  });
-  const [toVerse, setToVerse] = useState<number>(() => {
-    if (initialTodayData.quranMemorization) {
-      try {
-        const parsed = JSON.parse(initialTodayData.quranMemorization);
-        return parsed?.toVerse || 1;
-      } catch {}
-    }
-    return 1;
-  });
-
   const [otherActivities, setOtherActivities] = useState<string>(initialTodayData.otherActivities || '');
   const [shortcomings, setShortcomings] = useState<string>(initialTodayData.shortcomings || '');
   const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -70,20 +41,12 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
 
   if (!isOpen) return null;
 
-  const handleSurahChange = (num: number) => {
-    setSelectedSurahNum(num);
-    setFromVerse(1);
-    setToVerse(1);
-  };
+
 
   const handleToggle = async (habitId: number, currentCompleted: boolean) => {
     setTogglingId(habitId);
     try {
       await toggleSpiritualHabit(dateStr, habitId, currentCompleted);
-      const habit = initialTodayData.habits.find(h => h.id === habitId);
-      if (habit?.name === 'Quran Memorisation' && currentCompleted) {
-        await updateQuranMemorization(dateStr, '');
-      }
     } catch (error) {
       console.error(error);
       showToast('Failed to update habit status.', 'error');
@@ -107,18 +70,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
   const handleSaveAll = async () => {
     setSavingAll(true);
     try {
-      const quranHabit = initialTodayData.habits.find(h => h.name === 'Quran Memorisation');
-      if (quranHabit?.isCompleted) {
-        const payload = JSON.stringify({
-          surahNumber: selectedSurahNum,
-          fromVerse,
-          toVerse
-        });
-        await updateQuranMemorization(dateStr, payload);
-      } else {
-        await updateQuranMemorization(dateStr, '');
-      }
-
       await updateOtherActivities(dateStr, otherActivities);
       await updateShortcomings(dateStr, shortcomings);
 
@@ -163,9 +114,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
             {initialTodayData.habits.map((habit) => {
               const isToggling = togglingId === habit.id;
               const isPrayer = PRAYER_HABIT_NAMES.has(habit.name);
-              const isQuranMemorisation = habit.name === 'Quran Memorisation';
-              const currentSurah = QURAN_SURAHS.find(s => s.number === selectedSurahNum);
-              const maxAyahs = currentSurah ? currentSurah.numberOfAyahs : 286;
 
               return (
                 <div
@@ -225,102 +173,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                       </button>
                     )}
                   </div>
-
-                  {/* Expandable Quran Memorisation Fields */}
-                  {isQuranMemorisation && habit.isCompleted && (
-                    <div style={{
-                      marginTop: '4px',
-                      padding: '16px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--c-surface)',
-                      border: '1px solid var(--c-outline-variant)',
-                      width: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px',
-                    }}>
-                      <p className="text-label-sm text-primary" style={{ margin: 0, fontWeight: 700, letterSpacing: '0.05em' }}>
-                        Record Memorisation Details
-                      </p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>Surah</span>
-                          <select
-                            value={selectedSurahNum}
-                            onChange={(e) => handleSurahChange(Number(e.target.value))}
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid var(--c-outline)',
-                              backgroundColor: 'var(--c-surface-container-high)',
-                              color: 'var(--c-on-surface)',
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              outline: 'none',
-                            }}
-                          >
-                            {QURAN_SURAHS.map((s) => (
-                              <option key={s.number} value={s.number}>
-                                {s.number}. {s.englishName} ({s.numberOfAyahs} ayahs)
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>From Ayah</span>
-                          <select
-                            value={fromVerse}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              setFromVerse(val);
-                              if (toVerse < val) setToVerse(val);
-                            }}
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid var(--c-outline)',
-                              backgroundColor: 'var(--c-surface-container-high)',
-                              color: 'var(--c-on-surface)',
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              outline: 'none',
-                            }}
-                          >
-                            {Array.from({ length: maxAyahs }, (_, i) => i + 1).map((v) => (
-                              <option key={v} value={v}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--c-on-surface-variant)', fontWeight: 600 }}>To Ayah</span>
-                          <select
-                            value={toVerse}
-                            onChange={(e) => setToVerse(Number(e.target.value))}
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              border: '1px solid var(--c-outline)',
-                              backgroundColor: 'var(--c-surface-container-high)',
-                              color: 'var(--c-on-surface)',
-                              fontSize: '13px',
-                              fontWeight: 600,
-                              outline: 'none',
-                            }}
-                          >
-                            {Array.from({ length: maxAyahs - fromVerse + 1 }, (_, i) => i + fromVerse).map((v) => (
-                              <option key={v} value={v}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}

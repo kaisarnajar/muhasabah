@@ -5,7 +5,6 @@ export const DEFAULT_HABIT_ORDER = [
   'Maghrib',
   'Isha',
   'Azkaar',
-  'Tahajjud',
 ] as const;
 
 export const DEFAULT_HABIT_NAMES = new Set<string>(DEFAULT_HABIT_ORDER);
