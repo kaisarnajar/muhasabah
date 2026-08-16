@@ -11,7 +11,7 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { getUpcomingIslamicEvents } from '@/lib/islamicEvents';
 import { getPrayerTimesAndMaghribStatus } from '@/features/timetable/actions';
-import { getTodayDateString } from '@/lib/dateUtils';
+import { getTodayDateString, getLocalDateString } from '@/lib/dateUtils';
 
 export default async function Dashboard() {
   const sessionUser = await getAuthenticatedUser();
@@ -133,12 +133,17 @@ export default async function Dashboard() {
     .reduce((acc, t) => acc + Number(t.amount), 0);
 
   const monthlyLogs = habitLogs.filter(l => new Date(l.date) >= startOfMonth);
+  const totalDaysElapsed = Math.max(1, now.getDate());
   const prayers = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Tahajjud'];
+
   const monthlyPrayerStats = prayers.map(p => {
-    const pLogs = monthlyLogs.filter(l => l.habit.name === p);
-    const completed = pLogs.filter(l => l.isCompleted).length;
-    const total = pLogs.length || 1;
-    const rate = Math.round((completed / total) * 100);
+    const pLogs = monthlyLogs.filter(l => l.habit.name === p && l.isCompleted);
+    const completedDates = new Set(
+      pLogs.map(l => getLocalDateString(l.date, 'UTC'))
+    );
+    const completed = completedDates.size;
+    const total = totalDaysElapsed;
+    const rate = Math.min(100, Math.round((completed / total) * 100));
     return { name: p, rate };
   });
 

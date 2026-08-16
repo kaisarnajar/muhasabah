@@ -141,8 +141,15 @@ export default function SpiritualDashboard({
     const prayers = ['Fajr', 'Zuhur', 'Asr', 'Maghrib', 'Isha', 'Tahajjud'];
     const stats: Record<string, { completed: number; jamaat: number; total: number }> = {};
     
+    // Calculate total elapsed days in selected date window
+    const now = new Date();
+    const rangeStart = startLimit || new Date(now.getFullYear(), now.getMonth(), 1);
+    const rangeEnd = (endLimit && endLimit < now) ? endLimit : now;
+    const diffMs = Math.max(0, rangeEnd.getTime() - rangeStart.getTime());
+    const windowDays = Math.max(1, Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1);
+
     prayers.forEach(p => {
-      stats[p] = { completed: 0, jamaat: 0, total: 0 };
+      stats[p] = { completed: 0, jamaat: 0, total: windowDays };
     });
 
     // 1. Gather historical data
@@ -158,7 +165,6 @@ export default function SpiritualDashboard({
 
       prayers.forEach(p => {
         const habit = record.habits.find(h => h.name === p);
-        stats[p].total += 1;
         if (habit?.isCompleted) {
           stats[p].completed += 1;
           if (habit.prayedWithJamaat) {
@@ -177,17 +183,19 @@ export default function SpiritualDashboard({
     if (includeToday) {
       prayers.forEach(p => {
         const habit = initialTodayData.habits.find(h => h.name === p);
-        if (habit) {
-          stats[p].total += 1;
-          if (habit.isCompleted) {
-            stats[p].completed += 1;
-            if (habit.prayedWithJamaat) {
-              stats[p].jamaat += 1;
-            }
+        if (habit?.isCompleted) {
+          stats[p].completed += 1;
+          if (habit.prayedWithJamaat) {
+            stats[p].jamaat += 1;
           }
         }
       });
     }
+
+    // Ensure completed does not exceed total
+    prayers.forEach(p => {
+      stats[p].completed = Math.min(stats[p].completed, stats[p].total);
+    });
 
     return stats;
   };
