@@ -80,7 +80,7 @@ export function GoalsDashboard({ goals }: { goals: Goal[] }) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
         {paginatedGoals.map(goal => (
           <GoalItem 
             key={goal.id} 
