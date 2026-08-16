@@ -54,7 +54,7 @@ export default async function TimetablePage() {
       </div>
 
       <div className="w-full">
-        <TimetableForm initialData={initialData} />
+        <TimetableForm initialData={initialData} prayerTimes={prayerTimes} />
       </div>
     </div>
   );

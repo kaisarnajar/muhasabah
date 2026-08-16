@@ -24,6 +24,7 @@ interface TimetableFormProps {
     calculationMethod?: number;
     asrTiming?: number;
   };
+  prayerTimes?: Record<string, string> | null;
 }
 
 const gymOptions = [
@@ -130,10 +131,32 @@ const calculationMethods = [
   { id: 14, name: 'Spiritual Administration of Muslims of Russia' }
 ];
 
-export default function TimetableForm({ initialData }: TimetableFormProps) {
+export default function TimetableForm({ initialData, prayerTimes }: TimetableFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
   
+  // Compute Isha End Time (Exactly half duration between Sunset/Maghrib and Fajr)
+  let ishaEndDisplay = '';
+  if (prayerTimes?.Fajr && (prayerTimes.Sunset || prayerTimes.Maghrib)) {
+    const parseM = (t: string) => {
+      const clean = t.substring(0, 5);
+      const [h, m] = clean.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const maghribM = parseM(prayerTimes.Sunset || prayerTimes.Maghrib);
+    const fajrM = parseM(prayerTimes.Fajr);
+    let nDuration = (1440 - maghribM) + fajrM;
+    if (nDuration >= 1440) nDuration -= 1440;
+    const halfNight = Math.floor(nDuration / 2);
+    let endM = maghribM + halfNight;
+    if (endM >= 1440) endM -= 1440;
+    const endH = Math.floor(endM / 60);
+    const endMin = endM % 60;
+    const endAmpm = endH >= 12 ? 'PM' : 'AM';
+    const endHour12 = endH % 12 || 12;
+    ishaEndDisplay = `${endHour12}:${String(endMin).padStart(2, '0')} ${endAmpm}`;
+  }
+
   const [locLoading, setLocLoading] = useState(false);
   const [hasLocation, setHasLocation] = useState(!!initialData.latitude);
   const [locationName, setLocationName] = useState<string | null>(initialData.locationName || null);
@@ -357,6 +380,21 @@ export default function TimetableForm({ initialData }: TimetableFormProps) {
               ))}
             </select>
           </div>
+
+          {/* Isha End Time Banner */}
+          {ishaEndDisplay && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', borderTop: '1px solid var(--c-outline-variant)', paddingTop: '16px' }}>
+              <Moon size={16} color="#ec4899" />
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-on-surface)' }}>
+                  Isha End Time (Islamic Midnight): <span style={{ color: '#ec4899' }}>{ishaEndDisplay}</span>
+                </span>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--c-on-surface-variant)' }}>
+                  Calculated as exact midpoint between Sunset ({prayerTimes?.Sunset || prayerTimes?.Maghrib}) and Fajr ({prayerTimes?.Fajr}).
+                </p>
+              </div>
+            </div>
+          )}
           {/* Asr Timing Preference */}
         </div>
       </div>

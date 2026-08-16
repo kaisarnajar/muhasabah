@@ -59,6 +59,18 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
   const maghribMin = getPT('Maghrib') || retMin + 60;
   const ishaMin = getPT('Isha') || retMin + 180;
 
+  // Isha End Time Calculation: Exactly half of duration between Sunset/Maghrib and Fajr
+  const sunsetMin = getPT('Sunset') || maghribMin;
+  let nightDurationMins = (1440 - sunsetMin) + fajrMin;
+  if (nightDurationMins >= 1440) nightDurationMins -= 1440;
+  const halfNightMins = Math.floor(nightDurationMins / 2);
+  let ishaEndMin = sunsetMin + halfNightMins;
+  if (ishaEndMin >= 1440) ishaEndMin -= 1440;
+
+  const ishaEndH = Math.floor(ishaEndMin / 60);
+  const ishaEndM = ishaEndMin % 60;
+  const ishaEndStr = `${String(ishaEndH).padStart(2, '0')}:${String(ishaEndM).padStart(2, '0')}`;
+
   type Slot = {
     key: string;
     icon: React.ReactNode;
@@ -253,6 +265,16 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
       startMin: ishaMin,
       endMin: ishaMin + 20,
     },
+    ...(prayerTimes ? [{
+      key: 'isha-end-time',
+      icon: <Moon size={16} />,
+      label: 'Isha End Time',
+      time: formatTime(ishaEndStr),
+      desc: 'End of Isha time (Exact half of Sunset to Fajr)',
+      color: '#ec4899',
+      startMin: ishaEndMin - 10,
+      endMin: ishaEndMin + 10,
+    }] : []),
     ...(gym === 'AFTER_ISHA' ? [{
       key: 'gym',
       icon: <Dumbbell size={16} />,
@@ -297,6 +319,11 @@ export default function TimetableDashboardCard({ timetable, prayerTimes }: { tim
           Today&apos;s Time Table
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {prayerTimes && (
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#ec4899', backgroundColor: 'rgba(236,72,153,0.1)', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(236,72,153,0.3)' }}>
+              🌙 Isha Ends: {formatTime(ishaEndStr)}
+            </span>
+          )}
           {activeSlot && (
             <span style={{ fontSize: '12px', fontWeight: 600, color: activeSlot.color, backgroundColor: `${activeSlot.color}18`, padding: '4px 12px', borderRadius: '20px', border: `1px solid ${activeSlot.color}40` }}>
               Now: {activeSlot.label}
