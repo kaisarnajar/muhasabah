@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Moon, Plus, X, Users, User, CheckCircle2 } from 'lucide-react';
 import { toggleSpiritualHabit, setPrayerStatus, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
@@ -34,19 +34,29 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
   const isToday = getTodayDateString() === dateStr;
   const formattedDisplayDate = formatDateForDisplay(dateStr);
 
+  const [habits, setHabits] = useState<HabitStatus[]>(initialTodayData.habits);
   const [otherActivities, setOtherActivities] = useState<string>(initialTodayData.otherActivities || '');
   const [shortcomings, setShortcomings] = useState<string>(initialTodayData.shortcomings || '');
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [savingAll, setSavingAll] = useState(false);
 
+  useEffect(() => {
+    setHabits(initialTodayData.habits);
+    setOtherActivities(initialTodayData.otherActivities || '');
+    setShortcomings(initialTodayData.shortcomings || '');
+  }, [initialTodayData, isOpen]);
+
   if (!isOpen) return null;
 
   const handleToggle = async (habitId: number, currentCompleted: boolean) => {
+    const nextCompleted = !currentCompleted;
+    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: nextCompleted } : h));
     setTogglingId(habitId);
     try {
       await toggleSpiritualHabit(dateStr, habitId, currentCompleted);
     } catch (error) {
       console.error(error);
+      setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: currentCompleted } : h));
       showToast('Failed to update habit status.', 'error');
     } finally {
       setTogglingId(null);
@@ -54,11 +64,19 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
   };
 
   const handleStatusChange = async (habitId: number, status: 'NONE' | 'INDIVIDUAL' | 'JAMAAT') => {
+    const nextCompleted = status !== 'NONE';
+    const nextJamaat = status === 'JAMAAT';
+    const prevHabit = habits.find(h => h.id === habitId);
+
+    setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: nextCompleted, prayedWithJamaat: nextJamaat } : h));
     setTogglingId(habitId);
     try {
       await setPrayerStatus(dateStr, habitId, status);
     } catch (error) {
       console.error(error);
+      if (prevHabit) {
+        setHabits(prev => prev.map(h => h.id === habitId ? prevHabit : h));
+      }
       showToast('Failed to update prayer status.', 'error');
     } finally {
       setTogglingId(null);
@@ -103,13 +121,13 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
           {formattedDisplayDate}
         </p>
 
-        {initialTodayData.habits.length === 0 ? (
+        {habits.length === 0 ? (
           <div style={{ padding: '32px', textAlign: 'center', backgroundColor: 'var(--c-surface-container-low)', border: '1px dashed var(--c-outline)', borderRadius: '12px' }}>
             <p className="text-on-surface-variant" style={{ margin: 0 }}>No habits added yet. Click &quot;Manage Habits&quot; to create tracking tasks!</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {initialTodayData.habits.map((habit) => {
+            {habits.map((habit) => {
               const isToggling = togglingId === habit.id;
               const isPrayer = PRAYER_HABIT_NAMES.has(habit.name);
 
