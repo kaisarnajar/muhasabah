@@ -231,6 +231,61 @@ export async function updateOtherActivities(dateStr: string, notes: string) {
   revalidatePath('/religious');
 }
 
+export async function saveSpiritualDayData(
+  dateStr: string,
+  habits: Array<{ id: number; isCompleted: boolean; prayedWithJamaat: boolean }>,
+  otherActivities: string,
+  shortcomings: string
+) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const date = parseLocalDate(dateStr);
+
+  const userHabits = await prisma.spiritualHabit.findMany({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+  const validHabitIdSet = new Set(userHabits.map(h => h.id));
+
+  const habitUpdates = habits
+    .filter(h => validHabitIdSet.has(h.id))
+    .map(h =>
+      prisma.spiritualHabitLog.upsert({
+        where: { habitId_date: { habitId: h.id, date } },
+        update: {
+          isCompleted: h.isCompleted,
+          prayedWithJamaat: h.prayedWithJamaat,
+        },
+        create: {
+          habitId: h.id,
+          date,
+          isCompleted: h.isCompleted,
+          prayedWithJamaat: h.prayedWithJamaat,
+        },
+      })
+    );
+
+  await Promise.all([
+    ...habitUpdates,
+    prisma.spiritualDayLog.upsert({
+      where: { userId_date: { userId: user.id, date } },
+      update: {
+        otherActivities: otherActivities.trim() || null,
+        shortcomings: shortcomings.trim() || null,
+      },
+      create: {
+        userId: user.id,
+        date,
+        otherActivities: otherActivities.trim() || null,
+        shortcomings: shortcomings.trim() || null,
+      },
+    }),
+  ]);
+
+  revalidatePath('/religious');
+}
+
 export async function updateShortcomings(dateStr: string, notes: string) {
   const user = await getAuthenticatedUser();
   if (!user) throw new Error('Unauthorized');

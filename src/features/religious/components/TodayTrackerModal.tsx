@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Moon, Plus, X, Users, User, CheckCircle2 } from 'lucide-react';
-import { toggleSpiritualHabit, setPrayerStatus, updateOtherActivities, updateShortcomings } from '@/features/religious/actions';
+import { saveSpiritualDayData } from '@/features/religious/actions';
 import { useToast } from '@/context/ToastContext';
 import { PRAYER_HABIT_NAMES } from '@/lib/spiritualHabits';
 
@@ -37,7 +37,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
   const [habits, setHabits] = useState<HabitStatus[]>(initialTodayData.habits);
   const [otherActivities, setOtherActivities] = useState<string>(initialTodayData.otherActivities || '');
   const [shortcomings, setShortcomings] = useState<string>(initialTodayData.shortcomings || '');
-  const [togglingId, setTogglingId] = useState<number | null>(null);
   const [savingAll, setSavingAll] = useState(false);
 
   useEffect(() => {
@@ -48,46 +47,21 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
 
   if (!isOpen) return null;
 
-  const handleToggle = async (habitId: number, currentCompleted: boolean) => {
+  const handleToggle = (habitId: number, currentCompleted: boolean) => {
     const nextCompleted = !currentCompleted;
     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: nextCompleted } : h));
-    setTogglingId(habitId);
-    try {
-      await toggleSpiritualHabit(dateStr, habitId, currentCompleted);
-    } catch (error) {
-      console.error(error);
-      setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: currentCompleted } : h));
-      showToast('Failed to update habit status.', 'error');
-    } finally {
-      setTogglingId(null);
-    }
   };
 
-  const handleStatusChange = async (habitId: number, status: 'NONE' | 'INDIVIDUAL' | 'JAMAAT') => {
+  const handleStatusChange = (habitId: number, status: 'NONE' | 'INDIVIDUAL' | 'JAMAAT') => {
     const nextCompleted = status !== 'NONE';
     const nextJamaat = status === 'JAMAAT';
-    const prevHabit = habits.find(h => h.id === habitId);
-
     setHabits(prev => prev.map(h => h.id === habitId ? { ...h, isCompleted: nextCompleted, prayedWithJamaat: nextJamaat } : h));
-    setTogglingId(habitId);
-    try {
-      await setPrayerStatus(dateStr, habitId, status);
-    } catch (error) {
-      console.error(error);
-      if (prevHabit) {
-        setHabits(prev => prev.map(h => h.id === habitId ? prevHabit : h));
-      }
-      showToast('Failed to update prayer status.', 'error');
-    } finally {
-      setTogglingId(null);
-    }
   };
 
   const handleSaveAll = async () => {
     setSavingAll(true);
     try {
-      await updateOtherActivities(dateStr, otherActivities);
-      await updateShortcomings(dateStr, shortcomings);
+      await saveSpiritualDayData(dateStr, habits, otherActivities, shortcomings);
 
       showToast('Spiritual tracker progress saved!', 'success');
       onClose();
@@ -128,7 +102,6 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {habits.map((habit) => {
-              const isToggling = togglingId === habit.id;
               const isPrayer = PRAYER_HABIT_NAMES.has(habit.name);
 
               return (
@@ -142,7 +115,7 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                     borderRadius: '12px',
                     backgroundColor: habit.isCompleted ? 'rgba(195, 150, 38, 0.06)' : 'var(--c-surface-container-low)',
                     border: `1px solid ${habit.isCompleted ? 'var(--c-primary)' : 'var(--c-outline-variant)'}`,
-                    opacity: isToggling ? 0.7 : 1,
+                    opacity: savingAll ? 0.7 : 1,
                     transition: 'all 0.18s ease',
                   }}
                 >
@@ -160,9 +133,9 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                         {/* Individual Option */}
                         <button
                           type="button"
-                          disabled={isToggling}
+                          disabled={savingAll}
                           onClick={() => {
-                            if (isToggling) return;
+                            if (savingAll) return;
                             const isCurrentlyIndividual = habit.isCompleted && !habit.prayedWithJamaat;
                             handleStatusChange(habit.id, isCurrentlyIndividual ? 'NONE' : 'INDIVIDUAL');
                           }}
@@ -183,7 +156,7 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                               : 'var(--c-on-surface-variant)',
                             fontSize: '13px',
                             fontWeight: 700,
-                            cursor: isToggling ? 'not-allowed' : 'pointer',
+                            cursor: savingAll ? 'not-allowed' : 'pointer',
                             transition: 'all 0.18s ease',
                           }}
                         >
@@ -194,9 +167,9 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                         {/* With Jamaat Option */}
                         <button
                           type="button"
-                          disabled={isToggling}
+                          disabled={savingAll}
                           onClick={() => {
-                            if (isToggling) return;
+                            if (savingAll) return;
                             const isCurrentlyJamaat = habit.isCompleted && habit.prayedWithJamaat;
                             handleStatusChange(habit.id, isCurrentlyJamaat ? 'NONE' : 'JAMAAT');
                           }}
@@ -217,7 +190,7 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                               : 'var(--c-on-surface-variant)',
                             fontSize: '13px',
                             fontWeight: 700,
-                            cursor: isToggling ? 'not-allowed' : 'pointer',
+                            cursor: savingAll ? 'not-allowed' : 'pointer',
                             transition: 'all 0.18s ease',
                           }}
                         >
@@ -229,7 +202,7 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '100%' }}>
                       <span
-                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
+                        onClick={() => !savingAll && handleToggle(habit.id, habit.isCompleted)}
                         style={{
                           border: '2px solid var(--c-primary)',
                           width: '24px',
@@ -240,15 +213,15 @@ export default function TodayTrackerModal({ isOpen, onClose, dateStr, initialTod
                           alignItems: 'center',
                           justifyContent: 'center',
                           background: habit.isCompleted ? 'var(--c-primary)' : 'none',
-                          cursor: isToggling ? 'not-allowed' : 'pointer',
+                          cursor: savingAll ? 'not-allowed' : 'pointer',
                         }}
                       >
                         {habit.isCompleted && <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--c-on-primary)', fontWeight: 'bold' }}>check</span>}
                       </span>
                       <p
                         className="text-body-md"
-                        onClick={() => !isToggling && handleToggle(habit.id, habit.isCompleted)}
-                        style={{ fontWeight: 600, margin: 0, cursor: isToggling ? 'not-allowed' : 'pointer', flex: 1 }}
+                        onClick={() => !savingAll && handleToggle(habit.id, habit.isCompleted)}
+                        style={{ fontWeight: 600, margin: 0, cursor: savingAll ? 'not-allowed' : 'pointer', flex: 1 }}
                       >
                         {habit.name}
                       </p>
