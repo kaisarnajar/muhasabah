@@ -109,7 +109,7 @@ export default function RecurringTrackers({ initialTrackers }: { initialTrackers
     if (!lastDoneDate) return 'Never completed';
 
     const d = new Date(lastDoneDate);
-    const localD = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const localD = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
     
     const now = new Date();
     const localToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
