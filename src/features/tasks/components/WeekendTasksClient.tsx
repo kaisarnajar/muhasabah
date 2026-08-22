@@ -108,6 +108,12 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
   const activePage = currentPage > totalPages ? totalPages : currentPage;
   const paginatedTasks = initialTasks.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
 
+  // Pagination Logic for History Table Weeks
+  const WEEKS_PAGE_SIZE = 10;
+  const totalWeekPages = Math.ceil(weeks.length / WEEKS_PAGE_SIZE) || 1;
+  const activeWeekPage = currentPage > totalWeekPages ? totalWeekPages : currentPage;
+  const paginatedWeeks = weeks.slice((activeWeekPage - 1) * WEEKS_PAGE_SIZE, activeWeekPage * WEEKS_PAGE_SIZE);
+
   return (
     <div>
       {/* PAGE HEADER (Always visible, stays fixed at the top) */}
@@ -235,10 +241,10 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
                 </tr>
               </thead>
               <tbody>
-                {weeks.map((week, idx) => {
+                {paginatedWeeks.map((week) => {
                   const weekDateStr = week.toISOString().split('T')[0];
                   const weekLabel = getWeekLabel(week);
-                  const isCurrentWeek = idx === 0;
+                  const isCurrentWeek = weekDateStr === currentWeekStr;
                   
                   return (
                     <tr key={weekDateStr} style={{ backgroundColor: isCurrentWeek ? 'var(--c-surface-container-high)' : 'transparent', borderBottom: '1px solid var(--c-outline-variant)' }}>
@@ -351,6 +357,47 @@ export default function WeekendTasksClient({ initialTasks }: { initialTasks: Tas
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls for History Table */}
+          {totalWeekPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
+              <button 
+                disabled={activeWeekPage <= 1}
+                onClick={() => setCurrentPage(activeWeekPage - 1)}
+                className="primary-btn" 
+                style={{ 
+                  padding: '8px 16px', 
+                  backgroundColor: activeWeekPage <= 1 ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', 
+                  color: activeWeekPage <= 1 ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', 
+                  opacity: activeWeekPage <= 1 ? 0.5 : 1, 
+                  cursor: activeWeekPage <= 1 ? 'not-allowed' : 'pointer', 
+                  boxShadow: 'none' 
+                }}
+              >
+                Previous
+              </button>
+              
+              <span className="text-body-md text-on-surface-variant" style={{ fontWeight: 600 }}>
+                Page {activeWeekPage} of {totalWeekPages}
+              </span>
+
+              <button 
+                disabled={activeWeekPage >= totalWeekPages}
+                onClick={() => setCurrentPage(activeWeekPage + 1)}
+                className="primary-btn" 
+                style={{ 
+                  padding: '8px 16px', 
+                  backgroundColor: activeWeekPage >= totalWeekPages ? 'var(--c-surface-container-lowest)' : 'var(--c-surface-container-high)', 
+                  color: activeWeekPage >= totalWeekPages ? 'var(--c-on-surface-variant)' : 'var(--c-on-surface)', 
+                  opacity: activeWeekPage >= totalWeekPages ? 0.5 : 1, 
+                  cursor: activeWeekPage >= totalWeekPages ? 'not-allowed' : 'pointer', 
+                  boxShadow: 'none' 
+                }}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 
